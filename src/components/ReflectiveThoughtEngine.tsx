@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type React from 'react';
-import { Play, CheckCircle2, Database, Terminal, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
+import { Play, CheckCircle2, Database, Terminal, ArrowRight, ShieldCheck, Sparkles, RefreshCw } from 'lucide-react';
 import type { AgentProfile, AgentId, WalrusMemoryItem } from '../types';
 import { agentEngine } from '../services/agentEngine';
 
@@ -33,32 +33,32 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
   const initialSteps: StepState[] = [
     {
       index: 1,
-      title: '1. Tatum Sui RPC Observation',
-      subtitle: 'Query live Sui mainnet state, checkpoint, and Cetus pool liquidity',
+      title: 'Tatum Sui RPC State Observation',
+      subtitle: 'Query live Sui mainnet state, checkpoint, and Cetus pool depth',
       status: 'pending'
     },
     {
       index: 2,
-      title: '2. Uncalibrated Hypothesis H_0',
+      title: 'Formulate Uncalibrated Hypothesis H_0',
       subtitle: 'Raw LLM model forms initial trade stance without error memory',
       status: 'pending'
     },
     {
       index: 3,
-      title: '3. Walrus Semantic Recall',
-      subtitle: 'memwal.recall() searches Mainnet for analogous past liquidation failure cases',
+      title: 'Walrus Semantic Recall (memwal.recall)',
+      subtitle: 'Search Walrus Mainnet for analogous past liquidation failure cases',
       status: 'pending'
     },
     {
       index: 4,
-      title: '4. Epistemic Confidence Modulation',
-      subtitle: 'Bayesian update penalizes hallucinated confidence based on error history',
+      title: 'Epistemic Bayesian Modulation',
+      subtitle: 'Self-correcting confidence penalty applied to avoid liquidation',
       status: 'pending'
     },
     {
       index: 5,
-      title: '5. Walrus Memory Mainnet Commit',
-      subtitle: 'Write audited decision blob to Walrus Memory relayer for immutable tracking',
+      title: 'Walrus Memory Mainnet Commit',
+      subtitle: 'Write immutable decision audit blob to Walrus Memory relayer',
       status: 'pending'
     }
   ];
@@ -74,8 +74,6 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
     setIsRunning(true);
     setLogs([]);
     setRetrievedMemories([]);
-
-    // Reset steps
     setSteps(initialSteps.map(s => ({ ...s, status: 'pending' })));
 
     addLog(`Initiating epistemic calibration loop for ${currentAgent.name}...`);
@@ -97,7 +95,6 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
         }
       });
 
-      // Mark all completed
       setSteps(prev => prev.map(s => ({ ...s, status: 'completed' })));
       addLog(`✓ Epistemic calibration cycle complete. Calibrated confidence settled at ${currentAgent.currentThesis.calibratedConfidence}%.`);
       addLog(`✓ Blob committed to Walrus Memory (Relayer Hash: ${currentAgent.currentThesis.walrusBlobHash}).`);
@@ -111,31 +108,31 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
   return (
     <div className="space-y-6">
       {/* Top Controller Bar */}
-      <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 flex flex-wrap items-center justify-between gap-4">
+      <div className="border border-white/[0.08] bg-[#08090d] rounded-xl p-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 mb-1">
-            <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
-            <h2 className="text-xl font-bold text-white font-['Orbitron']">
+          <div className="flex items-center gap-2 mb-0.5">
+            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+            <h2 className="text-base font-bold text-white font-['Orbitron']">
               Epistemic Reflection Engine
             </h2>
           </div>
-          <p className="text-xs text-slate-400">
-            Witness how <span className="text-cyan-300">Walrus Memory</span> intercepts raw model overconfidence to prevent catastrophic liquidations.
+          <p className="text-xs text-zinc-400 font-mono">
+            Watch <span className="text-cyan-300">Walrus Memory</span> intercept unconstrained LLM confidence in real time.
           </p>
         </div>
 
         {/* Agent Switcher Pills */}
-        <div className="flex items-center gap-2 bg-slate-950 p-1.5 rounded-xl border border-slate-800">
+        <div className="flex items-center gap-1.5 bg-black/60 p-1 rounded-lg border border-white/[0.06]">
           {agents.map(a => (
             <button
               key={a.id}
               onClick={() => {
                 if (!isRunning) onSelectAgent(a.id);
               }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center gap-1.5 ${
+              className={`px-3 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 ${
                 selectedAgentId === a.id
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
-                  : 'text-slate-400 hover:text-white'
+                  ? 'bg-zinc-800 text-cyan-300 border border-cyan-500/30 font-semibold'
+                  : 'text-zinc-400 hover:text-white'
               }`}
             >
               <span>{a.avatar}</span>
@@ -148,175 +145,172 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
         <button
           onClick={handleRunReflection}
           disabled={isRunning}
-          className={`px-6 py-2.5 rounded-xl font-mono text-xs font-bold flex items-center gap-2 transition-all shadow-lg ${
+          className={`px-4 py-2 rounded-lg font-mono text-xs font-bold flex items-center gap-2 transition-all ${
             isRunning
-              ? 'bg-slate-800 text-slate-500 cursor-not-allowed'
-              : 'bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-cyan-500/20 active:scale-95'
+              ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
+              : 'bg-cyan-500 hover:bg-cyan-400 text-black shadow-sm active:scale-95'
           }`}
         >
           {isRunning ? (
             <>
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              <span>Calibrating in Real-Time...</span>
+              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <span>Calibrating with Walrus...</span>
             </>
           ) : (
             <>
-              <Play className="w-4 h-4 fill-white" />
-              <span>Run Epistemic Reflection Loop</span>
+              <Play className="w-3.5 h-3.5 fill-black" />
+              <span>Run Epistemic Loop</span>
             </>
           )}
         </button>
       </div>
 
       {/* Main Grid: Steps Timeline vs Interactive Output */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-5">
         {/* Left Column: 5 Steps Timeline (7 cols) */}
-        <div className="lg:col-span-7 space-y-4">
-          <div className="space-y-3">
-            {steps.map(step => {
-              const isCurrent = step.status === 'running';
-              const isDone = step.status === 'completed';
+        <div className="lg:col-span-7 space-y-3">
+          {steps.map(step => {
+            const isCurrent = step.status === 'running';
+            const isDone = step.status === 'completed';
 
-              return (
-                <div
-                  key={step.index}
-                  className={`p-4 rounded-xl border transition-all duration-300 ${
-                    isCurrent
-                      ? 'bg-slate-900 border-cyan-500/60 shadow-lg shadow-cyan-500/10'
-                      : isDone
-                      ? 'bg-slate-950/90 border-slate-800/90'
-                      : 'bg-slate-950/40 border-slate-900 opacity-60'
-                  }`}
-                >
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="flex items-start gap-3">
-                      <div
-                        className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold mt-0.5 ${
-                          isDone
-                            ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40'
-                            : isCurrent
-                            ? 'bg-cyan-500 text-black animate-pulse'
-                            : 'bg-slate-800 text-slate-400'
-                        }`}
-                      >
-                        {isDone ? <CheckCircle2 className="w-4 h-4" /> : step.index}
-                      </div>
-                      <div>
-                        <h4 className="text-sm font-bold text-white font-mono flex items-center gap-2">
-                          {step.title}
-                          {isCurrent && (
-                            <span className="text-[10px] font-mono px-2 py-0.2 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30 animate-pulse">
-                              RUNNING
-                            </span>
-                          )}
-                        </h4>
-                        <p className="text-xs text-slate-400 mt-0.5">{step.subtitle}</p>
-                      </div>
+            return (
+              <div
+                key={step.index}
+                className={`p-3.5 rounded-xl border transition-all duration-150 ${
+                  isCurrent
+                    ? 'bg-[#090b10] border-cyan-500/50 shadow-[0_0_15px_rgba(6,182,212,0.08)]'
+                    : isDone
+                    ? 'bg-[#08090d] border-white/[0.08]'
+                    : 'bg-[#050608] border-white/[0.04] opacity-50'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-2.5">
+                    <div
+                      className={`w-6 h-6 rounded-md flex items-center justify-center text-xs font-mono font-bold mt-0.5 ${
+                        isDone
+                          ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/30'
+                          : isCurrent
+                          ? 'bg-cyan-500 text-black animate-pulse'
+                          : 'bg-zinc-900 text-zinc-500 border border-zinc-800'
+                      }`}
+                    >
+                      {isDone ? <CheckCircle2 className="w-3.5 h-3.5" /> : step.index}
                     </div>
-
-                    <div className="text-xs font-mono">
-                      {isDone && <span className="text-emerald-400">PASSED</span>}
-                      {isCurrent && <span className="text-cyan-400">EXECUTING</span>}
-                      {step.status === 'pending' && <span className="text-slate-600">WAITING</span>}
+                    <div>
+                      <h4 className="text-xs font-bold text-white font-mono flex items-center gap-2">
+                        {step.title}
+                        {isCurrent && (
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/30 animate-pulse">
+                            ACTIVE
+                          </span>
+                        )}
+                      </h4>
+                      <p className="text-[11px] text-zinc-400 mt-0.5">{step.subtitle}</p>
                     </div>
                   </div>
 
-                  {/* Step Specific Details Rendering */}
-                  {step.index === 2 && (isCurrent || isDone) && (
-                    <div className="mt-3 p-3 rounded-lg bg-slate-900/80 border border-slate-800 text-xs space-y-1">
-                      <div className="text-slate-400 font-mono text-[11px]">Uncalibrated Stance:</div>
-                      <div className="text-amber-300 font-semibold italic">"{currentAgent.currentThesis.rawHypothesis}"</div>
-                      <div className="text-slate-400 font-mono text-[10px] pt-1">
-                        Initial Raw Confidence: <span className="text-white font-bold">{currentAgent.currentThesis.rawConfidence}%</span>
-                      </div>
-                    </div>
-                  )}
-
-                  {step.index === 3 && (isCurrent || isDone) && retrievedMemories.length > 0 && (
-                    <div className="mt-3 space-y-2">
-                      <div className="text-xs font-mono text-cyan-400 flex items-center gap-1.5">
-                        <Database className="w-3.5 h-3.5" />
-                        Analogous Failure Cases Retrieved from Walrus Memory Mainnet:
-                      </div>
-                      <div className="space-y-1.5">
-                        {retrievedMemories.map(m => (
-                          <div
-                            key={m.id}
-                            className="p-2.5 rounded-lg bg-slate-900 border border-cyan-500/20 text-xs space-y-1"
-                          >
-                            <div className="flex items-center justify-between text-[10px] font-mono">
-                              <span className="text-rose-400 font-bold bg-rose-950/60 px-1.5 py-0.5 rounded border border-rose-500/20">
-                                {m.category}
-                              </span>
-                              <span className="text-cyan-300">Similarity: {(m.similarityScore * 100).toFixed(0)}%</span>
-                              <span className="text-slate-400">{m.blobId.slice(0, 10)}...</span>
-                            </div>
-                            <p className="text-slate-300 text-[11px] font-sans">{m.text}</p>
-                            <div className="text-[10px] font-mono text-amber-400 font-bold">
-                              Weight Adjustment: {m.weightImpact}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                  {step.index === 4 && (isCurrent || isDone) && (
-                    <div className="mt-3 p-3 rounded-lg bg-slate-900/90 border border-cyan-500/30 text-xs space-y-2">
-                      <div className="flex items-center justify-between font-mono">
-                        <span className="text-slate-400">Raw Confidence (H_0):</span>
-                        <span className="text-rose-400 font-bold line-through">{currentAgent.currentThesis.rawConfidence}%</span>
-                      </div>
-                      <div className="flex items-center justify-between font-mono">
-                        <span className="text-cyan-300">Walrus Calibrated Confidence:</span>
-                        <span className="text-emerald-400 font-bold text-sm">{currentAgent.currentThesis.calibratedConfidence}%</span>
-                      </div>
-                      <p className="text-slate-400 text-[11px] leading-relaxed italic border-t border-slate-800 pt-1.5">
-                        {currentAgent.currentThesis.reflectionNotes}
-                      </p>
-                    </div>
-                  )}
-
-                  {step.index === 5 && (isCurrent || isDone) && (
-                    <div className="mt-3 p-3 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-xs font-mono space-y-1">
-                      <div className="flex items-center justify-between text-emerald-400">
-                        <span className="flex items-center gap-1">
-                          <ShieldCheck className="w-3.5 h-3.5" /> Walrus Memory State Committed
-                        </span>
-                        <span className="text-[10px]">MAINNET RELAYER</span>
-                      </div>
-                      <div className="text-slate-400 text-[11px] break-all">
-                        Blob Hash: <span className="text-cyan-300">{currentAgent.currentThesis.walrusBlobHash}</span>
-                      </div>
-                      <div className="text-slate-400 text-[10px]">
-                        Tatum Sui Checkpoint Anchor: #{currentAgent.currentThesis.tatumCheckpoint}
-                      </div>
-                    </div>
-                  )}
+                  <span className="text-[10px] font-mono text-zinc-500">
+                    {isDone && <span className="text-emerald-400">PASSED</span>}
+                    {isCurrent && <span className="text-cyan-400">EXECUTING</span>}
+                    {step.status === 'pending' && <span>WAITING</span>}
+                  </span>
                 </div>
-              );
-            })}
-          </div>
+
+                {/* Step Specific Details */}
+                {step.index === 2 && (isCurrent || isDone) && (
+                  <div className="mt-2.5 p-2.5 rounded-lg bg-black/60 border border-white/[0.04] text-xs font-mono space-y-1">
+                    <div className="text-zinc-500 text-[10px]">Uncalibrated Prompt Stance:</div>
+                    <div className="text-amber-300 italic text-[11px]">"{currentAgent.currentThesis.rawHypothesis}"</div>
+                    <div className="text-zinc-500 text-[10px]">
+                      Initial Greed: <span className="text-zinc-200 font-bold">{currentAgent.currentThesis.rawConfidence}%</span>
+                    </div>
+                  </div>
+                )}
+
+                {step.index === 3 && (isCurrent || isDone) && retrievedMemories.length > 0 && (
+                  <div className="mt-2.5 space-y-1.5">
+                    <div className="text-[10px] font-mono text-cyan-400 flex items-center gap-1">
+                      <Database className="w-3 h-3" />
+                      Retrieved Memories from Walrus Relayer:
+                    </div>
+                    <div className="space-y-1">
+                      {retrievedMemories.map(m => (
+                        <div
+                          key={m.id}
+                          className="p-2 rounded-lg bg-black/60 border border-cyan-500/20 text-xs space-y-1"
+                        >
+                          <div className="flex items-center justify-between text-[10px] font-mono">
+                            <span className="text-rose-400 bg-rose-950/60 px-1 rounded border border-rose-500/20">
+                              {m.category}
+                            </span>
+                            <span className="text-cyan-300">Match: {(m.similarityScore * 100).toFixed(0)}%</span>
+                            <span className="text-zinc-500">{m.blobId.slice(0, 10)}...</span>
+                          </div>
+                          <p className="text-zinc-300 text-[11px] font-sans">{m.text}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {step.index === 4 && (isCurrent || isDone) && (
+                  <div className="mt-2.5 p-2.5 rounded-lg bg-black/60 border border-cyan-500/30 text-xs font-mono space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <span className="text-zinc-400">Raw Confidence (H_0):</span>
+                      <span className="text-rose-400 font-bold line-through">{currentAgent.currentThesis.rawConfidence}%</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <span className="text-cyan-300">Walrus Calibrated:</span>
+                      <span className="text-emerald-400 font-bold">{currentAgent.currentThesis.calibratedConfidence}%</span>
+                    </div>
+                    <p className="text-zinc-400 text-[11px] font-sans border-t border-white/[0.04] pt-1">
+                      {currentAgent.currentThesis.reflectionNotes}
+                    </p>
+                  </div>
+                )}
+
+                {step.index === 5 && (isCurrent || isDone) && (
+                  <div className="mt-2.5 p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/20 text-xs font-mono space-y-1">
+                    <div className="flex items-center justify-between text-emerald-400">
+                      <span className="flex items-center gap-1">
+                        <ShieldCheck className="w-3 h-3" /> Walrus Memory State Committed
+                      </span>
+                      <span className="text-[10px]">MAINNET</span>
+                    </div>
+                    <div className="text-zinc-400 text-[10px] break-all">
+                      Blob: <span className="text-cyan-300">{currentAgent.currentThesis.walrusBlobHash}</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
 
-        {/* Right Column: Confidence Modulation Comparison & Terminal (5 cols) */}
-        <div className="lg:col-span-5 space-y-6">
+        {/* Right Column: Confidence Shift & Console (5 cols) */}
+        <div className="lg:col-span-5 space-y-5">
           {/* Epistemic Modulation Meter */}
-          <div className="rounded-2xl bg-slate-900/90 border border-slate-800 p-5 space-y-4">
-            <h3 className="text-sm font-bold text-white font-mono flex items-center gap-2">
-              <Sparkles className="w-4 h-4 text-cyan-400" />
-              Epistemic Shift Comparison
-            </h3>
+          <div className="border border-white/[0.08] bg-[#08090d] rounded-xl p-4 space-y-3.5">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-white font-mono flex items-center gap-1.5">
+                <Sparkles className="w-3.5 h-3.5 text-cyan-400" />
+                Epistemic Confidence Shift
+              </span>
+              <span className="text-[10px] font-mono text-zinc-500">
+                Δ {(currentAgent.currentThesis.rawConfidence - currentAgent.currentThesis.calibratedConfidence)}%
+              </span>
+            </div>
 
-            <div className="space-y-4">
+            <div className="space-y-3">
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1">
-                  <span className="text-rose-400">Raw Model Greed (H_0)</span>
-                  <span className="text-white font-bold">{currentAgent.currentThesis.rawConfidence}%</span>
+                  <span className="text-rose-400 text-[11px]">Raw Greed (H_0)</span>
+                  <span className="text-zinc-200 font-bold">{currentAgent.currentThesis.rawConfidence}%</span>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden border border-white/[0.04]">
                   <div
-                    className="h-full bg-gradient-to-r from-amber-500 to-rose-500 rounded-full transition-all duration-700"
+                    className="h-full bg-rose-500 rounded-full transition-all duration-500"
                     style={{ width: `${currentAgent.currentThesis.rawConfidence}%` }}
                   ></div>
                 </div>
@@ -324,50 +318,44 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
 
               <div>
                 <div className="flex justify-between text-xs font-mono mb-1">
-                  <span className="text-cyan-400">Calibrated Confidence (Walrus Modulated)</span>
+                  <span className="text-cyan-400 text-[11px]">Calibrated (Walrus Modulated)</span>
                   <span className="text-emerald-400 font-bold">{currentAgent.currentThesis.calibratedConfidence}%</span>
                 </div>
-                <div className="w-full bg-slate-800 rounded-full h-3 overflow-hidden">
+                <div className="w-full bg-zinc-900 rounded-full h-2 overflow-hidden border border-white/[0.04]">
                   <div
-                    className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full transition-all duration-700"
+                    className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 rounded-full transition-all duration-500"
                     style={{ width: `${currentAgent.currentThesis.calibratedConfidence}%` }}
                   ></div>
                 </div>
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-slate-950/80 border border-slate-800 text-xs space-y-2">
-              <div className="font-mono text-cyan-400 font-semibold text-[11px]">THE 20-SECOND PAYOFF:</div>
-              <p className="text-slate-300 leading-relaxed text-[11px]">
-                Without Walrus Memory, the model trades at <strong className="text-rose-400">{currentAgent.currentThesis.rawConfidence}% confidence</strong> into a low-liquidity borrow spike. With memory recall, it scales position size down, avoiding forced liquidation.
-              </p>
+            <div className="p-2.5 rounded-lg bg-black/60 border border-white/[0.04] text-[11px] text-zinc-400 leading-relaxed font-sans">
+              Without Walrus Memory, the model enters at <strong className="text-rose-400 font-mono">{currentAgent.currentThesis.rawConfidence}%</strong> into a borrow spike. With memory recall, it reduces exposure, saving the vault from liquidation.
             </div>
 
-            {/* Unlock Thesis Call to Action */}
-            <div className="pt-2">
-              <button
-                onClick={() => onPaywallClick(currentAgent)}
-                className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-mono text-xs font-bold flex items-center justify-center gap-2 shadow-lg shadow-cyan-500/20 active:scale-95"
-              >
-                <span>Unlock Calibrated Thesis ({currentAgent.unlockPriceSui} SUI via x402)</span>
-                <ArrowRight className="w-4 h-4" />
-              </button>
-            </div>
+            <button
+              onClick={() => onPaywallClick(currentAgent)}
+              className="w-full py-2 px-3 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-sm active:scale-95"
+            >
+              <span>Unlock Calibrated Thesis ({currentAgent.unlockPriceSui} SUI via x402)</span>
+              <ArrowRight className="w-3.5 h-3.5" />
+            </button>
           </div>
 
-          {/* Terminal / JSON Log Stream */}
-          <div className="rounded-2xl bg-black/90 border border-slate-800 p-4 space-y-2 font-mono text-xs">
-            <div className="flex items-center justify-between text-slate-400 border-b border-slate-800 pb-2">
-              <span className="flex items-center gap-1.5 text-cyan-400 text-[11px]">
-                <Terminal className="w-3.5 h-3.5" /> Live Reflection Console
+          {/* Terminal Log Stream */}
+          <div className="border border-white/[0.08] bg-black rounded-xl p-3.5 space-y-2 font-mono text-xs">
+            <div className="flex items-center justify-between text-zinc-500 border-b border-white/[0.06] pb-1.5 text-[10px]">
+              <span className="flex items-center gap-1 text-cyan-400">
+                <Terminal className="w-3 h-3" /> Live Reflection Console
               </span>
-              <span className="text-[10px] text-slate-500">STDOUT</span>
+              <span>STDOUT</span>
             </div>
 
-            <div className="h-56 overflow-y-auto space-y-1 text-[11px] text-slate-300 pr-1">
+            <div className="h-48 overflow-y-auto space-y-1 text-[11px] text-zinc-400 pr-1">
               {logs.length === 0 ? (
-                <div className="text-slate-600 italic py-4 text-center">
-                  Press "Run Epistemic Reflection Loop" to execute live memory pipeline...
+                <div className="text-zinc-600 italic py-6 text-center text-[10px]">
+                  Press "Run Epistemic Loop" to execute live memory pipeline...
                 </div>
               ) : (
                 logs.map((log, idx) => (
@@ -375,12 +363,12 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
                     key={idx}
                     className={
                       log.includes('✓')
-                        ? 'text-emerald-400 font-semibold'
+                        ? 'text-emerald-400 font-medium'
                         : log.includes('Step 3')
                         ? 'text-cyan-300'
                         : log.includes('ERROR')
                         ? 'text-rose-400'
-                        : 'text-slate-400'
+                        : 'text-zinc-400'
                     }
                   >
                     {log}

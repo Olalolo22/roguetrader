@@ -65,7 +65,7 @@ export function App() {
   const unlockedCount = agents.filter(a => a.currentThesis.isUnlocked).length;
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
+    <div className="min-h-screen bg-[#030407] text-zinc-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
       {/* Navigation Header */}
       <Header
         marketState={marketState}
@@ -77,7 +77,7 @@ export function App() {
       />
 
       {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-8">
+      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
         {activeTab === 'arena' && (
           <ArenaLeaderboard
             agents={agents}
@@ -109,20 +109,20 @@ export function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-slate-900 bg-slate-950/80 py-8 px-4 text-xs text-slate-500 font-mono">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <footer className="border-t border-white/[0.06] bg-[#030407] py-6 px-4 text-[11px] text-zinc-500 font-mono">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
             <span className="font-bold text-white font-['Orbitron']">ROGUE TRADER</span>
-            <span>•</span>
+            <span className="text-zinc-700">•</span>
             <span>Tatum × Walrus Memory Hackathon 2026</span>
           </div>
 
-          <div className="flex items-center gap-4 flex-wrap">
-            <span className="text-cyan-400">Walrus Relayer: relayer.memory.walrus.xyz</span>
-            <span>•</span>
-            <span className="text-purple-400">Tatum Gateway: sui-mainnet.gateway.tatum.io</span>
-            <span>•</span>
-            <span className="text-emerald-400">x402 Agent Payments on Sui</span>
+          <div className="flex items-center gap-3 flex-wrap text-zinc-400">
+            <span className="text-cyan-400">Walrus: relayer.memory.walrus.xyz</span>
+            <span className="text-zinc-700">•</span>
+            <span className="text-purple-400">Tatum: sui-mainnet.gateway.tatum.io</span>
+            <span className="text-zinc-700">•</span>
+            <span className="text-emerald-400">x402 on Sui</span>
           </div>
         </div>
       </footer>

@@ -20,146 +20,140 @@ export const Header: React.FC<HeaderProps> = ({
   unlockedCount
 }) => {
   return (
-    <header className="border-b border-cyan-500/20 bg-slate-950/80 backdrop-blur-xl sticky top-0 z-50">
-      {/* Top Banner: Protocol Telemetry */}
-      <div className="border-b border-slate-800/60 px-4 py-1.5 text-xs text-slate-400 flex flex-wrap items-center justify-between gap-3">
+    <header className="border-b border-white/[0.08] bg-[#030407]/90 backdrop-blur-md sticky top-0 z-50">
+      {/* Top Micro Telemetry Strip */}
+      <div className="border-b border-white/[0.04] px-4 py-1 flex items-center justify-between text-[11px] font-mono text-zinc-400">
         <div className="flex items-center gap-4 flex-wrap">
-          {/* Walrus Relayer Status */}
-          <div className="flex items-center gap-1.5 font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-slate-300 font-semibold">Walrus Relayer:</span>
-            <span className="text-cyan-400">relayer.memory.walrus.xyz</span>
-            <span className="bg-cyan-950/60 border border-cyan-500/30 text-cyan-300 px-1.5 py-0.2 rounded text-[10px]">
+          {/* Walrus Relayer */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-zinc-500">WALRUS:</span>
+            <span className="text-cyan-400 font-medium">relayer.memory.walrus.xyz</span>
+            <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-950/60 border border-cyan-500/30 text-cyan-400">
               MAINNET
             </span>
           </div>
 
-          {/* Tatum Sui Gateway Status */}
-          <div className="flex items-center gap-1.5 font-mono">
-            <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span className="text-slate-300 font-semibold">Tatum Sui RPC:</span>
-            <span className="text-purple-400">{marketState?.gatewayHost || 'sui-mainnet.gateway.tatum.io'}</span>
-            <span className="text-slate-400">
-              Checkpoint #{marketState?.latestCheckpoint.toLocaleString() || '89,412,950'}
-            </span>
+          <span className="text-zinc-700 hidden sm:inline">•</span>
+
+          {/* Tatum Sui Gateway */}
+          <div className="flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
+            <span className="text-zinc-500">TATUM SUI:</span>
+            <span className="text-zinc-300">#{marketState?.latestCheckpoint.toLocaleString() || '89,412,950'}</span>
           </div>
+
+          <span className="text-zinc-700 hidden sm:inline">•</span>
 
           {/* SUI Price Feed */}
           {marketState && (
-            <div className="flex items-center gap-1.5 font-mono">
-              <Activity className="w-3.5 h-3.5 text-emerald-400" />
-              <span className="text-slate-300">SUI:</span>
-              <span className="text-emerald-400 font-semibold">${marketState.suiPrice.toFixed(3)}</span>
-              <span className="text-emerald-400/80 text-[11px]">(+{marketState.change24h}%)</span>
+            <div className="flex items-center gap-1.5">
+              <Activity className="w-3 h-3 text-emerald-400" />
+              <span className="text-zinc-500">SUI:</span>
+              <span className="text-zinc-200 font-semibold">${marketState.suiPrice.toFixed(3)}</span>
+              <span className="text-emerald-400 text-[10px]">(+{marketState.change24h}%)</span>
             </div>
           )}
         </div>
 
-        {/* Track Bounties Badge */}
-        <div className="flex items-center gap-2">
-          <span className="bg-indigo-950/80 border border-indigo-500/30 text-indigo-300 px-2 py-0.5 rounded text-[11px] font-mono flex items-center gap-1">
-            <Zap className="w-3 h-3 text-indigo-400" /> Track 1: Markets & Sports
+        {/* Bounty Tags */}
+        <div className="hidden md:flex items-center gap-2">
+          <span className="text-[10px] text-zinc-400 bg-white/[0.03] border border-white/[0.06] px-2 py-0.5 rounded-md flex items-center gap-1">
+            <Zap className="w-3 h-3 text-cyan-400" /> Track 1: Markets
           </span>
-          <span className="bg-emerald-950/80 border border-emerald-500/30 text-emerald-300 px-2 py-0.5 rounded text-[11px] font-mono flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" /> x402 Sui Payments ($500)
+          <span className="text-[10px] text-emerald-300 bg-emerald-950/40 border border-emerald-500/20 px-2 py-0.5 rounded-md flex items-center gap-1">
+            <ShieldCheck className="w-3 h-3 text-emerald-400" /> x402 on Sui ($500)
           </span>
         </div>
       </div>
 
-      {/* Main Navigation Bar */}
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between gap-4">
+      {/* Main Bar */}
+      <div className="max-w-7xl mx-auto px-4 h-14 flex items-center justify-between gap-4">
         {/* Brand */}
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 border border-cyan-400/40">
-            <Cpu className="w-6 h-6 text-white" />
+          <div className="w-8 h-8 rounded-lg bg-zinc-900 border border-white/[0.12] flex items-center justify-center shadow-inner">
+            <Cpu className="w-4 h-4 text-cyan-400" />
           </div>
-          <div>
-            <div className="flex items-center gap-2">
-              <h1 className="font-extrabold text-xl tracking-wider text-white font-['Orbitron'] bg-gradient-to-r from-white via-cyan-200 to-cyan-400 bg-clip-text text-transparent">
-                ROGUE TRADER
-              </h1>
-              <span className="text-[10px] font-mono px-2 py-0.5 rounded-full bg-cyan-950/80 border border-cyan-500/40 text-cyan-400">
-                EPISTEMIC ARENA
-              </span>
-            </div>
-            <p className="text-xs text-slate-400">
-              Autonomous AI Agents Calibrated via Walrus Memory • Unlocked with x402 on Sui
-            </p>
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-sm tracking-wider text-white font-['Orbitron']">
+              ROGUE<span className="text-cyan-400">TRADER</span>
+            </span>
+            <span className="hidden sm:inline text-[9px] font-mono px-1.5 py-0.5 rounded bg-white/[0.05] border border-white/[0.08] text-zinc-400 uppercase tracking-widest">
+              v1.0
+            </span>
           </div>
         </div>
 
-        {/* Center Tabs */}
-        <nav className="hidden md:flex items-center gap-1 bg-slate-900/80 p-1 rounded-xl border border-slate-800">
+        {/* Linear-style Segment Control */}
+        <nav className="flex items-center bg-black/60 p-0.5 rounded-lg border border-white/[0.08]">
           <button
             onClick={() => setActiveTab('arena')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all ${
+            className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all ${
               activeTab === 'arena'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            Arena Leaderboard
+            Leaderboard
           </button>
 
           <button
             onClick={() => setActiveTab('reflection')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 ${
               activeTab === 'reflection'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <span className="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>
-            Reflective Engine
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
+            Epistemic Engine
           </button>
 
           <button
             onClick={() => setActiveTab('memory')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 ${
               activeTab === 'memory'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            <Database className="w-4 h-4 text-cyan-400" />
+            <Database className="w-3.5 h-3.5 text-zinc-400" />
             Walrus Memory
           </button>
 
           <button
             onClick={() => setActiveTab('receipts')}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-all flex items-center gap-1.5 ${
+            className={`px-3 py-1.5 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 ${
               activeTab === 'receipts'
-                ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md shadow-cyan-500/20'
-                : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
+                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
+                : 'text-zinc-400 hover:text-zinc-200'
             }`}
           >
-            x402 Receipts
+            x402 Ledger
             {unlockedCount > 0 && (
-              <span className="w-4 h-4 rounded-full bg-emerald-500 text-[10px] text-black font-bold flex items-center justify-center">
+              <span className="px-1 rounded-full bg-emerald-400 text-[9px] text-black font-bold font-mono">
                 {unlockedCount}
               </span>
             )}
           </button>
         </nav>
 
-        {/* Right Side: Wallet & Settings */}
+        {/* Right: Wallet & Settings */}
         <div className="flex items-center gap-2">
-          {/* Wallet pill */}
-          <div className="flex items-center gap-2 bg-slate-900/90 border border-slate-700/80 px-3 py-1.5 rounded-xl text-xs font-mono">
-            <Wallet className="w-4 h-4 text-cyan-400" />
-            <div className="flex flex-col">
-              <span className="text-white font-semibold">{wallet.balanceSui.toFixed(2)} SUI</span>
-              <span className="text-slate-400 text-[10px]">{wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}</span>
-            </div>
+          <div className="flex items-center gap-2 bg-zinc-900/80 border border-white/[0.08] px-2.5 py-1 rounded-lg text-xs font-mono">
+            <Wallet className="w-3.5 h-3.5 text-cyan-400" />
+            <span className="text-zinc-100 font-semibold">{wallet.balanceSui.toFixed(2)} SUI</span>
+            <span className="text-zinc-500 text-[10px] hidden sm:inline">
+              {wallet.address.slice(0, 4)}...{wallet.address.slice(-4)}
+            </span>
           </div>
 
-          {/* Settings Trigger */}
           <button
             onClick={onOpenSettings}
-            className="p-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-cyan-400 transition-colors"
-            title="Configure Tatum API Key & Walrus Account"
+            className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-400 hover:text-white transition-colors"
+            title="Configure Tatum & Walrus Endpoints"
           >
-            <Settings className="w-4 h-4" />
+            <Settings className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>
