@@ -70,35 +70,35 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                     : 'border-white/[0.08] bg-[#08090d] hover:border-white/[0.14]'
                 }`}
               >
-                <div className="p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+                <div className="p-3.5 sm:p-4 md:p-5 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-3.5 sm:gap-4">
                   {/* Left: Identity & Badge */}
-                  <div className="flex items-start gap-3.5 min-w-[280px]">
-                    <span className="text-2xl mt-0.5">{agent.avatar}</span>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
+                  <div className="flex items-start gap-3 w-full lg:w-auto lg:min-w-[260px]">
+                    <span className="text-2xl mt-0.5 shrink-0">{agent.avatar}</span>
+                    <div className="space-y-1 min-w-0 flex-1">
+                      <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-xs font-mono font-bold text-zinc-500">#{agent.rank}</span>
-                        <h3 className="font-bold text-white text-sm tracking-tight font-['Orbitron']">
+                        <h3 className="font-bold text-white text-sm tracking-tight font-['Orbitron'] truncate">
                           {agent.name}
                         </h3>
                         {isRank1 && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-400/10 text-amber-300 border border-amber-400/20 flex items-center gap-1">
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-amber-400/10 text-amber-300 border border-amber-400/20 flex items-center gap-1 shrink-0">
                             <Award className="w-2.5 h-2.5" /> TOP CALIBRATED
                           </span>
                         )}
                         {isRank3 && (
-                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20">
+                          <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-rose-500/10 text-rose-300 border border-rose-500/20 shrink-0">
                             DEGRADED
                           </span>
                         )}
                       </div>
-                      <p className="text-[11px] text-zinc-400 font-mono">{agent.style}</p>
+                      <p className="text-[11px] text-zinc-400 font-mono truncate">{agent.style}</p>
                     </div>
                   </div>
 
                   {/* Center Metrics: Calibration & Brier Score */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full lg:w-auto font-mono text-xs">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full lg:w-auto font-mono text-xs">
                     {/* Brier Score */}
-                    <div className="bg-black/40 border border-white/[0.04] p-2.5 rounded-lg">
+                    <div className="bg-black/40 border border-white/[0.04] p-2 sm:p-2.5 rounded-lg">
                       <div className="text-zinc-500 text-[10px] uppercase">Brier Score</div>
                       <div
                         className={`font-bold text-sm ${
@@ -114,10 +114,10 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                     </div>
 
                     {/* Calibration Bar */}
-                    <div className="bg-black/40 border border-white/[0.04] p-2.5 rounded-lg min-w-[120px]">
+                    <div className="bg-black/40 border border-white/[0.04] p-2 sm:p-2.5 rounded-lg">
                       <div className="flex justify-between text-zinc-500 text-[10px] uppercase mb-1">
                         <span>Calibration</span>
-                        <span className="text-zinc-300">{agent.calibrationPct}%</span>
+                        <span className="text-zinc-300 font-semibold">{agent.calibrationPct}%</span>
                       </div>
                       <div className="w-full bg-zinc-800 rounded-full h-1.5 overflow-hidden">
                         <div
@@ -134,7 +134,7 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                     </div>
 
                     {/* Walrus Blobs */}
-                    <div className="bg-black/40 border border-white/[0.04] p-2.5 rounded-lg">
+                    <div className="bg-black/40 border border-white/[0.04] p-2 sm:p-2.5 rounded-lg">
                       <div className="text-zinc-500 text-[10px] uppercase flex items-center gap-1">
                         <Database className="w-2.5 h-2.5 text-cyan-400" /> Walrus Blobs
                       </div>
@@ -142,7 +142,7 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                     </div>
 
                     {/* Epistemic Modulation Delta */}
-                    <div className="bg-black/40 border border-white/[0.04] p-2.5 rounded-lg">
+                    <div className="bg-black/40 border border-white/[0.04] p-2 sm:p-2.5 rounded-lg">
                       <div className="text-zinc-500 text-[10px] uppercase">Raw vs Walrus</div>
                       <div className="flex items-center gap-1 text-[11px]">
                         <span className="text-rose-400/80 line-through">{agent.currentThesis.rawConfidence}%</span>
@@ -152,11 +152,11 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                     </div>
                   </div>
 
-                  {/* Right Actions */}
-                  <div className="flex items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
+                  {/* Right Actions: Stack on mobile, inline on desktop */}
+                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
                     <button
                       onClick={() => onSelectAgentForReflection(agent.id)}
-                      className="py-1.5 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 hover:text-white text-xs font-mono transition-colors flex items-center gap-1.5"
+                      className="w-full sm:w-auto py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 hover:text-white text-xs font-mono transition-colors flex items-center justify-center gap-1.5"
                     >
                       <Cpu className="w-3.5 h-3.5 text-cyan-400" />
                       <span>Inspect Engine</span>
@@ -165,13 +165,13 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                     {!isUnlocked ? (
                       <button
                         onClick={() => onOpenPaywall(agent)}
-                        className="py-1.5 px-3.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono text-xs font-bold transition-all shadow-sm flex items-center gap-1.5 active:scale-95"
+                        className="w-full sm:w-auto py-2 px-3.5 rounded-lg bg-cyan-500 hover:bg-cyan-400 text-black font-mono text-xs font-bold transition-all shadow-sm flex items-center justify-center gap-1.5 active:scale-95"
                       >
                         <Lock className="w-3.5 h-3.5" />
                         <span>Unlock ({agent.unlockPriceSui} SUI via x402)</span>
                       </button>
                     ) : (
-                      <div className="py-1.5 px-3 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-medium flex items-center gap-1">
+                      <div className="w-full sm:w-auto py-2 px-3 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-xs font-mono font-medium flex items-center justify-center gap-1">
                         <Unlock className="w-3.5 h-3.5" />
                         <span>Alpha Unlocked</span>
                       </div>
@@ -180,11 +180,11 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                 </div>
 
                 {/* Bottom Teaser Strip */}
-                <div className="border-t border-white/[0.04] bg-black/30 px-4 py-2.5 flex flex-col md:flex-row md:items-center justify-between gap-2 text-xs font-mono">
-                  <div className="flex items-center gap-2 text-zinc-400 truncate">
-                    <span className="text-zinc-600">STANCE:</span>
+                <div className="border-t border-white/[0.04] bg-black/30 px-3.5 sm:px-4 py-2 flex flex-col sm:flex-row sm:items-center justify-between gap-1.5 sm:gap-2 text-xs font-mono">
+                  <div className="flex items-center gap-2 text-zinc-400 min-w-0 flex-1">
+                    <span className="text-zinc-600 text-[10px] shrink-0">STANCE:</span>
                     <span
-                      className={`px-1.5 py-0.2 rounded text-[10px] font-bold ${
+                      className={`px-1.5 py-0.2 rounded text-[9px] sm:text-[10px] font-bold shrink-0 ${
                         agent.currentThesis.stance === 'STRONG_LONG'
                           ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/30'
                           : agent.currentThesis.stance === 'CAUTIOUS_LONG'
@@ -200,7 +200,7 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                   </div>
 
                   {isUnlocked && (
-                    <div className="text-[11px] text-emerald-400 flex items-center gap-3 shrink-0">
+                    <div className="text-[10px] sm:text-[11px] text-emerald-400 flex items-center gap-2 sm:gap-3 shrink-0 flex-wrap">
                       <span>Entry: {agent.currentThesis.entryRange}</span>
                       <span>Target: ${agent.currentThesis.targetPrice}</span>
                       <span>Stop: ${agent.currentThesis.stopLoss}</span>

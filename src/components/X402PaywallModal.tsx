@@ -64,15 +64,15 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-      <div className="relative w-full max-w-xl bg-[#08090d] border border-white/[0.12] rounded-xl shadow-2xl overflow-hidden font-sans">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
+      <div className="relative w-full max-w-xl bg-[#08090d] border border-white/[0.12] rounded-xl shadow-2xl overflow-hidden font-sans my-auto max-h-[92vh] flex flex-col">
         {/* Modal Header */}
-        <div className="px-5 py-4 border-b border-white/[0.08] flex items-center justify-between">
+        <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0">
           <div className="flex items-center gap-2">
             <span className="p-1 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-400">
               <Zap className="w-4 h-4" />
             </span>
-            <span className="font-bold text-white text-sm font-['Orbitron']">
+            <span className="font-bold text-white text-xs sm:text-sm font-['Orbitron']">
               HTTP 402 Payment Required
             </span>
             <span className="text-[9px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 border border-emerald-500/30 text-emerald-300">
@@ -89,7 +89,7 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
         </div>
 
         {/* Modal Body */}
-        <div className="p-5 space-y-4">
+        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
           {!receipt ? (
             <>
               {/* Agent Paywall Target */}

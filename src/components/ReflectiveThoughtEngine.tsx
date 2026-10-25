@@ -121,15 +121,15 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
           </p>
         </div>
 
-        {/* Agent Switcher Pills */}
-        <div className="flex items-center gap-1.5 bg-black/60 p-1 rounded-lg border border-white/[0.06]">
+        {/* Agent Switcher Pills - Scrollable on mobile */}
+        <div className="flex items-center gap-1 bg-black/60 p-1 rounded-lg border border-white/[0.06] overflow-x-auto whitespace-nowrap scrollbar-none w-full sm:w-auto">
           {agents.map(a => (
             <button
               key={a.id}
               onClick={() => {
                 if (!isRunning) onSelectAgent(a.id);
               }}
-              className={`px-3 py-1 rounded-md text-xs font-mono transition-all flex items-center gap-1.5 ${
+              className={`flex-1 sm:flex-initial px-2.5 sm:px-3 py-1.5 rounded-md text-xs font-mono transition-all flex items-center justify-center gap-1.5 shrink-0 ${
                 selectedAgentId === a.id
                   ? 'bg-zinc-800 text-cyan-300 border border-cyan-500/30 font-semibold'
                   : 'text-zinc-400 hover:text-white'
@@ -145,7 +145,7 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
         <button
           onClick={handleRunReflection}
           disabled={isRunning}
-          className={`px-4 py-2 rounded-lg font-mono text-xs font-bold flex items-center gap-2 transition-all ${
+          className={`w-full sm:w-auto px-4 py-2.5 rounded-lg font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all ${
             isRunning
               ? 'bg-zinc-800 text-zinc-500 cursor-not-allowed'
               : 'bg-cyan-500 hover:bg-cyan-400 text-black shadow-sm active:scale-95'
