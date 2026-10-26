@@ -6,76 +6,75 @@
   min-height: 100dvh;
   display: flex;
   flex-direction: column;
-  background: #05080b;
+  background: #030608;
 }
 
 .arena-shell > main {
   flex: 1;
   width: 100%;
   max-width: none;
-  padding: 0 clamp(16px, 3vw, 48px) 48px;
+  min-height: calc(100dvh - 138px);
+  padding: 0 clamp(20px, 4vw, 72px) 64px;
 }
 
 .arena-shell > main > * {
-  max-width: 1440px;
+  width: 100%;
+  max-width: 1540px;
   margin-inline: auto;
 }
 
 .arena-leaderboard {
-  padding-top: clamp(22px, 4vw, 56px);
+  padding-top: clamp(28px, 5vw, 72px);
 }
 
 .arena-hero {
-  min-height: 190px;
+  min-height: 230px;
   display: flex;
   align-items: center;
-  border-color: rgba(85, 255, 228, 0.22) !important;
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.04), 0 22px 60px rgba(0,0,0,.22);
+  padding: clamp(28px, 4vw, 56px) !important;
+  border-color: rgba(85, 255, 228, 0.3) !important;
+  border-radius: 0 !important;
+  background: linear-gradient(115deg, rgba(7,29,31,.98), rgba(5,10,13,.98) 62%, rgba(9,34,35,.88)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 24px 80px rgba(0,0,0,.3);
 }
 
-.arena-leaderboard > .space-y-3 {
-  padding-top: 10px;
+.arena-hero h2 {
+  font-size: clamp(28px, 4vw, 54px) !important;
+  max-width: 850px;
+  line-height: .98 !important;
+  letter-spacing: -.06em !important;
 }
 
-.agent-row {
-  overflow: hidden;
+.arena-hero p { font-size: 14px !important; max-width: 720px !important; line-height: 1.7 !important; }
+.arena-hero .bg-black\\/60 { min-width: 230px; }
+.arena-leaderboard > .space-y-3 { padding-top: 18px; }
+
+.agent-row { overflow: hidden; border-radius: 0 !important; background: rgba(5,11,14,.92) !important; }
+.agent-row > div:first-child { min-height: 142px; padding: 22px 24px !important; }
+.agent-row > div:last-child { padding: 12px 24px !important; }
+.agent-row h3 { font-size: 17px !important; }
+.agent-metrics { min-width: 510px; }
+.agent-metrics > div { border-radius: 0 !important; background: rgba(0,0,0,.32) !important; padding: 14px !important; }
+.agent-actions button, .agent-actions > div { border-radius: 0 !important; min-height: 42px; }
+
+/* On wide screens this is an instrument panel, not a stack of cards. */
+@media (min-width: 1050px) {
+  .agent-row > div:first-child { display: grid; grid-template-columns: minmax(260px, 1fr) minmax(500px, 1.8fr) auto; align-items: center; gap: 32px; }
+  .agent-actions { width: 230px; }
+  .agent-actions button, .agent-actions > div { width: 100%; }
 }
 
-.agent-row > .flex {
-  min-height: 128px;
-}
+.arena-shell main h1, .arena-shell main h2, .arena-shell main h3, .arena-shell main h4 { letter-spacing: -.035em; }
+.arena-shell main p { max-width: 75ch; }
+.arena-shell footer { margin-top: auto; }
 
-/* Give the arena a clear information hierarchy instead of a floating card pile. */
-.arena-shell main h1 {
-  max-width: 900px;
-  letter-spacing: -0.045em;
-  line-height: 0.98;
-}
-
-.arena-shell main h2,
-.arena-shell main h3,
-.arena-shell main h4 {
-  letter-spacing: -0.025em;
-}
-
-.arena-shell main p {
-  max-width: 75ch;
-}
-
-.arena-shell footer {
-  margin-top: auto;
-}
-
-/* Responsive rescue for dense leaderboard rows. */
-@media (max-width: 900px) {
-  .arena-shell > main {
-    padding-inline: 12px;
-  }
-}
-
+@media (max-width: 1049px) { .agent-metrics { min-width: 0; } }
+@media (max-width: 900px) { .arena-shell > main { padding-inline: 16px; } }
 @media (max-width: 640px) {
-  .arena-shell > main {
-    padding-inline: 10px;
-    padding-bottom: 28px;
-  }
+  .arena-shell > main { padding-inline: 12px; padding-bottom: 32px; }
+  .arena-leaderboard { padding-top: 18px; }
+  .arena-hero { min-height: 0; padding: 22px !important; }
+  .arena-hero h2 { font-size: 28px !important; }
+  .arena-hero .flex-col { gap: 20px; }
+  .agent-row > div:first-child, .agent-row > div:last-child { padding-inline: 16px !important; }
 }
