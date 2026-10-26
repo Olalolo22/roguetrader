@@ -1,180 +1,25 @@
 import type React from 'react';
-import { Database, Cpu, Wallet, Settings, ShieldCheck, Zap, Activity } from 'lucide-react';
+import { Database, Cpu, Wallet, Settings, ShieldCheck, Radio } from 'lucide-react';
 import type { TatumMarketState, UserWalletState } from '../types';
 
-interface HeaderProps {
-  marketState: TatumMarketState | null;
-  wallet: UserWalletState;
-  activeTab: 'arena' | 'reflection' | 'memory' | 'receipts';
-  setActiveTab: (tab: 'arena' | 'reflection' | 'memory' | 'receipts') => void;
-  onOpenSettings: () => void;
-  unlockedCount: number;
-}
+interface HeaderProps { marketState: TatumMarketState | null; wallet: UserWalletState; activeTab: 'arena' | 'reflection' | 'memory' | 'receipts'; setActiveTab: (tab: 'arena' | 'reflection' | 'memory' | 'receipts') => void; onOpenSettings: () => void; unlockedCount: number; }
 
-export const Header: React.FC<HeaderProps> = ({
-  marketState,
-  wallet,
-  activeTab,
-  setActiveTab,
-  onOpenSettings,
-  unlockedCount
-}) => {
-  return (
-    <header className="border-b border-white/[0.08] bg-[#030407]/95 backdrop-blur-md sticky top-0 z-50">
-      {/* Top Micro Telemetry Strip - Scrollable on mobile */}
-      <div className="border-b border-white/[0.04] px-3 sm:px-4 py-1 flex items-center justify-between text-[10px] sm:text-[11px] font-mono text-zinc-400 overflow-x-auto whitespace-nowrap scrollbar-none">
-        <div className="flex items-center gap-3 sm:gap-4 shrink-0">
-          {/* Walrus Relayer */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="text-zinc-500">WALRUS:</span>
-            <span className="text-cyan-400 font-medium">relayer.memory.walrus.xyz</span>
-            <span className="text-[9px] px-1 py-0.2 rounded bg-cyan-950/60 border border-cyan-500/30 text-cyan-400">
-              MAINNET
-            </span>
-          </div>
-
-          <span className="text-zinc-700">•</span>
-
-          {/* Tatum Sui Gateway */}
-          <div className="flex items-center gap-1.5 shrink-0">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400"></span>
-            <span className="text-zinc-500">TATUM SUI:</span>
-            <span className="text-zinc-300 font-semibold">#{marketState?.latestCheckpoint.toLocaleString() || '89,412,950'}</span>
-          </div>
-
-          <span className="text-zinc-700">•</span>
-
-          {/* SUI Price Feed */}
-          {marketState && (
-            <div className="flex items-center gap-1.5 shrink-0">
-              <Activity className="w-3 h-3 text-emerald-400" />
-              <span className="text-zinc-500">SUI:</span>
-              <span className="text-zinc-200 font-semibold">${marketState.suiPrice.toFixed(3)}</span>
-              <span className="text-emerald-400 text-[10px]">(+{marketState.change24h}%)</span>
-            </div>
-          )}
-        </div>
-
-        {/* Bounty Tags (desktop) */}
-        <div className="hidden lg:flex items-center gap-2 pl-4 shrink-0">
-          <span className="text-[10px] text-zinc-400 bg-white/[0.03] border border-white/[0.06] px-2 py-0.5 rounded-md flex items-center gap-1">
-            <Zap className="w-3 h-3 text-cyan-400" /> Track 1: Markets
-          </span>
-          <span className="text-[10px] text-emerald-300 bg-emerald-950/40 border border-emerald-500/20 px-2 py-0.5 rounded-md flex items-center gap-1">
-            <ShieldCheck className="w-3 h-3 text-emerald-400" /> x402 on Sui ($500)
-          </span>
-        </div>
-      </div>
-
-      {/* Main Bar: Responsive 2-tier on mobile, single row on desktop */}
-      <div className="max-w-7xl mx-auto px-3 sm:px-4 py-2 md:py-0 md:h-14 flex flex-col md:flex-row md:items-center md:justify-between gap-2.5 md:gap-4">
-        {/* Row 1: Brand & Right Actions (Wallet + Settings) */}
-        <div className="flex items-center justify-between w-full md:w-auto">
-          {/* Brand */}
-          <div className="flex items-center gap-2.5">
-            <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg bg-zinc-900 border border-white/[0.12] flex items-center justify-center shadow-inner">
-              <Cpu className="w-4 h-4 text-cyan-400" />
-            </div>
-            <div className="flex items-center gap-1.5">
-              <span className="font-bold text-sm tracking-wider text-white font-['Orbitron']">
-                ROGUE<span className="text-cyan-400">TRADER</span>
-              </span>
-              <span className="text-[8px] sm:text-[9px] font-mono px-1 py-0.2 rounded bg-white/[0.05] border border-white/[0.08] text-zinc-400 uppercase tracking-widest">
-                v1.0
-              </span>
-            </div>
-          </div>
-
-          {/* Mobile Right Actions */}
-          <div className="flex md:hidden items-center gap-1.5">
-            <div className="flex items-center gap-1.5 bg-zinc-900/90 border border-white/[0.08] px-2 py-1 rounded-md text-[11px] font-mono">
-              <Wallet className="w-3 h-3 text-cyan-400" />
-              <span className="text-zinc-100 font-semibold">{wallet.balanceSui.toFixed(2)} SUI</span>
-            </div>
-
-            <button
-              onClick={onOpenSettings}
-              className="p-1.5 rounded-md bg-zinc-900 border border-white/[0.08] text-zinc-400 hover:text-white"
-            >
-              <Settings className="w-3.5 h-3.5" />
-            </button>
-          </div>
-        </div>
-
-        {/* Row 2 on Mobile / Center on Desktop: Segment Navigation */}
-        <nav className="flex items-center bg-black/60 p-0.5 rounded-lg border border-white/[0.08] overflow-x-auto whitespace-nowrap scrollbar-none w-full md:w-auto">
-          <button
-            onClick={() => setActiveTab('arena')}
-            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-md text-xs font-mono transition-all text-center ${
-              activeTab === 'arena'
-                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            Leaderboard
-          </button>
-
-          <button
-            onClick={() => setActiveTab('reflection')}
-            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-md text-xs font-mono transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === 'reflection'
-                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span>
-            <span>Epistemic</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('memory')}
-            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-md text-xs font-mono transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === 'memory'
-                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <Database className="w-3 h-3 text-zinc-400" />
-            <span>Walrus</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab('receipts')}
-            className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-md text-xs font-mono transition-all flex items-center justify-center gap-1.5 ${
-              activeTab === 'receipts'
-                ? 'bg-zinc-800 text-white shadow-sm border border-white/[0.12]'
-                : 'text-zinc-400 hover:text-zinc-200'
-            }`}
-          >
-            <span>x402</span>
-            {unlockedCount > 0 && (
-              <span className="px-1 rounded-full bg-emerald-400 text-[8px] text-black font-bold font-mono">
-                {unlockedCount}
-              </span>
-            )}
-          </button>
-        </nav>
-
-        {/* Desktop Right Actions (hidden on mobile) */}
-        <div className="hidden md:flex items-center gap-2">
-          <div className="flex items-center gap-2 bg-zinc-900/80 border border-white/[0.08] px-2.5 py-1 rounded-lg text-xs font-mono">
-            <Wallet className="w-3.5 h-3.5 text-cyan-400" />
-            <span className="text-zinc-100 font-semibold">{wallet.balanceSui.toFixed(2)} SUI</span>
-            <span className="text-zinc-500 text-[10px]">
-              {wallet.address.slice(0, 4)}...{wallet.address.slice(-4)}
-            </span>
-          </div>
-
-          <button
-            onClick={onOpenSettings}
-            className="p-1.5 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-400 hover:text-white transition-colors"
-            title="Configure Tatum & Walrus Endpoints"
-          >
-            <Settings className="w-3.5 h-3.5" />
-          </button>
-        </div>
-      </div>
-    </header>
-  );
+export const Header: React.FC<HeaderProps> = ({ marketState, wallet, activeTab, setActiveTab, onOpenSettings, unlockedCount }) => {
+  const tabs = [
+    { id: 'arena' as const, label: 'ARENA', icon: Radio },
+    { id: 'reflection' as const, label: 'REFLECTION', icon: Cpu },
+    { id: 'memory' as const, label: 'WALRUS MEMORY', icon: Database },
+    { id: 'receipts' as const, label: 'x402 RECEIPTS', icon: ShieldCheck },
+  ];
+  return <header className="sticky top-0 z-50 border-b border-[var(--line)] bg-[rgba(4,17,19,.94)] backdrop-blur-xl">
+    <div className="border-b border-[var(--line-soft)] px-3 sm:px-5 py-1.5 flex items-center justify-between gap-4 overflow-x-auto whitespace-nowrap font-mono text-[9px] tracking-[.12em]">
+      <div className="flex items-center gap-4 text-[var(--paper-muted)]"><span className="flex items-center gap-2 text-[var(--cyan)]"><span className="pulse-indicator" /> LIVE EPISTEMIC FEED</span><span className="hidden sm:inline">CHECKPOINT <b className="text-[var(--paper)]">#{marketState?.latestCheckpoint.toLocaleString() || '89,412,950'}</b></span><span className="hidden md:inline">SUI <b className="text-[var(--paper)]">${marketState?.suiPrice.toFixed(3) || '3.842'}</b> <span className="text-[var(--acid)]">+{marketState?.change24h || '4.2'}%</span></span></div>
+      <div className="hidden md:flex items-center gap-3"><span className="text-[var(--cyan-dim)]">TATUM / MAINNET</span><span className="text-[var(--line)]">|</span><span className="text-[var(--acid)]">TRACK 01: MARKETS</span><span className="text-[var(--line)]">|</span><span className="text-[var(--amber)]">BOUNTY ACTIVE</span></div>
+    </div>
+    <div className="max-w-[1440px] mx-auto px-3 sm:px-5 lg:px-8 py-3 flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
+      <div className="flex items-center justify-between gap-5"><div className="flex items-center gap-3"><div className="size-9 border border-[var(--cyan)] bg-[var(--cyan)] text-[var(--ink)] grid place-items-center"><Cpu className="size-5" /></div><div><div className="font-mono font-bold tracking-[.16em] text-sm text-[var(--paper)]">ROGUE<span className="text-[var(--cyan)]">TRADER</span></div><div className="label-micro">EPISTEMIC ARENA / BUILD 01</div></div></div><div className="lg:hidden flex items-center gap-2 font-mono text-[10px] text-[var(--paper)]"><Wallet className="size-3 text-[var(--cyan)]" />{wallet.balanceSui.toFixed(2)} SUI</div></div>
+      <nav className="flex items-center gap-1 overflow-x-auto border border-[var(--line)] bg-[rgba(0,0,0,.22)] p-1" aria-label="Primary navigation">{tabs.map(({ id, label, icon: Icon }) => <button key={id} onClick={() => setActiveTab(id)} className={`shrink-0 flex items-center gap-2 px-3 py-2 text-[10px] font-mono tracking-[.08em] transition-colors ${activeTab === id ? 'bg-[var(--cyan)] text-[var(--ink)]' : 'text-[var(--paper-muted)] hover:text-[var(--cyan)]'}`}><Icon className="size-3" />{label}{id === 'receipts' && unlockedCount > 0 && <span className="bg-[var(--ink)] text-[var(--cyan)] px-1">{unlockedCount}</span>}</button>)}</nav>
+      <div className="hidden lg:flex items-center gap-3 font-mono text-[10px]"><div className="flex items-center gap-2 border border-[var(--line)] px-3 py-2"><Wallet className="size-3 text-[var(--cyan)]" /><span>{wallet.balanceSui.toFixed(2)} SUI</span><span className="text-[var(--paper-muted)]">{wallet.address.slice(0, 5)}…{wallet.address.slice(-4)}</span></div><button onClick={onOpenSettings} className="border border-[var(--line)] p-2 text-[var(--paper-muted)] hover:text-[var(--cyan)]" aria-label="Open settings"><Settings className="size-3.5" /></button></div>
+    </div>
+  </header>;
 };

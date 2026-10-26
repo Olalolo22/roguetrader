@@ -19,131 +19,41 @@ export function App() {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [receipts, setReceipts] = useState<X402Receipt[]>(() => x402Payment.getReceipts());
   const [marketState, setMarketState] = useState<TatumMarketState | null>(null);
+  const [wallet, setWallet] = useState<UserWalletState>({ address: '0x4f82a101b9ca990188efacba772109aa988112bc', balanceSui: 14.50, isConnected: true, network: 'mainnet' });
 
-  // Simulated connected user wallet state on Sui Mainnet
-  const [wallet, setWallet] = useState<UserWalletState>({
-    address: '0x4f82a101b9ca990188efacba772109aa988112bc',
-    balanceSui: 14.50,
-    isConnected: true,
-    network: 'mainnet'
-  });
-
-  // Fetch live market state on mount and poll
   useEffect(() => {
-    const updateMarket = async () => {
-      try {
-        const state = await tatumSui.getMarketState();
-        setMarketState(state);
-      } catch (e) {
-        console.warn('Market fetch error:', e);
-      }
-    };
-
+    const updateMarket = async () => { try { setMarketState(await tatumSui.getMarketState()); } catch (e) { console.warn('Market fetch error:', e); } };
     updateMarket();
     const interval = setInterval(updateMarket, 15000);
     return () => clearInterval(interval);
   }, []);
 
-  const handleSelectAgentForReflection = (agentId: AgentId) => {
-    setSelectedAgentId(agentId);
-    setActiveTab('reflection');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
+  const handleSelectAgentForReflection = (agentId: AgentId) => { setSelectedAgentId(agentId); setActiveTab('reflection'); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   const handlePaymentSuccess = (receipt: X402Receipt) => {
-    // Deduct user balance
-    setWallet(prev => ({
-      ...prev,
-      balanceSui: Math.max(0, prev.balanceSui - receipt.amountSui)
-    }));
-
-    // Refresh agent state
+    setWallet(prev => ({ ...prev, balanceSui: Math.max(0, prev.balanceSui - receipt.amountSui) }));
     setAgents([...agentEngine.getAgents()]);
     setReceipts([...x402Payment.getReceipts()]);
   };
-
   const unlockedCount = agents.filter(a => a.currentThesis.isUnlocked).length;
 
   return (
-    <div className="min-h-screen bg-[#030407] text-zinc-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
-      {/* Navigation Header */}
-      <Header
-        marketState={marketState}
-        wallet={wallet}
-        activeTab={activeTab}
-        setActiveTab={setActiveTab}
-        onOpenSettings={() => setIsSettingsOpen(true)}
-        unlockedCount={unlockedCount}
-      />
-
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
-        {activeTab === 'arena' && (
-          <ArenaLeaderboard
-            agents={agents}
-            onSelectAgentForReflection={handleSelectAgentForReflection}
-            onOpenPaywall={agent => setPaywallAgent(agent)}
-          />
-        )}
-
-        {activeTab === 'reflection' && (
-          <ReflectiveThoughtEngine
-            agents={agents}
-            selectedAgentId={selectedAgentId}
-            onSelectAgent={setSelectedAgentId}
-            onPaywallClick={agent => setPaywallAgent(agent)}
-          />
-        )}
-
-        {activeTab === 'memory' && (
-          <MemoryInspector />
-        )}
-
-        {activeTab === 'receipts' && (
-          <ReceiptsList
-            receipts={receipts}
-            agents={agents}
-            onOpenPaywall={agent => setPaywallAgent(agent)}
-          />
-        )}
+    <div className="arena-shell min-h-screen flex flex-col bg-transparent text-[var(--paper)]">
+      <Header marketState={marketState} wallet={wallet} activeTab={activeTab} setActiveTab={setActiveTab} onOpenSettings={() => setIsSettingsOpen(true)} unlockedCount={unlockedCount} />
+      <main className="flex-1 w-full max-w-[1440px] mx-auto px-3 sm:px-5 lg:px-8 py-5">
+        {activeTab === 'arena' && <ArenaLeaderboard agents={agents} onSelectAgentForReflection={handleSelectAgentForReflection} onOpenPaywall={agent => setPaywallAgent(agent)} />}
+        {activeTab === 'reflection' && <ReflectiveThoughtEngine agents={agents} selectedAgentId={selectedAgentId} onSelectAgent={setSelectedAgentId} onPaywallClick={agent => setPaywallAgent(agent)} />}
+        {activeTab === 'memory' && <MemoryInspector />}
+        {activeTab === 'receipts' && <ReceiptsList receipts={receipts} agents={agents} onOpenPaywall={agent => setPaywallAgent(agent)} />}
       </main>
-
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] bg-[#030407] py-6 px-4 text-[11px] text-zinc-500 font-mono">
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-white font-['Orbitron']">ROGUE TRADER</span>
-            <span className="text-zinc-700">•</span>
-            <span>Tatum × Walrus Memory Hackathon 2026</span>
-          </div>
-
-          <div className="flex items-center gap-3 flex-wrap text-zinc-400">
-            <span className="text-cyan-400">Walrus: relayer.memory.walrus.xyz</span>
-            <span className="text-zinc-700">•</span>
-            <span className="text-purple-400">Tatum: sui-mainnet.gateway.tatum.io</span>
-            <span className="text-zinc-700">•</span>
-            <span className="text-emerald-400">x402 on Sui</span>
-          </div>
+      <footer className="border-t border-[var(--line)] bg-[rgba(4,17,19,.92)] px-4 py-4 text-[10px] font-mono text-[var(--paper-muted)]">
+        <div className="max-w-[1440px] mx-auto flex flex-col sm:flex-row justify-between gap-2">
+          <span><b className="text-[var(--cyan)] tracking-[.18em]">ROGUE TRADER</b> / TOTAL RECALL 2026</span>
+          <span className="text-[var(--cyan-dim)]">WALRUS MEMORY · TATUM SUI · x402 SETTLEMENT</span>
         </div>
       </footer>
-
-      {/* Modals */}
-      <X402PaywallModal
-        agent={paywallAgent}
-        wallet={wallet}
-        onClose={() => setPaywallAgent(null)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-        onSaved={() => {
-          setAgents([...agentEngine.getAgents()]);
-        }}
-      />
+      <X402PaywallModal agent={paywallAgent} wallet={wallet} onClose={() => setPaywallAgent(null)} onPaymentSuccess={handlePaymentSuccess} />
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} onSaved={() => setAgents([...agentEngine.getAgents()])} />
     </div>
   );
 }
-
 export default App;
