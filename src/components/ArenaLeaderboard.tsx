@@ -14,9 +14,9 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
   onOpenPaywall
 }) => {
   return (
-    <div className="space-y-6">
+    <div className="arena-leaderboard space-y-6">
       {/* Linear-style Header & Calibration Banner */}
-      <div className="border border-white/[0.08] bg-[#08090d] rounded-xl p-6 relative overflow-hidden">
+      <div className="arena-hero border border-white/[0.08] bg-[#08090d] rounded-xl p-6 relative overflow-hidden">
         <div className="absolute top-0 right-0 w-80 h-80 bg-cyan-500/5 rounded-full blur-3xl pointer-events-none"></div>
 
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
@@ -62,7 +62,7 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
             return (
               <div
                 key={agent.id}
-                className={`border rounded-xl transition-all duration-150 ${
+                className={`agent-row border rounded-xl transition-all duration-150 ${
                   isRank1
                     ? 'border-cyan-500/40 bg-[#090b10] shadow-[0_0_20px_rgba(6,182,212,0.06)]'
                     : isRank3
@@ -96,7 +96,7 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                   </div>
 
                   {/* Center Metrics: Calibration & Brier Score */}
-                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full lg:w-auto font-mono text-xs">
+                  <div className="agent-metrics grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 w-full lg:w-auto font-mono text-xs">
                     {/* Brier Score */}
                     <div className="bg-black/40 border border-white/[0.04] p-2 sm:p-2.5 rounded-lg">
                       <div className="text-zinc-500 text-[10px] uppercase">Brier Score</div>
@@ -153,7 +153,7 @@ export const ArenaLeaderboard: React.FC<ArenaLeaderboardProps> = ({
                   </div>
 
                   {/* Right Actions: Stack on mobile, inline on desktop */}
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
+                  <div className="agent-actions flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full lg:w-auto shrink-0 justify-end">
                     <button
                       onClick={() => onSelectAgentForReflection(agent.id)}
                       className="w-full sm:w-auto py-2 px-3 rounded-lg bg-zinc-900 hover:bg-zinc-800 border border-white/[0.08] text-zinc-300 hover:text-white text-xs font-mono transition-colors flex items-center justify-center gap-1.5"
