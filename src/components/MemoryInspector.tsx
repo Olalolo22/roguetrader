@@ -1,263 +1,182 @@
 import { useState } from 'react';
 import type React from 'react';
-import { Database, Search, PlusCircle, CheckCircle2, Filter, Hash, Clock } from 'lucide-react';
+import { Search } from 'lucide-react';
 import type { WalrusMemoryItem } from '../types';
 import { walrusMemory } from '../services/walrusMemory';
 
+const CATEGORIES: { id: 'ALL' | WalrusMemoryItem['category']; label: string }[] = [
+  { id: 'ALL', label: 'All' },
+  { id: 'FAILURE_CASE', label: 'Failures' },
+  { id: 'REGIME_SHIFT', label: 'Regime shifts' },
+  { id: 'CATALYST', label: 'Catalysts' },
+  { id: 'ORACLE_OUTCOME', label: 'Oracle outcomes' }
+];
+
+const categoryLabel = (c: WalrusMemoryItem['category']) =>
+  ({ FAILURE_CASE: 'Failure', REGIME_SHIFT: 'Regime shift', CATALYST: 'Catalyst', ORACLE_OUTCOME: 'Oracle outcome' })[c];
+
+const shortHash = (h: string) => {
+  const s = h.replace(/^0x/, '');
+  return s.length > 8 ? `${s.slice(0, 4)}…${s.slice(-2)}` : s;
+};
+
 export const MemoryInspector: React.FC = () => {
   const [memories, setMemories] = useState<WalrusMemoryItem[]>(() => walrusMemory.getAllMemories());
-  const [searchQuery, setSearchQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<string>('ALL');
+  const [query, setQuery] = useState('');
+  const [category, setCategory] = useState<(typeof CATEGORIES)[number]['id']>('ALL');
   const [isSearching, setIsSearching] = useState(false);
-  const [newMemoryText, setNewMemoryText] = useState('');
-  const [newMemoryCategory, setNewMemoryCategory] = useState<WalrusMemoryItem['category']>('FAILURE_CASE');
+  const [text, setText] = useState('');
+  const [newCategory, setNewCategory] = useState<WalrusMemoryItem['category']>('FAILURE_CASE');
   const [isCommitting, setIsCommitting] = useState(false);
-  const [commitSuccess, setCommitSuccess] = useState<string | null>(null);
+  const [committed, setCommitted] = useState<string | null>(null);
 
-  const sampleQueries = [
-    'NAVI borrow utilization spike',
-    'Pyth oracle latency epoch 512',
-    'Cetus volume breakout momentum',
-    'Social hype hallucination penalty'
-  ];
-
-  const handleSearch = async (queryToRun?: string) => {
-    const q = queryToRun !== undefined ? queryToRun : searchQuery;
-    if (!q.trim()) {
-      setMemories(walrusMemory.getAllMemories());
+  const search = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!query.trim()) {
+      setMemories([...walrusMemory.getAllMemories()]);
       return;
     }
-
     setIsSearching(true);
     try {
-      const res = await walrusMemory.recall(q, 8);
+      const res = await walrusMemory.recall(query, 8);
       setMemories(res.results);
-    } catch {
-      // Handled via UI fallback
     } finally {
       setIsSearching(false);
     }
   };
 
-  const handleAddMemory = async (e: React.FormEvent) => {
+  const commit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newMemoryText.trim()) return;
-
+    if (!text.trim()) return;
     setIsCommitting(true);
-    setCommitSuccess(null);
-
+    setCommitted(null);
     try {
-      const res = await walrusMemory.remember(newMemoryText, newMemoryCategory);
+      const res = await walrusMemory.remember(text, newCategory);
       if (res.success) {
         setMemories([...walrusMemory.getAllMemories()]);
-        setCommitSuccess(`Committed to Walrus! Blob: ${res.memory.blobId.slice(0, 16)}...`);
-        setNewMemoryText('');
+        setCommitted(res.memory.blobId);
+        setText('');
       }
-    } catch {
-      // Handled via local state
     } finally {
       setIsCommitting(false);
     }
   };
 
-  const filteredMemories = memories.filter(m => {
-    if (activeCategory === 'ALL') return true;
-    return m.category === activeCategory;
-  });
+  const shown = memories.filter(m => category === 'ALL' || m.category === category);
+  const live = walrusMemory.isConfigured();
 
   return (
-    <div className="space-y-4 sm:space-y-6">
-      {/* Top Banner */}
-      <div className="cockpit-panel p-3.5 sm:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-3.5 sm:gap-4 corner-ticks">
-        <div>
-          <div className="flex items-center gap-2 flex-wrap mb-1">
-            <Database className="w-4 h-4 text-cyan-400 shrink-0" />
-            <h2 className="text-sm sm:text-lg font-bold text-white font-['Orbitron']">
-              Walrus Anchored Epistemic Memory Vault
-            </h2>
-            <span className="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded bg-cyan-950/80 border border-cyan-500/30 text-cyan-300">
-              {memories.length} Mainnet Blobs
-            </span>
-          </div>
-          <p className="text-[11px] sm:text-xs text-slate-400 font-mono leading-relaxed">
-            Vector-indexed failure &amp; oracle resolution blobs stored on <strong className="text-cyan-300">relayer.memory.walrus.xyz</strong> via <code className="text-purple-300">@mysten-incubation/memwal</code>.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 bg-[#04070e] px-3 py-1.5 rounded-xl border border-slate-800 text-xs font-mono self-start sm:self-auto shrink-0">
-          <span className="pulse-indicator bg-emerald-400"></span>
-          <span className="text-slate-400">Namespace:</span>
-          <span className="text-white font-bold">roguetrader</span>
-        </div>
+    <div className="space-y-8 pt-8 sm:pt-12">
+      <div>
+        <h1 className="text-3xl font-medium tracking-tight text-fg">Memory</h1>
+        <p className="mt-2 max-w-xl text-base text-fg-2">
+          Every setup the desk remembers. Recall searches this vault before a trade is sized.
+        </p>
+        <p className="num mt-2 text-meta text-fg-3">
+          {live ? 'Live MemWal relayer' : 'Local index · seeded from backtest'} · {memories.length} entries
+        </p>
       </div>
 
-      {/* Search Bar & Suggestion Chips */}
-      <div className="cockpit-panel p-3.5 sm:p-5 space-y-3.5">
-        <div className="flex flex-col sm:flex-row gap-2.5">
-          <div className="relative flex-1">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              value={searchQuery}
-              onChange={e => setSearchQuery(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleSearch()}
-              placeholder="Query Walrus Memory via semantic vector recall..."
-              className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-[#03050a] border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
-            />
-          </div>
-
+      <div className="space-y-3">
+        <form onSubmit={search} className="relative">
+          <Search size={16} strokeWidth={1.5} className="pointer-events-none absolute top-1/2 left-3 -translate-y-1/2 text-fg-3" />
+          <input
+            value={query}
+            onChange={e => setQuery(e.target.value)}
+            placeholder="Search memory, e.g. borrow utilization spike"
+            className="h-11 w-full rounded-lg border border-line bg-card pr-24 pl-9 text-sm text-fg placeholder:text-fg-3 focus:border-line-2 focus:outline-none"
+          />
           <button
-            onClick={() => handleSearch()}
-            disabled={isSearching}
-            className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-slate-950 font-mono text-xs font-bold transition-all shrink-0 cursor-pointer"
+            type="submit"
+            className="absolute top-1/2 right-1 h-9 -translate-y-1/2 rounded-md bg-raised px-3 text-sm text-fg transition-colors duration-150 ease-out hover:bg-line-2"
           >
-            {isSearching ? 'Recalling...' : 'Run memwal.recall()'}
+            {isSearching ? 'Recalling…' : 'Recall'}
           </button>
-        </div>
-
-        {/* Suggestion Chips */}
-        <div className="space-y-1.5">
-          <span className="text-slate-500 text-[10px] font-mono uppercase block">Semantic Presets:</span>
-          <div className="grid grid-cols-1 sm:flex sm:flex-wrap gap-1.5 text-xs font-mono">
-            {sampleQueries.map((q, idx) => (
-              <button
-                key={idx}
-                onClick={() => {
-                  setSearchQuery(q);
-                  handleSearch(q);
-                }}
-                className="px-2.5 py-1.5 sm:py-1 rounded-lg bg-[#050811] hover:bg-slate-800 text-cyan-300 text-[11px] border border-slate-800 transition-colors cursor-pointer text-left sm:text-center truncate"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* Category Filter Pills */}
-      <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-        <Filter className="w-3.5 h-3.5 text-slate-400 mr-1 shrink-0" />
-        {['ALL', 'FAILURE_CASE', 'CATALYST', 'REGIME_SHIFT', 'ORACLE_OUTCOME'].map(cat => (
-          <button
-            key={cat}
-            onClick={() => setActiveCategory(cat)}
-            className={`px-2.5 sm:px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-mono transition-colors cursor-pointer ${
-              activeCategory === cat
-                ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
-                : 'bg-[#060a12] text-slate-400 border border-slate-800 hover:text-white'
-            }`}
-          >
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Memory Blobs Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 sm:gap-4">
-        {filteredMemories.map(m => (
-          <div
-            key={m.id}
-            className="cockpit-panel p-3.5 sm:p-4 space-y-2.5"
-          >
-            <div className="flex items-center justify-between gap-2 text-xs font-mono flex-wrap">
-              <span
-                className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                  m.category === 'FAILURE_CASE'
-                    ? 'bg-rose-950/90 text-rose-300 border border-rose-500/30'
-                    : m.category === 'CATALYST'
-                    ? 'bg-emerald-950/90 text-emerald-300 border border-emerald-500/30'
-                    : m.category === 'REGIME_SHIFT'
-                    ? 'bg-purple-950/90 text-purple-300 border border-purple-500/30'
-                    : 'bg-cyan-950/90 text-cyan-300 border border-cyan-500/30'
-                }`}
-              >
-                {m.category}
-              </span>
-
-              <div className="flex items-center gap-1.5 sm:gap-2">
-                <span className="text-amber-300 text-[10px] font-mono bg-amber-950/60 border border-amber-500/30 px-1.5 py-0.2 rounded">
-                  {m.weightImpact}
-                </span>
-                <span className="text-emerald-400 text-[10px] sm:text-[11px] font-bold font-mono">
-                  {(m.similarityScore * 100).toFixed(0)}% Match
-                </span>
-              </div>
-            </div>
-
-            <p className="text-[11px] sm:text-xs text-slate-200 leading-relaxed font-mono">{m.text}</p>
-
-            <div className="pt-2.5 border-t border-slate-800/80 flex items-center justify-between gap-2 text-[10px] font-mono text-slate-400">
-              <span className="flex items-center gap-1 text-cyan-300 truncate">
-                <Hash className="w-3 h-3 text-cyan-400 shrink-0" />
-                <span className="truncate">walrus://{m.blobId.slice(0, 16)}...</span>
-              </span>
-              <span className="flex items-center gap-1 shrink-0">
-                <Clock className="w-3 h-3 text-slate-500" />
-                {new Date(m.timestamp).toLocaleDateString()}
-              </span>
-            </div>
-          </div>
-        ))}
-      </div>
-
-      {/* Write Memory Form */}
-      <div className="cockpit-panel p-3.5 sm:p-5 space-y-3.5">
-        <div className="flex items-center gap-2">
-          <PlusCircle className="w-4 h-4 text-cyan-400 shrink-0" />
-          <h3 className="text-xs sm:text-sm font-bold text-white font-['Orbitron']">
-            Commit New Calibration Incident to Walrus Relayer (memwal.remember)
-          </h3>
-        </div>
-
-        <form onSubmit={handleAddMemory} className="space-y-3">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-2.5 sm:gap-3">
-            <div className="md:col-span-3">
-              <input
-                type="text"
-                value={newMemoryText}
-                onChange={e => setNewMemoryText(e.target.value)}
-                placeholder="E.g. SUI flash wick triggered by Scallop borrow rate reaching 82%..."
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#03050a] border border-slate-800 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 font-mono"
-              />
-            </div>
-
-            <div>
-              <select
-                value={newMemoryCategory}
-                onChange={e => setNewMemoryCategory(e.target.value as WalrusMemoryItem['category'])}
-                className="w-full px-3.5 py-2.5 rounded-xl bg-[#03050a] border border-slate-800 text-xs text-cyan-300 font-mono focus:outline-none focus:border-cyan-500"
-              >
-                <option value="FAILURE_CASE">FAILURE_CASE</option>
-                <option value="CATALYST">CATALYST</option>
-                <option value="REGIME_SHIFT">REGIME_SHIFT</option>
-                <option value="ORACLE_OUTCOME">ORACLE_OUTCOME</option>
-              </select>
-            </div>
-          </div>
-
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
-            {commitSuccess ? (
-              <div className="text-xs font-mono text-emerald-400 flex items-center gap-1.5">
-                <CheckCircle2 className="w-4 h-4 shrink-0" />
-                <span className="break-all">{commitSuccess}</span>
-              </div>
-            ) : (
-              <span className="text-[10px] sm:text-[11px] text-slate-400 font-mono truncate">
-                Endpoint: <code className="text-cyan-300">POST https://relayer.memory.walrus.xyz/v1/remember</code>
-              </span>
-            )}
-
-            <button
-              type="submit"
-              disabled={isCommitting || !newMemoryText.trim()}
-              className="w-full sm:w-auto px-4 py-2.5 sm:py-2 rounded-xl font-mono text-xs font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-slate-950 transition-all disabled:opacity-50 cursor-pointer"
-            >
-              {isCommitting ? 'Sealing Blob...' : 'Commit Blob to Walrus'}
-            </button>
-          </div>
         </form>
+        <div className="-mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+          {CATEGORIES.map(c => (
+            <button
+              key={c.id}
+              onClick={() => setCategory(c.id)}
+              className={`h-10 shrink-0 rounded-lg px-3 text-sm transition-colors duration-150 ease-out sm:h-8 ${
+                category === c.id ? 'active-surface text-fg' : 'text-fg-2 hover:text-fg'
+              }`}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
       </div>
+
+      <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
+        {shown.length === 0 && <li className="p-5 text-sm text-fg-3">No memories match.</li>}
+        {shown.map(m => (
+          <li key={m.id} className="grid gap-3 p-4 sm:grid-cols-[8rem_1fr_auto] sm:gap-6 sm:p-5">
+            <div className="flex items-baseline justify-between gap-3 sm:block">
+              <p className="text-sm text-fg">{categoryLabel(m.category)}</p>
+              <p className="num text-meta text-fg-3 sm:mt-1">
+                {new Date(m.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </p>
+            </div>
+            <p className="text-sm text-fg-2">{m.text}</p>
+            <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+              <span className="keycap">
+                <span>blob</span>
+                {shortHash(m.blobId)}
+              </span>
+              {m.tatumCheckpoint && (
+                <span className="keycap">
+                  <span>ckpt</span>
+                  {m.tatumCheckpoint.toLocaleString('en-US')}
+                </span>
+              )}
+              <span className={`num text-meta ${m.weightImpact.startsWith('-') ? 'text-neg' : 'text-pos'}`}>
+                {m.weightImpact.replace(' Confidence', ' conf.')}
+              </span>
+            </div>
+          </li>
+        ))}
+      </ul>
+
+      <form onSubmit={commit} className="rounded-2xl border border-line bg-card p-5">
+        <h2 className="text-base font-medium text-fg">Remember a setup</h2>
+        <p className="mt-1 text-sm text-fg-3">Writes through memwal.remember. Walrus writes settle in roughly 20 seconds.</p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+          <input
+            value={text}
+            onChange={e => setText(e.target.value)}
+            placeholder="SUI wick when Scallop borrow rate hit 82%"
+            className="h-11 min-w-0 flex-1 rounded-lg border border-line bg-deep px-3 text-sm text-fg placeholder:text-fg-3 focus:border-line-2 focus:outline-none"
+          />
+          <select
+            value={newCategory}
+            onChange={e => setNewCategory(e.target.value as WalrusMemoryItem['category'])}
+            className="h-11 rounded-lg border border-line bg-deep px-3 text-sm text-fg focus:outline-none"
+          >
+            {CATEGORIES.filter(c => c.id !== 'ALL').map(c => (
+              <option key={c.id} value={c.id}>
+                {categoryLabel(c.id as WalrusMemoryItem['category'])}
+              </option>
+            ))}
+          </select>
+          <button
+            type="submit"
+            disabled={isCommitting || !text.trim()}
+            className="btn-primary h-11 rounded-lg px-4 text-sm font-medium transition-colors duration-150 ease-out disabled:opacity-50"
+          >
+            {isCommitting ? 'Writing…' : 'Remember'}
+          </button>
+        </div>
+        {committed && (
+          <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-fg-2">
+            Stored
+            <span className="keycap">
+              <span>blob</span>
+              {shortHash(committed)}
+            </span>
+          </p>
+        )}
+      </form>
     </div>
   );
 };

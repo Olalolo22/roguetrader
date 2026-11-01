@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type React from 'react';
-import { X, Settings, Database, Cpu, CheckCircle2, AlertCircle, RefreshCw } from 'lucide-react';
+import { X } from 'lucide-react';
 import { tatumSui } from '../services/tatumSui';
 import { walrusMemory } from '../services/walrusMemory';
 
@@ -10,168 +10,112 @@ interface SettingsModalProps {
   onSaved: () => void;
 }
 
-export const SettingsModal: React.FC<SettingsModalProps> = ({
-  isOpen,
-  onClose,
-  onSaved
-}) => {
+export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, onSaved }) => {
   if (!isOpen) return null;
+  return <SettingsPanel onClose={onClose} onSaved={onSaved} />;
+};
 
+const SettingsPanel: React.FC<Omit<SettingsModalProps, 'isOpen'>> = ({ onClose, onSaved }) => {
   const [tatumKey, setTatumKey] = useState(tatumSui.getApiKey());
   const [walrusAccount, setWalrusAccount] = useState('');
   const [walrusKey, setWalrusKey] = useState('');
   const [testing, setTesting] = useState(false);
-  const [statusMessage, setStatusMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
 
-  const handleSave = async () => {
+  const save = async () => {
     tatumSui.setApiKey(tatumKey);
-
     if (walrusAccount && walrusKey) {
       const res = await walrusMemory.configureLive(walrusKey, walrusAccount);
       if (!res.success) {
-        setStatusMessage({ type: 'error', text: `Walrus SDK init error: ${res.error}` });
+        setStatus({ ok: false, text: `Walrus SDK: ${res.error}` });
         return;
       }
     }
-
-    setStatusMessage({ type: 'success', text: 'Settings saved! Active RPC endpoints updated.' });
+    setStatus({ ok: true, text: 'Saved.' });
     onSaved();
-    setTimeout(() => {
-      onClose();
-    }, 1200);
+    setTimeout(onClose, 900);
   };
 
-  const handleTestConnection = async () => {
+  const test = async () => {
     setTesting(true);
-    setStatusMessage(null);
-
+    setStatus(null);
     try {
-      // Test Walrus health
-      const walrusHealth = await walrusMemory.getHealth();
-      // Test Tatum checkpoint
-      const checkpoint = await tatumSui.getLatestCheckpoint();
-
-      setStatusMessage({
-        type: 'success',
-        text: `Connections verified! Walrus Relayer: ${walrusHealth.relayer} (ONLINE), Tatum Sui Checkpoint: #${checkpoint.toLocaleString()}`
-      });
-    } catch (err: any) {
-      setStatusMessage({
-        type: 'error',
-        text: `Connection test issue: ${err.message}`
-      });
+      const health = await walrusMemory.getHealth();
+      const ckpt = await tatumSui.getLatestCheckpoint();
+      setStatus({ ok: true, text: `Walrus relayer ${health.relayer} · checkpoint ${ckpt.toLocaleString('en-US')}` });
+    } catch (err) {
+      setStatus({ ok: false, text: `Connection failed: ${(err as Error).message}` });
     } finally {
       setTesting(false);
     }
   };
 
+  const field =
+    'num h-11 w-full rounded-lg border border-line bg-deep px-3 text-sm text-fg placeholder:text-fg-3 focus:border-line-2 focus:outline-none';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-lg bg-[#08090d] border border-white/[0.12] rounded-xl shadow-2xl overflow-hidden my-auto max-h-[92vh] flex flex-col font-sans">
-        {/* Header */}
-        <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0">
-          <div className="flex items-center gap-2">
-            <Settings className="w-4 h-4 text-cyan-400" />
-            <h3 className="font-bold text-white text-xs sm:text-sm font-['Orbitron']">
-              Network & API Configuration
-            </h3>
-          </div>
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 sm:items-center sm:p-4" onClick={onClose}>
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-title"
+        onClick={e => e.stopPropagation()}
+        className="rise max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-t-2xl border border-line bg-card sm:rounded-2xl"
+      >
+        <div className="flex h-14 items-center justify-between border-b border-line pr-2 pl-5">
+          <h2 id="settings-title" className="text-base font-medium text-fg">
+            Network
+          </h2>
           <button
             onClick={onClose}
-            className="p-1 rounded text-zinc-400 hover:text-white transition-colors"
+            aria-label="Close"
+            className="flex size-10 items-center justify-center rounded-lg text-fg-3 hover:bg-raised hover:text-fg"
           >
-            <X className="w-4 h-4" />
+            <X size={16} strokeWidth={1.5} />
           </button>
         </div>
 
-        {/* Content */}
-        <div className="p-4 sm:p-5 space-y-4 overflow-y-auto flex-1">
-          {/* Status Message */}
-          {statusMessage && (
-            <div
-              className={`p-3 rounded-xl text-xs font-mono flex items-start gap-2 ${
-                statusMessage.type === 'success'
-                  ? 'bg-emerald-950/60 border border-emerald-500/30 text-emerald-300'
-                  : 'bg-rose-950/60 border border-rose-500/30 text-rose-300'
-              }`}
-            >
-              {statusMessage.type === 'success' ? (
-                <CheckCircle2 className="w-4 h-4 shrink-0 text-emerald-400" />
-              ) : (
-                <AlertCircle className="w-4 h-4 shrink-0 text-rose-400" />
-              )}
-              <span>{statusMessage.text}</span>
-            </div>
-          )}
+        <div className="space-y-6 p-5">
+          <label className="block space-y-2">
+            <span className="text-sm text-fg-2">Tatum API key</span>
+            <input type="password" value={tatumKey} onChange={e => setTatumKey(e.target.value)} placeholder="t-…" className={field} />
+            <span className="block text-meta text-fg-3">Without a key, checkpoints come from the public Sui RPC.</span>
+          </label>
 
-          {/* Tatum API Key Field */}
-          <div className="space-y-1.5">
-            <label className="text-xs font-mono text-slate-300 flex items-center justify-between">
-              <span className="flex items-center gap-1.5">
-                <Cpu className="w-3.5 h-3.5 text-purple-400" /> Tatum Gateway API Key (Optional)
-              </span>
-              <span className="text-[10px] text-slate-500">sui-mainnet.gateway.tatum.io</span>
-            </label>
+          <div className="space-y-3">
+            <span className="text-sm text-fg-2">Walrus MemWal</span>
+            <input value={walrusAccount} onChange={e => setWalrusAccount(e.target.value)} placeholder="Account id 0x…" className={field} />
             <input
-              type="text"
-              value={tatumKey}
-              onChange={e => setTatumKey(e.target.value)}
-              placeholder="Leave blank for public Sui node fallback, or enter Tatum key..."
-              className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-cyan-500"
+              type="password"
+              value={walrusKey}
+              onChange={e => setWalrusKey(e.target.value)}
+              placeholder="Ed25519 delegate key"
+              className={field}
             />
-            <p className="text-[10px] text-slate-500">
-              Header: <code className="text-purple-300 font-mono">x-api-key: [YOUR_KEY]</code> for authenticated Tatum Sui Mainnet RPC.
+            <span className="block text-meta text-fg-3">Leave empty to use the local index seeded from backtest.</span>
+          </div>
+
+          {status && (
+            <p className={`text-sm break-words ${status.ok ? 'text-fg-2' : 'text-neg'}`} role="status">
+              {status.text}
             </p>
-          </div>
+          )}
+        </div>
 
-          {/* Walrus Memory Relayer Configuration */}
-          <div className="space-y-2 pt-2 border-t border-slate-800">
-            <div className="flex items-center justify-between text-xs font-mono text-slate-300">
-              <span className="flex items-center gap-1.5">
-                <Database className="w-3.5 h-3.5 text-cyan-400" /> Walrus Memory Delegate Key
-              </span>
-              <span className="text-[10px] text-cyan-400">relayer.memory.walrus.xyz</span>
-            </div>
-
-            <div className="space-y-2">
-              <input
-                type="text"
-                value={walrusAccount}
-                onChange={e => setWalrusAccount(e.target.value)}
-                placeholder="Walrus Account ID (e.g. 0x...)"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-cyan-500"
-              />
-              <input
-                type="password"
-                value={walrusKey}
-                onChange={e => setWalrusKey(e.target.value)}
-                placeholder="Ed25519 64-char Hex Private Key (Optional for live write)"
-                className="w-full px-3.5 py-2 rounded-xl bg-slate-900 border border-slate-800 text-xs text-white placeholder-slate-500 font-mono focus:outline-none focus:border-cyan-500"
-              />
-            </div>
-            <p className="text-[10px] text-slate-500">
-              RogueTrader includes 12+ pre-indexed Mainnet calibration memories that work out of the box!
-            </p>
-          </div>
-
-          {/* Actions */}
-          <div className="pt-3 flex items-center justify-between gap-3">
-            <button
-              onClick={handleTestConnection}
-              disabled={testing}
-              className="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-mono flex items-center gap-1.5 border border-slate-800 transition-colors"
-            >
-              <RefreshCw className={`w-3.5 h-3.5 ${testing ? 'animate-spin' : ''}`} />
-              <span>{testing ? 'Testing...' : 'Test Gateway Health'}</span>
-            </button>
-
-            <button
-              onClick={handleSave}
-              className="px-5 py-2 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-mono text-xs font-bold transition-all shadow-md active:scale-95"
-            >
-              Save Configuration
-            </button>
-          </div>
+        <div className="flex flex-col-reverse gap-2 border-t border-line p-5 sm:flex-row sm:justify-end">
+          <button
+            onClick={test}
+            disabled={testing}
+            className="h-11 rounded-lg border border-line bg-raised px-4 text-sm text-fg transition-colors duration-150 ease-out hover:border-line-2 disabled:opacity-50"
+          >
+            {testing ? 'Testing…' : 'Test connection'}
+          </button>
+          <button
+            onClick={save}
+            className="btn-primary h-11 rounded-lg px-4 text-sm font-medium transition-colors duration-150 ease-out"
+          >
+            Save
+          </button>
         </div>
       </div>
     </div>
