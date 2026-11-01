@@ -117,6 +117,10 @@ export const CheckTrade: React.FC = () => {
             </button>
           ))}
         </div>
+
+        <p className="num mt-4 text-meta text-fg-3">
+          Built for directional &amp; swing sizing (~900 ms recall)—not sub-second HFT. Reads run pre-trade; slow Walrus writes (~20 s) run post-settlement so they never block execution.
+        </p>
       </section>
 
       {/* Result */}

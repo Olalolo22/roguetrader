@@ -42,6 +42,12 @@ Proposed Trade: "Long SUI 2.14, 3x"
          └── Liquidation distance: 33.3% ──► 50.0% (Safer)
 ```
 
+### Latency & Execution Boundary (Reads vs. Writes)
+
+Built for directional and swing position sizing (~900 ms recall)—not sub-second HFT or MEV sniping:
+- **Pre-Trade Reads (`memwal.recall` ~900 ms):** Runs before a human trader or portfolio agent sizes a multi-hour directional position (`1x–5x`). A 1-second check prevents repeating known losing setups without hurting swing execution.
+- **Post-Settlement Writes (`memwal.remember` ~20 s):** Erasure-coding and committing blobs to Walrus takes 15–25 seconds. RogueTrader only writes trade outcomes asynchronously *after* a position closes, so slow storage writes never sit in the trade execution path.
+
 ---
 
 ## Calibration Metric: The Brier Score
