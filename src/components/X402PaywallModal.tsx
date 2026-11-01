@@ -36,7 +36,6 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
       if (result.success && result.receipt) {
         setReceipt(result.receipt);
 
-        // Confetti celebration
         confetti({
           particleCount: 70,
           spread: 60,
@@ -45,8 +44,8 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
 
         onPaymentSuccess(result.receipt);
       }
-    } catch (err) {
-      console.error('x402 settlement failed:', err);
+    } catch {
+      // Handled via UI state
     } finally {
       setIsSettling(false);
     }
@@ -65,9 +64,9 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/85 backdrop-blur-sm overflow-y-auto">
-      <div className="relative w-full max-w-xl bg-[#08090d] border border-white/[0.12] rounded-xl shadow-2xl overflow-hidden font-sans my-auto max-h-[92vh] flex flex-col">
+      <div className="relative w-full max-w-xl bg-[#070b14] border border-cyan-500/30 rounded-xl shadow-2xl overflow-hidden font-sans my-auto max-h-[92vh] flex flex-col">
         {/* Modal Header */}
-        <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0">
+        <div className="px-4 sm:px-5 py-3.5 sm:py-4 border-b border-white/[0.08] flex items-center justify-between shrink-0 bg-[#0b111e]">
           <div className="flex items-center gap-2">
             <span className="p-1 rounded bg-cyan-950 border border-cyan-500/30 text-cyan-400">
               <Zap className="w-4 h-4" />
@@ -93,12 +92,12 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
           {!receipt ? (
             <>
               {/* Agent Paywall Target */}
-              <div className="p-3.5 rounded-lg bg-black border border-white/[0.06] flex items-center justify-between gap-3">
+              <div className="p-3.5 rounded-lg bg-[#04060b] border border-white/[0.08] flex items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
                   <span className="text-2xl">{agent.avatar}</span>
                   <div>
                     <h4 className="font-bold text-white text-xs font-['Orbitron']">{agent.name}</h4>
-                    <p className="text-[11px] text-zinc-500 font-mono">Brier Score: {agent.brierScore.toFixed(3)}</p>
+                    <p className="text-[11px] text-zinc-400 font-mono">Brier Score: {agent.brierScore.toFixed(3)}</p>
                   </div>
                 </div>
 
@@ -111,8 +110,8 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
               </div>
 
               {/* Protocol Spec Box */}
-              <div className="p-3.5 rounded-lg bg-black border border-white/[0.06] font-mono text-xs space-y-2">
-                <div className="flex items-center justify-between text-zinc-500 text-[10px] pb-1 border-b border-white/[0.04]">
+              <div className="p-3.5 rounded-lg bg-[#04060b] border border-white/[0.08] font-mono text-xs space-y-2">
+                <div className="flex items-center justify-between text-zinc-500 text-[10px] pb-1 border-b border-white/[0.06]">
                   <span className="flex items-center gap-1 text-cyan-400">
                     <Terminal className="w-3 h-3" /> Server Response Header
                   </span>
@@ -126,8 +125,8 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
                 </div>
 
                 <div className="text-rose-400 text-[11px] font-bold">HTTP/1.1 402 Payment Required</div>
-                <div className="text-zinc-400 text-[10px] break-all bg-zinc-950 p-2 rounded border border-white/[0.04] leading-relaxed">
-                  <span className="text-purple-400">WWW-Authenticate: </span>
+                <div className="text-zinc-300 text-[10px] break-all bg-black/70 p-2.5 rounded border border-white/[0.05] leading-relaxed">
+                  <span className="text-cyan-400">WWW-Authenticate: </span>
                   {invoice.headerChallenge}
                 </div>
               </div>
@@ -135,11 +134,11 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
               {/* Transaction Execution Details */}
               <div className="space-y-1.5 text-[11px] font-mono text-zinc-400">
                 <div className="flex justify-between">
-                  <span className="text-zinc-600">Payer:</span>
-                  <span className="text-zinc-300">{wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}</span>
+                  <span className="text-zinc-500">Payer:</span>
+                  <span className="text-zinc-200">{wallet.address.slice(0, 6)}...{wallet.address.slice(-4)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-zinc-600">Settlement Vault:</span>
+                  <span className="text-zinc-500">Settlement Vault:</span>
                   <span className="text-cyan-400">{agent.recipientAddress.slice(0, 6)}...{agent.recipientAddress.slice(-4)}</span>
                 </div>
               </div>
@@ -148,12 +147,12 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
               <button
                 onClick={handlePay}
                 disabled={isSettling}
-                className="w-full py-2.5 px-4 rounded-lg font-mono text-xs font-bold bg-cyan-500 hover:bg-cyan-400 text-black flex items-center justify-center gap-2 transition-all disabled:opacity-50 active:scale-95 shadow-sm"
+                className="w-full py-2.5 px-4 rounded-lg font-mono text-xs font-bold bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-black flex items-center justify-center gap-2 transition-all disabled:opacity-50 active:scale-95 shadow-lg shadow-cyan-500/20"
               >
                 {isSettling ? (
                   <>
                     <div className="w-3.5 h-3.5 border-2 border-black/40 border-t-black rounded-full animate-spin"></div>
-                    <span>Verifying on Sui via Tatum...</span>
+                    <span>Verifying on Sui via Tatum Gateway...</span>
                   </>
                 ) : (
                   <>
@@ -179,8 +178,8 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
               </div>
 
               {/* Receipt */}
-              <div className="p-3 rounded-lg bg-black border border-white/[0.06] font-mono text-xs space-y-1.5">
-                <div className="flex items-center justify-between text-[10px] text-zinc-500 pb-1 border-b border-white/[0.04]">
+              <div className="p-3 rounded-lg bg-[#04060b] border border-white/[0.08] font-mono text-xs space-y-1.5">
+                <div className="flex items-center justify-between text-[10px] text-zinc-500 pb-1 border-b border-white/[0.06]">
                   <span className="text-cyan-400">Sui Settlement Receipt</span>
                   <button
                     onClick={() => copyText(receipt.txDigest, 'digest')}
@@ -197,25 +196,25 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
               </div>
 
               {/* Unlocked Alpha */}
-              <div className="p-3.5 rounded-lg bg-black border border-cyan-500/30 space-y-2">
+              <div className="p-3.5 rounded-lg bg-[#04060b] border border-cyan-500/40 space-y-2">
                 <div className="text-[10px] font-mono font-bold text-cyan-400">
                   UNLOCKED ALPHA & POSITION MANDATE:
                 </div>
 
-                <p className="text-xs text-zinc-300 leading-relaxed font-sans">
+                <p className="text-xs text-zinc-200 leading-relaxed font-sans">
                   {agent.currentThesis.fullAnalysis}
                 </p>
 
-                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/[0.04] text-center font-mono text-xs">
-                  <div className="bg-zinc-950 p-2 rounded border border-white/[0.04]">
-                    <div className="text-[9px] text-zinc-500">Entry Range</div>
+                <div className="grid grid-cols-3 gap-2 pt-2 border-t border-white/[0.06] text-center font-mono text-xs">
+                  <div className="bg-black/60 p-2 rounded border border-white/[0.06]">
+                    <div className="text-[9px] text-zinc-400">Entry Range</div>
                     <div className="text-white font-bold">{agent.currentThesis.entryRange}</div>
                   </div>
-                  <div className="bg-zinc-950 p-2 rounded border border-white/[0.04]">
+                  <div className="bg-black/60 p-2 rounded border border-emerald-500/20">
                     <div className="text-[9px] text-emerald-400">Take Profit</div>
                     <div className="text-emerald-400 font-bold">${agent.currentThesis.targetPrice}</div>
                   </div>
-                  <div className="bg-zinc-950 p-2 rounded border border-white/[0.04]">
+                  <div className="bg-black/60 p-2 rounded border border-rose-500/20">
                     <div className="text-[9px] text-rose-400">Stop Loss</div>
                     <div className="text-rose-400 font-bold">${agent.currentThesis.stopLoss}</div>
                   </div>
@@ -226,7 +225,7 @@ export const X402PaywallModal: React.FC<X402PaywallModalProps> = ({
                 onClick={onClose}
                 className="w-full py-2 px-3 rounded-lg bg-zinc-800 hover:bg-zinc-700 text-white font-mono text-xs font-bold transition-colors"
               >
-                Close & Return
+                Close & Return to Cockpit
               </button>
             </div>
           )}

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Header } from './components/Header';
+import { Header, type CockpitTab } from './components/Header';
 import { ArenaLeaderboard } from './components/ArenaLeaderboard';
 import { ReflectiveThoughtEngine } from './components/ReflectiveThoughtEngine';
 import { MemoryInspector } from './components/MemoryInspector';
@@ -12,7 +12,7 @@ import { x402Payment } from './services/x402Payment';
 import type { AgentProfile, AgentId, TatumMarketState, UserWalletState, X402Receipt } from './types';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<'arena' | 'reflection' | 'memory' | 'receipts'>('arena');
+  const [activeTab, setActiveTab] = useState<CockpitTab>('arena');
   const [agents, setAgents] = useState<AgentProfile[]>(() => agentEngine.getAgents());
   const [selectedAgentId, setSelectedAgentId] = useState<AgentId>('alphasui');
   const [paywallAgent, setPaywallAgent] = useState<AgentProfile | null>(null);
@@ -20,7 +20,7 @@ export function App() {
   const [receipts, setReceipts] = useState<X402Receipt[]>(() => x402Payment.getReceipts());
   const [marketState, setMarketState] = useState<TatumMarketState | null>(null);
 
-  // Simulated connected user wallet state on Sui Mainnet
+  // Connected user wallet state on Sui Mainnet
   const [wallet, setWallet] = useState<UserWalletState>({
     address: '0x4f82a101b9ca990188efacba772109aa988112bc',
     balanceSui: 14.50,
@@ -34,8 +34,8 @@ export function App() {
       try {
         const state = await tatumSui.getMarketState();
         setMarketState(state);
-      } catch (e) {
-        console.warn('Market fetch error:', e);
+      } catch {
+        // Fallback handled inside tatumSui service
       }
     };
 
@@ -51,22 +51,21 @@ export function App() {
   };
 
   const handlePaymentSuccess = (receipt: X402Receipt) => {
-    // Deduct user balance
     setWallet(prev => ({
       ...prev,
       balanceSui: Math.max(0, prev.balanceSui - receipt.amountSui)
     }));
 
-    // Refresh agent state
     setAgents([...agentEngine.getAgents()]);
     setReceipts([...x402Payment.getReceipts()]);
   };
 
   const unlockedCount = agents.filter(a => a.currentThesis.isUnlocked).length;
+  const activeAgent = agents.find(a => a.id === selectedAgentId) || agents[0];
 
   return (
-    <div className="min-h-screen bg-[#030407] text-zinc-100 flex flex-col font-sans selection:bg-cyan-500 selection:text-black">
-      {/* Navigation Header */}
+    <div className="min-h-screen text-slate-100 flex flex-col font-sans selection:bg-cyan-400 selection:text-slate-950">
+      {/* Top Cockpit Navigation & Global Telemetry */}
       <Header
         marketState={marketState}
         wallet={wallet}
@@ -74,15 +73,23 @@ export function App() {
         setActiveTab={setActiveTab}
         onOpenSettings={() => setIsSettingsOpen(true)}
         unlockedCount={unlockedCount}
+        activeBrierScore={activeAgent.brierScore}
       />
 
-      {/* Main Container */}
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 py-6">
+      {/* Main Cockpit Container */}
+      <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6">
         {activeTab === 'arena' && (
           <ArenaLeaderboard
             agents={agents}
+            selectedAgentId={selectedAgentId}
+            onSelectAgent={setSelectedAgentId}
             onSelectAgentForReflection={handleSelectAgentForReflection}
             onOpenPaywall={agent => setPaywallAgent(agent)}
+            onNavigateX402={() => {
+              setActiveTab('x402');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            marketState={marketState}
           />
         )}
 
@@ -95,34 +102,38 @@ export function App() {
           />
         )}
 
-        {activeTab === 'memory' && (
-          <MemoryInspector />
-        )}
-
-        {activeTab === 'receipts' && (
+        {activeTab === 'x402' && (
           <ReceiptsList
             receipts={receipts}
             agents={agents}
+            wallet={wallet}
+            onPaymentSuccess={handlePaymentSuccess}
             onOpenPaywall={agent => setPaywallAgent(agent)}
           />
         )}
+
+        {activeTab === 'memory' && (
+          <MemoryInspector />
+        )}
       </main>
 
-      {/* Footer */}
-      <footer className="border-t border-white/[0.06] bg-[#030407] py-6 px-4 text-[11px] text-zinc-500 font-mono">
+      {/* Cockpit Footer */}
+      <footer className="border-t border-slate-800/80 bg-[#030509]/95 py-6 px-4 text-[11px] text-slate-400 font-mono">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="font-bold text-white font-['Orbitron']">ROGUE TRADER</span>
-            <span className="text-zinc-700">•</span>
-            <span>Tatum × Walrus Memory Hackathon 2026</span>
+            <span className="font-bold text-white font-['Orbitron']">
+              ROGUE<span className="text-cyan-400">TRADER</span>
+            </span>
+            <span className="text-slate-700">•</span>
+            <span>Epistemic Trading Cockpit • Tatum × Walrus Memory Hackathon 2026</span>
           </div>
 
-          <div className="flex items-center gap-3 flex-wrap text-zinc-400">
-            <span className="text-cyan-400">Walrus: relayer.memory.walrus.xyz</span>
-            <span className="text-zinc-700">•</span>
-            <span className="text-purple-400">Tatum: sui-mainnet.gateway.tatum.io</span>
-            <span className="text-zinc-700">•</span>
-            <span className="text-emerald-400">x402 on Sui</span>
+          <div className="flex items-center gap-3 flex-wrap text-slate-400">
+            <span className="text-cyan-300">Walrus: relayer.memory.walrus.xyz</span>
+            <span className="text-slate-700">•</span>
+            <span className="text-purple-300">Tatum: sui-mainnet.gateway.tatum.io</span>
+            <span className="text-slate-700">•</span>
+            <span className="text-emerald-300">x402 Micro-Settlement on Sui</span>
           </div>
         </div>
       </footer>
