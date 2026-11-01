@@ -4,18 +4,13 @@ import { ArenaLeaderboard } from './components/ArenaLeaderboard';
 import { ReflectiveThoughtEngine } from './components/ReflectiveThoughtEngine';
 import { MemoryInspector } from './components/MemoryInspector';
 import { ReceiptsList } from './components/ReceiptsList';
-import { X402PaywallModal } from './components/X402PaywallModal';
 import { SettingsModal } from './components/SettingsModal';
-import { agentEngine } from './services/agentEngine';
 import { tatumSui } from './services/tatumSui';
 import { x402Payment } from './services/x402Payment';
-import type { AgentProfile, AgentId, TatumMarketState, UserWalletState, X402Receipt } from './types';
+import type { TatumMarketState, UserWalletState, X402Receipt } from './types';
 
 export function App() {
   const [activeTab, setActiveTab] = useState<CockpitTab>('arena');
-  const [agents, setAgents] = useState<AgentProfile[]>(() => agentEngine.getAgents());
-  const [selectedAgentId, setSelectedAgentId] = useState<AgentId>('alphasui');
-  const [paywallAgent, setPaywallAgent] = useState<AgentProfile | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [receipts, setReceipts] = useState<X402Receipt[]>(() => x402Payment.getReceipts());
   const [marketState, setMarketState] = useState<TatumMarketState | null>(null);
@@ -44,24 +39,13 @@ export function App() {
     return () => clearInterval(interval);
   }, []);
 
-  const handleSelectAgentForReflection = (agentId: AgentId) => {
-    setSelectedAgentId(agentId);
-    setActiveTab('reflection');
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
   const handlePaymentSuccess = (receipt: X402Receipt) => {
     setWallet(prev => ({
       ...prev,
       balanceSui: Math.max(0, prev.balanceSui - receipt.amountSui)
     }));
-
-    setAgents([...agentEngine.getAgents()]);
     setReceipts([...x402Payment.getReceipts()]);
   };
-
-  const unlockedCount = agents.filter(a => a.currentThesis.isUnlocked).length;
-  const activeAgent = agents.find(a => a.id === selectedAgentId) || agents[0];
 
   return (
     <div className="min-h-screen text-slate-100 flex flex-col font-sans selection:bg-cyan-400 selection:text-slate-950">
@@ -72,48 +56,40 @@ export function App() {
         activeTab={activeTab}
         setActiveTab={setActiveTab}
         onOpenSettings={() => setIsSettingsOpen(true)}
-        unlockedCount={unlockedCount}
-        activeBrierScore={activeAgent.brierScore}
+        unlockedCount={receipts.length}
+        activeBrierScore={0.168}
       />
 
       {/* Main Cockpit Container */}
       <main className="flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-6">
         {activeTab === 'arena' && (
           <ArenaLeaderboard
-            agents={agents}
-            selectedAgentId={selectedAgentId}
-            onSelectAgent={setSelectedAgentId}
-            onSelectAgentForReflection={handleSelectAgentForReflection}
-            onOpenPaywall={agent => setPaywallAgent(agent)}
-            onNavigateX402={() => {
+            marketState={marketState}
+            onNavigateToAudit={() => {
+              setActiveTab('audit');
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            onNavigateToX402={() => {
               setActiveTab('x402');
               window.scrollTo({ top: 0, behavior: 'smooth' });
             }}
-            marketState={marketState}
-          />
-        )}
-
-        {activeTab === 'reflection' && (
-          <ReflectiveThoughtEngine
-            agents={agents}
-            selectedAgentId={selectedAgentId}
-            onSelectAgent={setSelectedAgentId}
-            onPaywallClick={agent => setPaywallAgent(agent)}
-          />
-        )}
-
-        {activeTab === 'x402' && (
-          <ReceiptsList
-            receipts={receipts}
-            agents={agents}
-            wallet={wallet}
-            onPaymentSuccess={handlePaymentSuccess}
-            onOpenPaywall={agent => setPaywallAgent(agent)}
           />
         )}
 
         {activeTab === 'memory' && (
           <MemoryInspector />
+        )}
+
+        {activeTab === 'audit' && (
+          <ReflectiveThoughtEngine />
+        )}
+
+        {activeTab === 'x402' && (
+          <ReceiptsList
+            receipts={receipts}
+            wallet={wallet}
+            onPaymentSuccess={handlePaymentSuccess}
+          />
         )}
       </main>
 
@@ -125,7 +101,7 @@ export function App() {
               ROGUE<span className="text-cyan-400">TRADER</span>
             </span>
             <span className="text-slate-700">•</span>
-            <span>Epistemic Trading Cockpit • Tatum × Walrus Memory Hackathon 2026</span>
+            <span>Epistemic Arena • Tatum × Walrus Memory Hackathon 2026</span>
           </div>
 
           <div className="flex items-center gap-3 flex-wrap text-slate-400">
@@ -138,19 +114,12 @@ export function App() {
         </div>
       </footer>
 
-      {/* Modals */}
-      <X402PaywallModal
-        agent={paywallAgent}
-        wallet={wallet}
-        onClose={() => setPaywallAgent(null)}
-        onPaymentSuccess={handlePaymentSuccess}
-      />
-
+      {/* Settings Modal */}
       <SettingsModal
         isOpen={isSettingsOpen}
         onClose={() => setIsSettingsOpen(false)}
         onSaved={() => {
-          setAgents([...agentEngine.getAgents()]);
+          // Re-trigger refresh if needed
         }}
       />
     </div>

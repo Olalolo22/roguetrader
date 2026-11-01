@@ -30,8 +30,8 @@ export const MemoryInspector: React.FC = () => {
 
     setIsSearching(true);
     try {
-      const results = await walrusMemory.recall(q, 8);
-      setMemories(results);
+      const res = await walrusMemory.recall(q, 8);
+      setMemories(res.results);
     } catch {
       // Handled via UI fallback
     } finally {

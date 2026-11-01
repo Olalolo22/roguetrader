@@ -27,7 +27,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({
     tatumSui.setApiKey(tatumKey);
 
     if (walrusAccount && walrusKey) {
-      const res = await walrusMemory.configureMemWal(walrusAccount, walrusKey);
+      const res = await walrusMemory.configureLive(walrusKey, walrusAccount);
       if (!res.success) {
         setStatusMessage({ type: 'error', text: `Walrus SDK init error: ${res.error}` });
         return;

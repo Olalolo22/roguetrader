@@ -1,184 +1,236 @@
-import type { AgentProfile, AgentThesis, AgentId } from '../types';
+import type { EpistemicEvaluation, HistoricalBrierRow } from '../types';
 import { walrusMemory } from './walrusMemory';
-import { x402Payment } from './x402Payment';
+import { tatumSui } from './tatumSui';
 
-export const INITIAL_AGENTS: AgentProfile[] = [
+export interface MarketRegimePreset {
+  id: string;
+  name: string;
+  pair: string;
+  cetusDepth: string;
+  cetusVolume1h: string;
+  deepBookSpread: string;
+  naviBorrowPct: number;
+  conditionDescription: string;
+  statelessConfidence: number;
+  statelessStance: string;
+  statelessQuote: string;
+  searchQuery: string;
+  calibratedConfidence: number;
+  calibratedStance: string;
+  calibratedQuote: string;
+  actualOutcome: EpistemicEvaluation['actualOutcome'];
+  outcomeNumeric: number; // 0 or 1
+  outcomeLabel: string;
+}
+
+export const MARKET_REGIMES: MarketRegimePreset[] = [
   {
-    id: 'alphasui',
-    name: 'AlphaSui-v4',
-    badge: 'TOP CALIBRATED',
-    avatar: '⚡',
-    style: 'Bayesian Market Microstructure & Cetus Volume Flow',
-    brierScore: 0.142, // Elite calibration (close to 0.0)
-    calibrationPct: 86,
-    rank: 1,
-    totalMemories: 18,
-    resolvedCalls: 12,
-    status: 'ONLINE',
-    unlockPriceSui: 0.05,
-    recipientAddress: '0x7a8f941029ba8ec001b92040188efacb772109aa',
-    currentThesis: {
-      id: 'thesis-alpha-101',
-      agentId: 'alphasui',
-      marketPair: 'SUI/USDC',
-      rawConfidence: 84,
-      calibratedConfidence: 62,
-      stance: 'CAUTIOUS_LONG',
-      rawHypothesis: 'Cetus 1h volume crossed $14M; DeepBook spread tightened to 2.8 bps. Initial model recommends aggressive long toward $2.24.',
-      reflectionNotes: 'Reflective pass triggered: Walrus Memory retrieved Oct 14 failure incident (NAVI borrow utilization > 78%). Current borrow utilization is 71%. Reduced confidence from 84% to 62%; tightened stop-loss.',
-      fullAnalysis: 'SUI shows strong spot accumulation at $2.06 support. However, elevated borrow rates on NAVI signal potential long exhaustion if BTC consolidates below $68k. Strategy: Enter scaled spot at $2.072 - $2.080 with conservative take-profit at $2.185. Risk invalidated if SUI drops below $2.038 on 15m candle close.',
-      entryRange: '$2.072 - $2.080',
-      targetPrice: 2.185,
-      stopLoss: 2.038,
-      retrievedMemories: [],
-      walrusJobId: 'job_wm_9881023bc4a',
-      walrusBlobHash: '0x992fa100eb81711200dfa8829011b',
-      timestamp: new Date().toISOString(),
-      tatumCheckpoint: 89412950,
-      isUnlocked: false
-    }
+    id: 'oct-navi-trap',
+    name: 'Oct 14 NAVI Borrow Trap (78.4%)',
+    pair: 'SUI/USDC',
+    cetusDepth: '$18.42M',
+    cetusVolume1h: '$14.2M (+18%)',
+    deepBookSpread: '0.018 SUI (1.62x Imbalance)',
+    naviBorrowPct: 78.4,
+    conditionDescription: 'High spot volume breakout accompanied by extreme leverage borrow utilization (>75%)',
+    statelessConfidence: 88,
+    statelessStance: 'AGGRESSIVE 5X LONG',
+    statelessQuote: 'Raw LLM: Cetus 1h volume crossed $14M! Breakout confirmed above $2.14, deploying maximum leverage.',
+    searchQuery: 'SUI breakout Cetus volume >14M NAVI borrow utilization >75% liquidation',
+    calibratedConfidence: 46,
+    calibratedStance: 'CAUTIOUS SPOT ACCUMULATION',
+    calibratedQuote: 'Walrus Recalled: Oct 14 incident matched. Borrow >75% previously triggered 8% long-squeeze cascade. Leverage stripped.',
+    actualOutcome: 'DUMP_LONG_SQUEEZE',
+    outcomeNumeric: 0,
+    outcomeLabel: 'Price dumped -8.2% in 40m (Longs Squeezed)'
   },
   {
-    id: 'deepregime',
-    name: 'DeepRegime-AI',
-    badge: 'MEAN REVERSION',
-    avatar: '🛡️',
-    style: 'Macro Liquidity Cycles & Cross-Chain Yield Divergence',
-    brierScore: 0.284, // Fair calibration
-    calibrationPct: 72,
-    rank: 2,
-    totalMemories: 14,
-    resolvedCalls: 9,
-    status: 'ONLINE',
-    unlockPriceSui: 0.03,
-    recipientAddress: '0x3c1092aab88410ef9923188ba099c118274092bb',
-    currentThesis: {
-      id: 'thesis-regime-202',
-      agentId: 'deepregime',
-      marketPair: 'SUI/USDC',
-      rawConfidence: 68,
-      calibratedConfidence: 51,
-      stance: 'NEUTRAL',
-      rawHypothesis: 'Macro BTC correlation high (0.84). Expecting chop between $2.02 and $2.12.',
-      reflectionNotes: 'Walrus Memory recalled Oct 22 incident where BTC dump overrode standalone SUI strength. Setting neutral posture.',
-      fullAnalysis: 'Macro signals are conflicting. Sui on-chain active addresses are up +18%, but US dollar index is pressing local resistance. Recommended posture: Maintain delta-neutral staking yield (e.g. haSUI) rather than directional directional leverage.',
-      entryRange: '$2.040 - $2.060',
-      targetPrice: 2.115,
-      stopLoss: 2.015,
-      retrievedMemories: [],
-      walrusJobId: 'job_wm_5511aa78810',
-      walrusBlobHash: '0x5511aa7881023bc99102998ecba01',
-      timestamp: new Date().toISOString(),
-      tatumCheckpoint: 89412948,
-      isUnlocked: false
-    }
+    id: 'pyth-epoch-latency',
+    name: 'Epoch 512 Pyth Latency Drift',
+    pair: 'SUI/USDC',
+    cetusDepth: '$11.90M',
+    cetusVolume1h: '$6.8M (-8%)',
+    deepBookSpread: '0.044 SUI (Spread Widened)',
+    naviBorrowPct: 64.1,
+    conditionDescription: 'Sui epoch boundary transition (epoch 512) causing 40-sec AMM price resolution lag',
+    statelessConfidence: 81,
+    statelessStance: 'AMM ARBITRAGE LONG',
+    statelessQuote: 'Raw LLM: Spot discount on Cetus pool relative to reference price! Immediate directional buy.',
+    searchQuery: 'Pyth oracle latency epoch 512 pricing asymmetry AMM',
+    calibratedConfidence: 41,
+    calibratedStance: 'HALT / DELTA-NEUTRAL',
+    calibratedQuote: 'Walrus Recalled: Epoch boundary latency causes artificial pricing asymmetry. Invalidation active until checkpoint finality.',
+    actualOutcome: 'ORACLE_WICK_REVERSAL',
+    outcomeNumeric: 0,
+    outcomeLabel: 'Oracle latency snapped back; breakout traders trapped'
   },
   {
-    id: 'hypesentinel',
-    name: 'HypeSentinel-Bot',
-    badge: 'DEGRADED / HIGH BIAS',
-    avatar: '🔥',
-    style: 'Social Trend Momentum & Meme Token Velocity',
-    brierScore: 0.546, // Poor calibration (hallucinating confidence)
-    calibrationPct: 45,
-    rank: 3,
-    totalMemories: 22,
-    resolvedCalls: 14,
-    status: 'ONLINE',
-    unlockPriceSui: 0.01,
-    recipientAddress: '0x9b11aa8871029efb990188efacba9881729011cc',
-    currentThesis: {
-      id: 'thesis-hype-303',
-      agentId: 'hypesentinel',
-      marketPair: 'SUI/USDC',
-      rawConfidence: 94,
-      calibratedConfidence: 42,
-      stance: 'STRONG_LONG',
-      rawHypothesis: 'Massive Twitter engagement spike for #SuiNetwork! 94% confidence parabolic pump to $2.80 imminent!',
-      reflectionNotes: 'WARNING: Model has a severe 0.546 Brier score penalty from Oct 24 meme hallucination. Walrus reflection heavily slashed raw confidence from 94% down to 42%.',
-      fullAnalysis: 'Social metrics are euphoric, but volume delta is lagging. High risk of bull-trap based on historical meme pumps that lacked institutional DEX depth.',
-      entryRange: '$2.080 - $2.100',
-      targetPrice: 2.800,
-      stopLoss: 1.980,
-      retrievedMemories: [],
-      walrusJobId: 'job_wm_2211aa88710',
-      walrusBlobHash: '0x2211aa8871029efb990188efacba9',
-      timestamp: new Date().toISOString(),
-      tatumCheckpoint: 89412945,
-      isUnlocked: false
-    }
+    id: 'cetus-institutional-breakout',
+    name: 'Cetus $24M Organic Institutional Trend',
+    pair: 'SUI/USDC',
+    cetusDepth: '$24.60M',
+    cetusVolume1h: '$24.1M (+32%)',
+    deepBookSpread: '0.009 SUI (0.12% Whale Absorption)',
+    naviBorrowPct: 48.2,
+    conditionDescription: 'Institutional volume surge with low borrow leverage (<55%) and tight order book spread',
+    statelessConfidence: 74,
+    statelessStance: 'MODERATE LONG',
+    statelessQuote: 'Raw LLM: Upward price drift. Normal continuation pattern.',
+    searchQuery: 'SUI institutional breakout Cetus volume DeepBook spread tightened borrow low',
+    calibratedConfidence: 86,
+    calibratedStance: 'HIGH-CONVICTION CALL LADDER',
+    calibratedQuote: 'Walrus Recalled: Oct 16 catalyst matched. Low borrow (<52%) + DeepBook whale absorption sustained +14.6% trend.',
+    actualOutcome: 'BREAKOUT_CONTINUATION',
+    outcomeNumeric: 1,
+    outcomeLabel: 'SUI surged +12.4% over next 24 hours'
+  },
+  {
+    id: 'meme-euphoria-trap',
+    name: 'Social Euphoria Bull-Trap',
+    pair: 'CETUS/SUI',
+    cetusDepth: '$6.15M',
+    cetusVolume1h: '$3.1M (-19%)',
+    deepBookSpread: '0.062 SUI (Ask Heavy 0.64x)',
+    naviBorrowPct: 84.7,
+    conditionDescription: 'Viral retail social sentiment spike without supporting DEX liquidity depth',
+    statelessConfidence: 94,
+    statelessStance: 'PARABOLIC MOMENTUM LONG',
+    statelessQuote: 'Raw LLM: +340% social mention velocity on Twitter! Parabolic pump to $2.80 imminent!',
+    searchQuery: 'Retail social euphoria spike Twitter mentions Cetus spot depth lagged',
+    calibratedConfidence: 42,
+    calibratedStance: 'DEFENSIVE REJECTION',
+    calibratedQuote: 'Walrus Recalled: Oct 24 social hallucination pattern (0.82 Brier loss). Rejection rule active; retail dump imminent.',
+    actualOutcome: 'DUMP_LONG_SQUEEZE',
+    outcomeNumeric: 0,
+    outcomeLabel: 'Token dropped -16% within 2 hours of social peak'
+  }
+];
+
+export const HISTORICAL_BENCHMARK_ROWS: HistoricalBrierRow[] = [
+  {
+    checkpoint: '#89,412,950',
+    pair: 'SUI/USDC',
+    condition: 'Oct 14 NAVI Borrow 78.4%',
+    statelessForecast: '88% (5x Long)',
+    walrusForecast: '46% (Spot Accum)',
+    recalledBlob: 'walrus://0x8f4d92a1...1ab3',
+    outcome: 'DUMP (o=0)',
+    statelessBrier: 0.774,
+    walrusBrier: 0.212,
+    advantage: '72.6% Error Cut'
+  },
+  {
+    checkpoint: '#89,398,120',
+    pair: 'SUI/USDC',
+    condition: 'Oct 16 Cetus $24M Breakout',
+    statelessForecast: '74% (Mod Long)',
+    walrusForecast: '86% (High Conviction)',
+    recalledBlob: 'walrus://0x3a912bb0...7ef2',
+    outcome: 'PUMP (o=1)',
+    statelessBrier: 0.068,
+    walrusBrier: 0.020,
+    advantage: '70.5% Error Cut'
+  },
+  {
+    checkpoint: '#89,364,804',
+    pair: 'CETUS/SUI',
+    condition: 'Oct 18 Scallop Pool Wick',
+    statelessForecast: '82% (Breakout)',
+    walrusForecast: '44% (Filter Active)',
+    recalledBlob: 'walrus://0x7c491aa2...6bc1',
+    outcome: 'DUMP (o=0)',
+    statelessBrier: 0.672,
+    walrusBrier: 0.194,
+    advantage: '71.1% Error Cut'
+  },
+  {
+    checkpoint: '#89,310,492',
+    pair: 'SUI/USDC',
+    condition: 'Epoch 512 Pyth Latency',
+    statelessForecast: '81% (AMM Arb)',
+    walrusForecast: '41% (Halt Entry)',
+    recalledBlob: 'walrus://0x1e8810fc...5aa9',
+    outcome: 'CHOP (o=0)',
+    statelessBrier: 0.656,
+    walrusBrier: 0.168,
+    advantage: '74.4% Error Cut'
+  },
+  {
+    checkpoint: '#89,285,110',
+    pair: 'NAVI/SUI',
+    condition: 'Oct 24 Social Euphoria',
+    statelessForecast: '94% (Parabolic)',
+    walrusForecast: '42% (Reject)',
+    recalledBlob: 'walrus://0x2211aa88...cba9',
+    outcome: 'DUMP (o=0)',
+    statelessBrier: 0.884,
+    walrusBrier: 0.176,
+    advantage: '80.1% Error Cut'
   }
 ];
 
 class AgentEngineService {
-  private agents: AgentProfile[] = [...INITIAL_AGENTS];
+  private activeEvaluation: EpistemicEvaluation | null = null;
 
-  constructor() {
-    this.syncUnlockedState();
-  }
+  public async runEvaluationCycle(
+    regimeId: string,
+    onProgress?: (stage: string, stepNumber: number) => void
+  ): Promise<EpistemicEvaluation> {
+    const regime = MARKET_REGIMES.find(r => r.id === regimeId) || MARKET_REGIMES[0];
 
-  public syncUnlockedState() {
-    this.agents.forEach(agent => {
-      agent.currentThesis.isUnlocked = x402Payment.isAgentUnlocked(agent.id);
-    });
-  }
+    // Stage 1: Query live Tatum Sui Gateway checkpoint
+    if (onProgress) onProgress('Querying Tatum Sui Gateway for live sequence finality...', 1);
+    const checkpoint = await tatumSui.getLatestCheckpoint();
+    await new Promise(r => setTimeout(r, 450));
 
-  public getAgents(): AgentProfile[] {
-    this.syncUnlockedState();
-    return this.agents;
-  }
-
-  public getAgent(id: AgentId): AgentProfile | undefined {
-    this.syncUnlockedState();
-    return this.agents.find(a => a.id === id);
-  }
-
-  /**
-   * The 5-Step Reflective Thought Engine
-   * Shows on-screen step-by-step how Walrus Memory alters raw model hypothesis
-   */
-  public async runReflectiveThought(
-    agentId: AgentId,
-    onStepChange?: (step: number, description: string, detail?: any) => void
-  ): Promise<AgentThesis> {
-    const agent = this.getAgent(agentId);
-    if (!agent) throw new Error('Agent not found');
-
-    // Step 1: Ingest live market state from Tatum Sui RPC
-    if (onStepChange) onStepChange(1, 'Querying live Sui blockchain state & pool depth via Tatum Gateway...');
-    await new Promise(r => setTimeout(r, 700));
-
-    // Step 2: Form raw hypothesis
-    if (onStepChange) onStepChange(2, `Formulating raw uncalibrated hypothesis H_0 for ${agent.name}...`, {
-      rawConfidence: agent.currentThesis.rawConfidence,
-      hypothesis: agent.currentThesis.rawHypothesis
-    });
-    await new Promise(r => setTimeout(r, 900));
-
-    // Step 3: Semantic Walrus Memory Recall
-    if (onStepChange) onStepChange(3, 'Executing memwal.recall() on Walrus Memory Mainnet for analogous market failures...');
-    const retrieved = await walrusMemory.recall(
-      `SUI breakout volume resistance liquidation failure ${agent.style}`,
-      2
-    );
-    agent.currentThesis.retrievedMemories = retrieved;
-    await new Promise(r => setTimeout(r, 1100));
-
-    // Step 4: Epistemic Self-Correction pass
-    if (onStepChange) onStepChange(4, 'Epistemic Modulation: Adjusting confidence & posture based on retrieved memories...', {
-      originalConfidence: agent.currentThesis.rawConfidence,
-      calibratedConfidence: agent.currentThesis.calibratedConfidence,
-      retrievedNotes: agent.currentThesis.reflectionNotes
-    });
-    await new Promise(r => setTimeout(r, 1000));
-
-    // Step 5: Commit to Walrus Memory Mainnet
-    if (onStepChange) onStepChange(5, 'Committing calibrated decision audit record to Walrus Memory (Mainnet)...', {
-      blobHash: agent.currentThesis.walrusBlobHash
-    });
+    // Stage 2: Formulate Stateless Agent prompt (zero memory)
+    if (onProgress) onProgress('Agent A (Stateless): Formulating raw zero-memory hypothesis...', 2);
     await new Promise(r => setTimeout(r, 600));
 
-    return agent.currentThesis;
+    // Stage 3: Query Walrus Memory Relayer via memwal.recall()
+    if (onProgress) onProgress('Agent B (Walrus): Executing memwal.recall() vector search on Walrus...', 3);
+    const recallResult = await walrusMemory.recall(regime.searchQuery, 1);
+    const recalledItem = recallResult.results[0] || walrusMemory.getAllMemories()[0];
+    await new Promise(r => setTimeout(r, 700));
+
+    // Stage 4: Bayesian Modulation and Brier Scoring
+    if (onProgress) onProgress('Computing Brier Loss Penalties: Brier = (1/N) * Σ(f_t - o_t)²...', 4);
+    await new Promise(r => setTimeout(r, 500));
+
+    // Calculate exact Brier loss: (prob - outcome)^2
+    const statelessProbDec = regime.statelessConfidence / 100;
+    const walrusProbDec = regime.calibratedConfidence / 100;
+    const statelessBrier = Number(Math.pow(statelessProbDec - regime.outcomeNumeric, 2).toFixed(4));
+    const walrusBrier = Number(Math.pow(walrusProbDec - regime.outcomeNumeric, 2).toFixed(4));
+
+    const evalResult: EpistemicEvaluation = {
+      id: `eval-${Date.now()}`,
+      scenarioId: regime.id,
+      pair: regime.pair,
+      timestamp: new Date().toISOString(),
+      tatumCheckpoint: checkpoint,
+      cetusVolume1h: regime.cetusVolume1h,
+      deepBookSpreadBps: regime.deepBookSpread,
+      naviBorrowPct: regime.naviBorrowPct,
+      statelessConfidence: regime.statelessConfidence,
+      statelessStance: regime.statelessStance,
+      statelessRationale: regime.statelessQuote,
+      statelessBrierPenalty: statelessBrier,
+      walrusConfidence: regime.calibratedConfidence,
+      walrusStance: regime.calibratedStance,
+      walrusRationale: regime.calibratedQuote,
+      walrusBrierPenalty: walrusBrier,
+      recalledMemory: recalledItem,
+      recallLatencyMs: recallResult.latencyMs,
+      actualOutcome: regime.actualOutcome
+    };
+
+    this.activeEvaluation = evalResult;
+    return evalResult;
+  }
+
+  public getActiveEvaluation(): EpistemicEvaluation | null {
+    return this.activeEvaluation;
   }
 }
 

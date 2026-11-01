@@ -1,4 +1,4 @@
-export type AgentId = 'alphasui' | 'deepregime' | 'hypesentinel';
+export type AgentMode = 'stateless' | 'walrus_calibrated';
 
 export interface WalrusMemoryItem {
   id: string;
@@ -8,63 +8,48 @@ export interface WalrusMemoryItem {
   timestamp: string;
   similarityScore: number;
   weightImpact: string;
+  tatumCheckpoint?: number;
+  latencyMs?: number;
 }
 
-export interface AgentThesis {
+export interface EpistemicEvaluation {
   id: string;
-  agentId: AgentId;
-  marketPair: string;
-  rawConfidence: number; // 0 to 100
-  calibratedConfidence: number; // 0 to 100
-  stance: 'STRONG_LONG' | 'CAUTIOUS_LONG' | 'NEUTRAL' | 'SHORT';
-  rawHypothesis: string;
-  reflectionNotes: string;
-  fullAnalysis: string;
-  entryRange: string;
-  targetPrice: number;
-  stopLoss: number;
-  retrievedMemories: WalrusMemoryItem[];
-  walrusJobId: string;
-  walrusBlobHash: string;
+  scenarioId: string;
+  pair: string;
   timestamp: string;
   tatumCheckpoint: number;
-  isUnlocked: boolean;
+  cetusVolume1h: string;
+  deepBookSpreadBps: string;
+  naviBorrowPct: number;
+  
+  // Stateless Agent (Zero Memory)
+  statelessConfidence: number; // e.g. 88%
+  statelessStance: string; // "AGGRESSIVE 5X LONG"
+  statelessRationale: string;
+  statelessBrierPenalty: number; // e.g. 0.774
+  
+  // Walrus-Augmented Agent (With Persistent Memory)
+  walrusConfidence: number; // e.g. 48%
+  walrusStance: string; // "CAUTIOUS SPOT ACCUMULATION"
+  walrusRationale: string;
+  walrusBrierPenalty: number; // e.g. 0.176
+  recalledMemory: WalrusMemoryItem;
+  recallLatencyMs: number; // e.g. 1,080 ms
+  
+  actualOutcome: 'DUMP_LONG_SQUEEZE' | 'BREAKOUT_CONTINUATION' | 'CHOP_DELTA_NEUTRAL' | 'ORACLE_WICK_REVERSAL';
 }
 
-export interface AgentProfile {
-  id: AgentId;
-  name: string;
-  badge: string;
-  avatar: string;
-  style: string;
-  brierScore: number; // 0.00 is perfect, 1.00 is worst
-  calibrationPct: number; // e.g. 88%
-  rank: number;
-  totalMemories: number;
-  resolvedCalls: number;
-  status: 'ONLINE' | 'ANALYZING' | 'REFLECTING' | 'LOCKED';
-  unlockPriceSui: number;
-  recipientAddress: string;
-  currentThesis: AgentThesis;
-}
-
-export interface X402Invoice {
-  paymentId: string;
-  agentId: AgentId;
-  amountSui: number;
-  currency: 'SUI';
-  recipient: string;
-  headerChallenge: string;
-  expiresAt: number;
-}
-
-export interface X402Receipt {
-  paymentId: string;
-  amountSui: number;
-  recipient: string;
-  txDigest: string;
-  timestamp: string;
-  agentId: AgentId;
+export interface HistoricalBrierRow {
+  checkpoint: string;
+  pair: string;
+  condition: string;
+  statelessForecast: string;
+  walrusForecast: string;
+  recalledBlob: string;
+  outcome: string;
+  statelessBrier: number;
+  walrusBrier: number;
+  advantage: string;
 }
 
 export interface TatumMarketState {
@@ -82,4 +67,22 @@ export interface UserWalletState {
   balanceSui: number;
   isConnected: boolean;
   network: 'mainnet' | 'testnet';
+}
+
+export interface X402Invoice {
+  paymentId: string;
+  amountSui: number;
+  currency: 'SUI';
+  recipient: string;
+  headerChallenge: string;
+  expiresAt: number;
+}
+
+export interface X402Receipt {
+  paymentId: string;
+  amountSui: number;
+  recipient: string;
+  txDigest: string;
+  timestamp: string;
+  tatumCheckpoint: number;
 }

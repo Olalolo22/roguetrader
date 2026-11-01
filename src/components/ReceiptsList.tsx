@@ -12,35 +12,27 @@ import {
   Database
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import type { X402Receipt, AgentProfile, UserWalletState } from '../types';
+import type { X402Receipt, UserWalletState } from '../types';
 import { x402Payment } from '../services/x402Payment';
 
 interface ReceiptsListProps {
   receipts: X402Receipt[];
-  agents: AgentProfile[];
   wallet: UserWalletState;
   onPaymentSuccess: (receipt: X402Receipt) => void;
-  onOpenPaywall: (agent: AgentProfile) => void;
 }
 
 export const ReceiptsList: React.FC<ReceiptsListProps> = ({
   receipts,
-  agents,
   wallet,
   onPaymentSuccess
 }) => {
-  const [selectedAgentId, setSelectedAgentId] = useState(agents[0].id);
   const [isSettlingInline, setIsSettlingInline] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
-
-  const activeAgent = agents.find(a => a.id === selectedAgentId) || agents[0];
-  const isUnlocked = activeAgent.currentThesis.isUnlocked;
-  const latestAgentReceipt = receipts.find(r => r.agentId === activeAgent.id);
+  const [isMandateUnlocked, setIsMandateUnlocked] = useState(receipts.length > 0);
 
   const invoice = x402Payment.generateInvoice(
-    activeAgent.id,
-    activeAgent.unlockPriceSui,
-    activeAgent.recipientAddress
+    0.05,
+    '0x7a8f941029ba8ec001b92040188efacb772109aa'
   );
 
   const handleInlineSettle = async () => {
@@ -53,10 +45,11 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
           spread: 55,
           origin: { y: 0.6 }
         });
+        setIsMandateUnlocked(true);
         onPaymentSuccess(result.receipt);
       }
     } catch {
-      // Handled via UI state
+      // Handled via state
     } finally {
       setIsSettlingInline(false);
     }
@@ -68,8 +61,8 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
     setTimeout(() => setCopiedId(null), 2000);
   };
 
-  const sampleCurl = `curl -X GET "https://api.roguetrader.xyz/api/x402/mandate?agent=${activeAgent.id}" \\
-  -H "X-PAYMENT: sui:${latestAgentReceipt?.txDigest || '0x992fa100eb81711200dfa8829011b9881023bc4a'}" \\
+  const sampleCurl = `curl -X GET "https://api.roguetrader.xyz/api/x402/mandate?pair=SUI/USDC" \\
+  -H "X-PAYMENT: sui:${receipts[0]?.txDigest || '0x992fa100eb81711200dfa8829011b9881023bc4a'}" \\
   -H "Accept: application/json"`;
 
   return (
@@ -85,36 +78,25 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
               x402 Micro-Settlement Protocol (SUI)
             </h2>
             <span className="text-[9px] sm:text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/30 text-emerald-300">
-              Agent Payments ($500 Bounty)
+              Agent Payments on Sui ($500 Bounty)
             </span>
           </div>
           <p className="text-[11px] sm:text-xs text-slate-400 font-mono leading-relaxed">
-            Pay-per-inference HTTP 402 negotiation on Sui Mainnet. Unlock calibrated position mandates with zero subscription custody.
+            Machine-to-machine payment negotiation adhering to the standard HTTP 402 challenge/response workflow on Sui Mainnet.
           </p>
         </div>
 
-        {/* Agent Selector Pills: 3 equal cols on mobile, inline on sm+ */}
-        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-[#04070e] p-1 rounded-xl border border-slate-800 w-full lg:w-auto">
-          {agents.map(ag => (
-            <button
-              key={ag.id}
-              onClick={() => setSelectedAgentId(ag.id)}
-              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-mono transition-all flex flex-col sm:flex-row items-center justify-center gap-0.5 sm:gap-1.5 cursor-pointer ${
-                ag.id === activeAgent.id
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
-                  : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              <span className="truncate">{ag.avatar} {ag.name.split('-')[0]}</span>
-              <span className="text-[9px] sm:text-[10px] text-emerald-400">({ag.unlockPriceSui} SUI)</span>
-            </button>
-          ))}
+        <div className="flex items-center gap-2 bg-[#04070e] px-3.5 py-2 rounded-xl border border-slate-800 text-xs font-mono self-start sm:self-auto shrink-0">
+          <span className="text-slate-500">Total Settled:</span>
+          <span className="text-emerald-400 font-bold">
+            {receipts.reduce((acc, r) => acc + r.amountSui, 0).toFixed(2)} SUI
+          </span>
         </div>
       </div>
 
       {/* Side-by-Side x402 Protocol Client & Position Mandate Stream Decryptor */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-        {/* LEFT CARD: x402 Protocol Client (HTTP 402 Challenge -> 200 OK) */}
+        {/* LEFT CARD: x402 Protocol Client */}
         <div className="cockpit-panel p-3.5 sm:p-5 space-y-4 flex flex-col justify-between">
           <div className="space-y-3.5 sm:space-y-4">
             <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
@@ -126,43 +108,43 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
               </div>
               <span
                 className={`px-2 py-0.5 rounded text-[9px] sm:text-[10px] font-mono font-bold shrink-0 ${
-                  isUnlocked
+                  isMandateUnlocked
                     ? 'bg-emerald-950 text-emerald-300 border border-emerald-500/40'
                     : 'bg-rose-950 text-rose-300 border border-rose-500/40'
                 }`}
               >
-                {isUnlocked ? 'HTTP/1.1 200 OK' : 'HTTP/1.1 402 Payment Required'}
+                {isMandateUnlocked ? 'HTTP/1.1 200 OK' : 'HTTP/1.1 402 Payment Required'}
               </span>
             </div>
 
-            {/* HTTP Request / Response Terminal */}
+            {/* HTTP Terminal Box */}
             <div className="p-3 sm:p-4 rounded-xl bg-[#03050a] border border-slate-800/90 font-mono text-[11px] sm:text-xs space-y-2 break-all">
               <div className="text-slate-400">
-                <span className="text-cyan-400 font-bold">GET</span> /api/x402/mandate?agent={activeAgent.id} HTTP/1.1
+                <span className="text-cyan-400 font-bold">GET</span> /api/x402/mandate?pair=SUI/USDC HTTP/1.1
               </div>
               <div className="text-slate-500">Host: api.roguetrader.xyz</div>
 
-              {!isUnlocked ? (
+              {!isMandateUnlocked ? (
                 <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
                   <div className="text-rose-400 font-bold">HTTP/1.1 402 Payment Required</div>
                   <div className="text-purple-300 text-[10px] sm:text-[11px] leading-relaxed">
                     WWW-Authenticate: {invoice.headerChallenge}
                   </div>
                   <div className="text-slate-400 text-[10px] sm:text-[11px] pt-1">
-                    X-Sui-Recipient: <span className="text-cyan-300">{activeAgent.recipientAddress}</span>
+                    X-Sui-Recipient: <span className="text-cyan-300">{invoice.recipient}</span>
                   </div>
                   <div className="text-slate-400 text-[10px] sm:text-[11px]">
-                    X-Price-Amount: <span className="text-emerald-400 font-bold">{activeAgent.unlockPriceSui} SUI</span>
+                    X-Price-Amount: <span className="text-emerald-400 font-bold">{invoice.amountSui} SUI</span>
                   </div>
                 </div>
               ) : (
                 <div className="pt-2 border-t border-slate-800/80 space-y-1.5">
                   <div className="text-emerald-400 font-bold">HTTP/1.1 200 OK (Tatum Gateway Verified)</div>
                   <div className="text-cyan-300 text-[10px] sm:text-[11px]">
-                    X-PAYMENT-RECEIPT: {latestAgentReceipt?.txDigest || '0x992fa100eb81711200dfa8829011b'}
+                    X-PAYMENT-RECEIPT: {receipts[0]?.txDigest || '0x992fa100eb81711200dfa8829011b'}
                   </div>
                   <div className="text-emerald-300 text-[10px] sm:text-[11px]">
-                    X-WALRUS-PROOF: walrus://blob/{activeAgent.currentThesis.walrusBlobHash}
+                    X-WALRUS-PROOF: walrus://blob/0x8f4d92a11b6c00e129fec88401ab3
                   </div>
                 </div>
               )}
@@ -170,7 +152,7 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
           </div>
 
           <div className="pt-2 sm:pt-3">
-            {!isUnlocked ? (
+            {!isMandateUnlocked ? (
               <button
                 onClick={handleInlineSettle}
                 disabled={isSettlingInline}
@@ -179,8 +161,8 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
                 <Zap className="w-4 h-4 shrink-0" />
                 <span>
                   {isSettlingInline
-                    ? 'Verifying on Sui via Tatum...'
-                    : `Sign & Broadcast ${activeAgent.unlockPriceSui} SUI Micropayment`}
+                    ? 'Verifying Settlement on Sui via Tatum...'
+                    : `Sign & Broadcast 0.05 SUI via x402`}
                 </span>
               </button>
             ) : (
@@ -188,32 +170,32 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
                 <span className="flex items-center gap-1.5 font-bold">
                   <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" /> Verified on Sui Mainnet
                 </span>
-                <span className="shrink-0">{activeAgent.unlockPriceSui} SUI Paid</span>
+                <span className="shrink-0">0.05 SUI Paid</span>
               </div>
             )}
           </div>
         </div>
 
         {/* RIGHT CARD: Position Mandate Stream Decryptor */}
-        <div className={`p-3.5 sm:p-5 space-y-4 flex flex-col justify-between ${isUnlocked ? 'cockpit-panel-emerald' : 'cockpit-panel'}`}>
+        <div className={`p-3.5 sm:p-5 space-y-4 flex flex-col justify-between ${isMandateUnlocked ? 'cockpit-panel-emerald' : 'cockpit-panel'}`}>
           <div className="space-y-4">
             <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2 min-w-0">
-                {isUnlocked ? (
+                {isMandateUnlocked ? (
                   <Unlock className="w-4 h-4 text-emerald-400 shrink-0" />
                 ) : (
                   <Lock className="w-4 h-4 text-amber-400 shrink-0" />
                 )}
                 <h3 className="text-xs sm:text-sm font-bold text-white font-['Orbitron'] truncate">
-                  Position Mandate Stream ({activeAgent.name})
+                  Calibrated Position Mandate Stream
                 </h3>
               </div>
               <span className="text-[10px] font-mono text-cyan-300 shrink-0">
-                Brier: {activeAgent.brierScore.toFixed(3)}
+                Walrus Proof Sealed
               </span>
             </div>
 
-            {!isUnlocked ? (
+            {!isMandateUnlocked ? (
               <div className="p-5 sm:p-8 rounded-xl bg-[#04070e] border border-slate-800/80 text-center space-y-3 my-auto">
                 <div className="w-10 h-10 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 flex items-center justify-center mx-auto">
                   <Lock className="w-5 h-5" />
@@ -223,14 +205,14 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
                     Mandate Stream Encrypted (HTTP 402)
                   </h4>
                   <p className="text-[11px] sm:text-xs text-slate-400 font-mono max-w-md mx-auto leading-relaxed">
-                    Authorize the {activeAgent.unlockPriceSui} SUI micropayment to decrypt {activeAgent.name}'s exact entry ladder, take-profit target, stop-loss invalidation, and Walrus proof blob.
+                    Authorize 0.05 SUI on the left to decrypt the Walrus-calibrated entry ladder, take-profit target, and stop-loss invalidation.
                   </p>
                 </div>
               </div>
             ) : (
               <div className="space-y-3.5 sm:space-y-4">
                 <p className="text-[11px] sm:text-xs text-slate-200 leading-relaxed font-mono bg-[#03060c] p-3 sm:p-3.5 rounded-xl border border-emerald-500/30">
-                  {activeAgent.currentThesis.fullAnalysis}
+                  SUI shows spot accumulation at $2.06 support. However, elevated borrow rates on NAVI (78.4%) signal potential long exhaustion. Strategy: Enter scaled spot at $2.072 - $2.080 with conservative take-profit at $2.185. Risk invalidated if SUI drops below $2.038 on 15m close.
                 </p>
 
                 {/* 3-Box Mandate Grid */}
@@ -238,19 +220,19 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
                   <div className="p-3 rounded-xl bg-[#03060c] border border-slate-800">
                     <div className="text-[10px] text-slate-400 uppercase">Entry Zone</div>
                     <div className="text-xs sm:text-sm font-bold text-white mt-0.5">
-                      {activeAgent.currentThesis.entryRange}
+                      $2.072 - $2.080
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-[#03060c] border border-emerald-500/30">
                     <div className="text-[10px] text-emerald-400 uppercase">Take Profit (TP)</div>
                     <div className="text-xs sm:text-sm font-bold text-emerald-400 mt-0.5">
-                      ${activeAgent.currentThesis.targetPrice} (+7.4%)
+                      $2.185 (+5.4%)
                     </div>
                   </div>
                   <div className="p-3 rounded-xl bg-[#03060c] border border-rose-500/30">
                     <div className="text-[10px] text-rose-400 uppercase">Invalidation (SL)</div>
                     <div className="text-xs sm:text-sm font-bold text-rose-400 mt-0.5">
-                      ${activeAgent.currentThesis.stopLoss} (-3.2%)
+                      $2.038 (-2.1%)
                     </div>
                   </div>
                 </div>
@@ -261,7 +243,7 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
                     <Database className="w-3.5 h-3.5 text-cyan-400" /> Cryptographic Proof:
                   </span>
                   <span className="text-slate-200 break-all">
-                    walrus://blob/{activeAgent.currentThesis.walrusBlobHash}
+                    walrus://blob/0x8f4d92a11b6c00e129fec88401ab3
                   </span>
                 </div>
               </div>
@@ -295,70 +277,69 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({
         <div className="px-3.5 sm:px-5 py-3.5 border-b border-slate-800 flex items-center justify-between gap-2">
           <h3 className="font-bold text-white text-xs sm:text-sm font-['Orbitron'] flex items-center gap-2 truncate">
             <ShieldCheck className="w-4 h-4 text-emerald-400 shrink-0" />
-            <span className="truncate">Verified Sui x402 Ledger ({receipts.length})</span>
+            <span className="truncate">Verified Sui x402 Settlement Ledger ({receipts.length})</span>
           </h3>
           <span className="text-[11px] sm:text-xs font-mono text-emerald-400 font-bold shrink-0">
-            Settled: {receipts.reduce((acc, r) => acc + r.amountSui, 0).toFixed(2)} SUI
+            Total Settled: {receipts.reduce((acc, r) => acc + r.amountSui, 0).toFixed(2)} SUI
           </span>
         </div>
 
         {receipts.length === 0 ? (
           <div className="p-5 sm:p-6 text-center text-xs font-mono text-slate-400">
-            No x402 transactions signed in this session yet. Tap <strong>"Sign &amp; Broadcast {activeAgent.unlockPriceSui} SUI Micropayment"</strong> above to test live settlement.
+            No x402 payments executed yet. Tap <strong>"Sign &amp; Broadcast 0.05 SUI via x402"</strong> above to test live settlement.
           </div>
         ) : (
-          <div className="divide-y divide-slate-800/60">
-            {receipts.map(r => {
-              const agent = agents.find(a => a.id === r.agentId);
-
-              return (
-                <div
-                  key={r.paymentId}
-                  className="p-3.5 sm:p-4 hover:bg-slate-900/40 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3 font-mono text-xs"
-                >
-                  <div className="space-y-1 min-w-0 w-full sm:w-auto">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span>{agent?.avatar || '⚡'}</span>
-                      <span className="text-white font-bold">{agent?.name || r.agentId}</span>
-                      <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 border border-emerald-500/30 text-emerald-300">
-                        200 OK • VERIFIED
-                      </span>
-                    </div>
-
-                    <div className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-2 flex-wrap">
-                      <span className="truncate">
-                        ID: <strong className="text-slate-200">{r.paymentId}</strong>
-                      </span>
-                      <span>•</span>
-                      <span>
-                        Tx: <strong className="text-cyan-300">{r.txDigest.slice(0, 14)}...</strong>
-                      </span>
-                    </div>
+          <div className="divide-y divide-slate-800/60 font-mono text-xs">
+            {receipts.map(r => (
+              <div
+                key={r.paymentId}
+                className="p-3.5 sm:p-4 hover:bg-slate-900/40 transition-colors flex flex-col sm:flex-row items-start sm:items-center justify-between gap-2.5 sm:gap-3"
+              >
+                <div className="space-y-1 min-w-0 w-full sm:w-auto">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-white font-bold">RogueTrader Epistemic Mandate</span>
+                    <span className="text-[9px] sm:text-[10px] px-1.5 py-0.2 rounded bg-emerald-950 border border-emerald-500/30 text-emerald-300">
+                      200 OK • VERIFIED
+                    </span>
                   </div>
 
-                  <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-800/50">
-                    <div className="text-left sm:text-right">
-                      <div className="text-emerald-400 font-bold">{r.amountSui} SUI</div>
-                      <div className="text-[10px] text-slate-500">
-                        {new Date(r.timestamp).toLocaleTimeString()}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => copyDigest(r.paymentId, r.txDigest)}
-                      className="p-2 rounded-lg bg-[#04070e] hover:bg-slate-800 text-slate-300 hover:text-white transition-colors border border-slate-800 cursor-pointer"
-                      title="Copy Transaction Digest"
-                    >
-                      {copiedId === r.paymentId ? (
-                        <Check className="w-3.5 h-3.5 text-emerald-400" />
-                      ) : (
-                        <Copy className="w-3.5 h-3.5" />
-                      )}
-                    </button>
+                  <div className="text-[10px] sm:text-[11px] text-slate-400 flex items-center gap-2 flex-wrap">
+                    <span className="truncate">
+                      ID: <strong className="text-slate-200">{r.paymentId}</strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Tx: <strong className="text-cyan-300">{r.txDigest.slice(0, 16)}...</strong>
+                    </span>
+                    <span>•</span>
+                    <span>
+                      Checkpoint: <strong className="text-emerald-300">#{r.tatumCheckpoint}</strong>
+                    </span>
                   </div>
                 </div>
-              );
-            })}
+
+                <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto pt-1 sm:pt-0 border-t sm:border-t-0 border-slate-800/50">
+                  <div className="text-left sm:text-right">
+                    <div className="text-emerald-400 font-bold">{r.amountSui} SUI</div>
+                    <div className="text-[10px] text-slate-500">
+                      {new Date(r.timestamp).toLocaleTimeString()}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => copyDigest(r.paymentId, r.txDigest)}
+                    className="p-2 rounded-lg bg-[#04070e] hover:bg-slate-800 text-slate-300 hover:text-white transition-colors border border-slate-800 cursor-pointer"
+                    title="Copy Transaction Digest"
+                  >
+                    {copiedId === r.paymentId ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
       </div>
