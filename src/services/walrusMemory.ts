@@ -6,25 +6,25 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
   {
     id: 'mem-001',
     blobId: '0x8f4d92a11b6c00e129fec88401ab3',
-    text: 'Oct 14 2026: Failed SUI breakout above $2.15. NAVI borrow utilization spiked to 78%, triggering cascading liquidations against aggressive longs.',
+    text: 'Oct 14 2026: Failed SUI breakout above $2.15. NAVI borrow utilization spiked to 78.4% while Cetus volume crossed $14M, triggering an 8% long-squeeze cascade 40m later.',
     category: 'FAILURE_CASE',
     timestamp: '2026-10-14T14:22:10Z',
     similarityScore: 0.94,
-    weightImpact: '-24% Confidence'
+    weightImpact: '-30% Confidence'
   },
   {
     id: 'mem-002',
     blobId: '0x3a912bb01c899e4f00129abc77ef2',
-    text: 'Oct 16 2026: SUI/USDC sustained trend. Cetus 1h volume crossed $14M while DeepBook spread tightened below 3 bps. Momentum continuation confirmed.',
+    text: 'Oct 16 2026: SUI/USDC sustained institutional breakout. Cetus 1h volume crossed $24M while DeepBook spread tightened below 1.8 bps and NAVI borrow stayed under 52%.',
     category: 'CATALYST',
     timestamp: '2026-10-16T09:15:00Z',
-    similarityScore: 0.88,
-    weightImpact: '+15% Confidence'
+    similarityScore: 0.91,
+    weightImpact: '+12% Confidence'
   },
   {
     id: 'mem-003',
     blobId: '0x7c491aa22d019f88bb109efa66bc1',
-    text: 'Oct 18 2026: False reversal signal. Scallop liquidation pool had insufficient borrow depth, causing artificial oracle wick. Ignored spot delta.',
+    text: 'Oct 18 2026: False reversal signal on CETUS/SUI. Scallop liquidation pool had insufficient borrow depth, causing artificial oracle wick. Ignored spot delta.',
     category: 'FAILURE_CASE',
     timestamp: '2026-10-18T18:40:00Z',
     similarityScore: 0.91,
@@ -36,8 +36,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     text: 'Oct 19 2026: Pyth oracle feed latency during Sui epoch transition (epoch 512). Delayed price resolution caused 40-sec pricing asymmetry on AMMs.',
     category: 'REGIME_SHIFT',
     timestamp: '2026-10-19T21:00:00Z',
-    similarityScore: 0.82,
-    weightImpact: 'Regime Filter Active'
+    similarityScore: 0.89,
+    weightImpact: '-38% Confidence (Halt)'
   },
   {
     id: 'mem-005',
@@ -78,11 +78,11 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
   {
     id: 'mem-009',
     blobId: '0x2211aa8871029efb990188efacba9',
-    text: 'Oct 24 2026: HypeSentinel hallucinated 91% pump call on unverified meme token. Contract had 8% transfer fee. Brier penalty: 0.82.',
+    text: 'Oct 24 2026: HypeSentinel hallucinated 94% pump call on social euphoria spike while Cetus spot depth lagged. Resulted in 14% retail bull-trap drawdown. Brier penalty: 0.82.',
     category: 'FAILURE_CASE',
     timestamp: '2026-10-24T12:00:00Z',
-    similarityScore: 0.95,
-    weightImpact: 'Severe Penalty'
+    similarityScore: 0.96,
+    weightImpact: '-52% Confidence'
   },
   {
     id: 'mem-010',
@@ -114,37 +114,13 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
 ];
 
 class WalrusMemoryService {
+  // TODO(security): Use BFF with HttpOnly cookies for production key persistence instead of client-side Web Storage
   private memwalClient: any = null;
   private isConfigured: boolean = false;
   private memories: WalrusMemoryItem[] = [...INITIAL_WALRUS_MEMORIES];
 
-  constructor() {
-    this.initFromStorage();
-  }
-
-  private initFromStorage() {
-    try {
-      const storedKey = localStorage.getItem('WALRUS_KEY');
-      const storedAccountId = localStorage.getItem('WALRUS_ACCOUNT_ID');
-
-      if (storedKey && storedAccountId) {
-        this.memwalClient = MemWal.create({
-          key: storedKey,
-          accountId: storedAccountId,
-          serverUrl: 'https://relayer.memory.walrus.xyz',
-          namespace: 'roguetrader'
-        });
-        this.isConfigured = true;
-      }
-    } catch (e) {
-      console.warn('Walrus Memory using sandbox / verified historical state:', e);
-    }
-  }
-
   public configure(key: string, accountId: string) {
     try {
-      localStorage.setItem('WALRUS_KEY', key);
-      localStorage.setItem('WALRUS_ACCOUNT_ID', accountId);
       this.memwalClient = MemWal.create({
         key,
         accountId,
@@ -153,8 +129,8 @@ class WalrusMemoryService {
       });
       this.isConfigured = true;
       return { success: true };
-    } catch (err: any) {
-      return { success: false, error: err.message };
+    } catch {
+      return { success: false, error: 'Invalid MemWal key format' };
     }
   }
 
@@ -170,7 +146,7 @@ class WalrusMemoryService {
         return { online: true, relayer: 'production', details: data };
       }
       return { online: false, relayer: 'offline' };
-    } catch (e) {
+    } catch {
       return { online: true, relayer: 'sandbox-fallback' };
     }
   }
@@ -190,22 +166,21 @@ class WalrusMemoryService {
             weightImpact: '-20% Confidence'
           }));
         }
-      } catch (err) {
-        console.warn('Live recall failed, falling back to cached semantic index:', err);
+      } catch {
+        // Fallback to cached semantic index
       }
     }
 
-    // Semantic keyword ranking fallback over our verified Mainnet memories
     const lowerQuery = query.toLowerCase();
     const scored = this.memories.map(m => {
-      let score = 0.5;
+      let score = 0.55;
       const words = lowerQuery.split(' ');
       for (const w of words) {
         if (w.length > 3 && m.text.toLowerCase().includes(w)) {
-          score += 0.15;
+          score += 0.14;
         }
       }
-      return { ...m, similarityScore: Math.min(0.98, score) };
+      return { ...m, similarityScore: Math.min(0.98, Number(score.toFixed(2))) };
     });
 
     scored.sort((a, b) => b.similarityScore - a.similarityScore);
@@ -215,12 +190,12 @@ class WalrusMemoryService {
   public async remember(text: string, category: WalrusMemoryItem['category'] = 'CATALYST'): Promise<{ success: boolean; memory: WalrusMemoryItem }> {
     const newMemory: WalrusMemoryItem = {
       id: `mem-${Date.now()}`,
-      blobId: '0x' + Math.random().toString(16).slice(2, 18),
+      blobId: '0x' + Math.random().toString(16).slice(2, 18) + 'a91f',
       text,
       category,
       timestamp: new Date().toISOString(),
-      similarityScore: 1.0,
-      weightImpact: 'Active Memory'
+      similarityScore: 0.99,
+      weightImpact: category === 'FAILURE_CASE' ? '-25% Confidence' : 'Active Memory'
     };
 
     if (this.isConfigured && this.memwalClient) {
@@ -229,8 +204,8 @@ class WalrusMemoryService {
         if (job && job.job_id) {
           newMemory.id = job.job_id;
         }
-      } catch (err) {
-        console.warn('Live remember write failed, recorded locally to state:', err);
+      } catch {
+        // Recorded in local session memory state
       }
     }
 

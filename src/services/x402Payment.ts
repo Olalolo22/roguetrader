@@ -2,30 +2,8 @@ import type { X402Invoice, X402Receipt, AgentId } from '../types';
 import { tatumSui } from './tatumSui';
 
 class X402PaymentService {
+  // TODO(security): Persist verified x402 payment receipts via backend session rather than browser localStorage
   private receipts: X402Receipt[] = [];
-
-  constructor() {
-    this.loadReceipts();
-  }
-
-  private loadReceipts() {
-    try {
-      const stored = localStorage.getItem('X402_RECEIPTS');
-      if (stored) {
-        this.receipts = JSON.parse(stored);
-      }
-    } catch (e) {
-      this.receipts = [];
-    }
-  }
-
-  private saveReceipts() {
-    try {
-      localStorage.setItem('X402_RECEIPTS', JSON.stringify(this.receipts));
-    } catch (e) {
-      console.warn('Failed to save receipt to storage');
-    }
-  }
 
   /**
    * Step 1: Simulate server responding with HTTP 402 Payment Required
@@ -49,10 +27,8 @@ class X402PaymentService {
    * Step 2: Settle the x402 payment on Sui and generate signed receipt
    */
   public async settleInvoice(invoice: X402Invoice, _senderAddress: string): Promise<{ success: boolean; receipt?: X402Receipt; error?: string }> {
-    // Generate valid Sui transaction digest format
     const txDigest = '0x' + Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('');
 
-    // Verification via Tatum Sui gateway
     const verified = await tatumSui.verifyTransaction(txDigest);
     if (!verified) {
       return { success: false, error: 'Tatum Sui Gateway failed to verify settlement signature' };
@@ -68,7 +44,6 @@ class X402PaymentService {
     };
 
     this.receipts.unshift(receipt);
-    this.saveReceipts();
 
     return {
       success: true,
