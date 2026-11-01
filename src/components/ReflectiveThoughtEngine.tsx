@@ -124,37 +124,37 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       {/* Top Controller Bar */}
-      <div className="cockpit-panel p-4 sm:p-5 flex flex-wrap items-center justify-between gap-4 corner-ticks">
+      <div className="cockpit-panel p-3.5 sm:p-5 flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 sm:gap-4 corner-ticks">
         <div>
           <div className="flex items-center gap-2 mb-1">
             <span className="pulse-indicator bg-cyan-400"></span>
-            <h2 className="text-base sm:text-lg font-bold text-white font-['Orbitron']">
+            <h2 className="text-sm sm:text-lg font-bold text-white font-['Orbitron']">
               5-Step Epistemic Reflection Pipeline
             </h2>
           </div>
-          <p className="text-xs text-slate-400 font-mono">
+          <p className="text-[11px] sm:text-xs text-slate-400 font-mono leading-relaxed">
             Inspect the exact SDK execution trace where <span className="text-cyan-300">@mysten-incubation/memwal</span> intercepts uncalibrated LLM greed.
           </p>
         </div>
 
-        {/* Agent Switcher Pills */}
-        <div className="flex items-center gap-1.5 bg-[#04070e] p-1 rounded-xl border border-slate-800 overflow-x-auto whitespace-nowrap w-full sm:w-auto">
+        {/* Agent Switcher Pills: 3 equal cols on mobile */}
+        <div className="grid grid-cols-3 sm:flex items-center gap-1 bg-[#04070e] p-1 rounded-xl border border-slate-800 w-full lg:w-auto">
           {agents.map(a => (
             <button
               key={a.id}
               onClick={() => {
                 if (!isRunning) onSelectAgent(a.id);
               }}
-              className={`flex-1 sm:flex-initial px-3 py-1.5 rounded-lg text-xs font-mono transition-all flex items-center justify-center gap-1.5 shrink-0 cursor-pointer ${
+              className={`px-2 sm:px-3 py-2 sm:py-1.5 rounded-lg text-[10px] sm:text-xs font-mono transition-all flex items-center justify-center gap-1 cursor-pointer truncate ${
                 selectedAgentId === a.id
                   ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold'
                   : 'text-slate-400 hover:text-white'
               }`}
             >
               <span>{a.avatar}</span>
-              <span>{a.name}</span>
+              <span className="truncate">{a.name.split('-')[0]}</span>
             </button>
           ))}
         </div>
@@ -163,7 +163,7 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
         <button
           onClick={handleRunReflection}
           disabled={isRunning}
-          className={`w-full sm:w-auto px-4 py-2.5 rounded-xl font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
+          className={`w-full lg:w-auto px-4 py-2.5 rounded-xl font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all cursor-pointer ${
             isRunning
               ? 'bg-slate-800 text-slate-400 cursor-not-allowed'
               : 'bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-slate-950 shadow-lg shadow-cyan-500/20 active:scale-95'
@@ -171,12 +171,12 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
         >
           {isRunning ? (
             <>
-              <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+              <RefreshCw className="w-3.5 h-3.5 animate-spin shrink-0" />
               <span>Executing Pipeline...</span>
             </>
           ) : (
             <>
-              <Play className="w-3.5 h-3.5 fill-slate-950" />
+              <Play className="w-3.5 h-3.5 fill-slate-950 shrink-0" />
               <span>Execute 5-Step Trace</span>
             </>
           )}
@@ -184,9 +184,9 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
       </div>
 
       {/* Main Grid: Steps Timeline vs Interactive Output */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6">
         {/* Left Column: 5 Steps Timeline with SDK Code Snippets (7 cols) */}
-        <div className="lg:col-span-7 space-y-3.5">
+        <div className="lg:col-span-7 space-y-3 sm:space-y-3.5">
           {steps.map(step => {
             const isCurrent = step.status === 'running';
             const isDone = step.status === 'completed';
@@ -194,18 +194,18 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
             return (
               <div
                 key={step.index}
-                className={`p-4 rounded-xl border transition-all duration-200 ${
+                className={`p-3.5 sm:p-4 rounded-xl border transition-all duration-200 ${
                   isCurrent
                     ? 'cockpit-panel-cyan'
                     : isDone
                     ? 'cockpit-panel border-emerald-500/30'
-                    : 'cockpit-panel opacity-75'
+                    : 'cockpit-panel opacity-80'
                 }`}
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex items-start gap-3">
+                <div className="flex items-start justify-between gap-2.5">
+                  <div className="flex items-start gap-2.5 sm:gap-3 min-w-0">
                     <div
-                      className={`w-7 h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold mt-0.5 shrink-0 ${
+                      className={`w-6 h-6 sm:w-7 sm:h-7 rounded-lg flex items-center justify-center text-xs font-mono font-bold mt-0.5 shrink-0 ${
                         isDone
                           ? 'bg-emerald-950 text-emerald-400 border border-emerald-500/40'
                           : isCurrent
@@ -213,22 +213,22 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
                           : 'bg-slate-900 text-slate-400 border border-slate-800'
                       }`}
                     >
-                      {isDone ? <CheckCircle2 className="w-4 h-4" /> : step.index}
+                      {isDone ? <CheckCircle2 className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : step.index}
                     </div>
-                    <div className="space-y-1">
-                      <h4 className="text-xs sm:text-sm font-bold text-white font-['Orbitron'] flex items-center gap-2">
-                        {step.title}
+                    <div className="space-y-1 min-w-0">
+                      <h4 className="text-xs sm:text-sm font-bold text-white font-['Orbitron'] flex items-center gap-2 flex-wrap">
+                        <span>{step.title}</span>
                         {isCurrent && (
                           <span className="text-[9px] font-mono px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-300 border border-cyan-500/40 animate-pulse">
                             RUNNING
                           </span>
                         )}
                       </h4>
-                      <p className="text-xs text-slate-400">{step.subtitle}</p>
+                      <p className="text-[11px] sm:text-xs text-slate-400 leading-relaxed">{step.subtitle}</p>
                     </div>
                   </div>
 
-                  <span className="text-[10px] font-mono shrink-0">
+                  <span className="text-[9px] sm:text-[10px] font-mono shrink-0">
                     {isDone && <span className="text-emerald-400 font-bold">VERIFIED</span>}
                     {isCurrent && <span className="text-cyan-300 font-bold">ACTIVE</span>}
                     {step.status === 'pending' && <span className="text-slate-500">READY</span>}
@@ -236,18 +236,18 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
                 </div>
 
                 {/* SDK Code Trace Snippet */}
-                <div className="mt-3 p-3 rounded-lg bg-[#03050a] border border-slate-800/90 font-mono text-[11px] text-cyan-200 overflow-x-auto">
+                <div className="mt-3 p-2.5 sm:p-3 rounded-lg bg-[#03050a] border border-slate-800/90 font-mono text-[10px] sm:text-[11px] text-cyan-200 overflow-x-auto">
                   <div className="flex items-center gap-1.5 text-[9px] text-slate-500 uppercase mb-1">
-                    <Code2 className="w-3 h-3 text-cyan-400" /> SDK Execution Trace
+                    <Code2 className="w-3 h-3 text-cyan-400 shrink-0" /> SDK Execution Trace
                   </div>
-                  <pre className="leading-relaxed whitespace-pre-wrap">{step.codeSnippet}</pre>
+                  <pre className="leading-relaxed whitespace-pre-wrap break-words">{step.codeSnippet}</pre>
                 </div>
 
                 {/* Live Retrieved Memories on Step 3 */}
                 {step.index === 3 && (isCurrent || isDone) && retrievedMemories.length > 0 && (
                   <div className="mt-3 space-y-2">
                     <div className="text-[10px] font-mono text-purple-300 flex items-center gap-1">
-                      <Database className="w-3 h-3 text-purple-400" />
+                      <Database className="w-3 h-3 text-purple-400 shrink-0" />
                       Recalled Blobs from Walrus Mainnet Relayer:
                     </div>
                     {retrievedMemories.map(m => (
@@ -255,7 +255,7 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
                         key={m.id}
                         className="p-2.5 rounded-lg bg-purple-950/20 border border-purple-500/30 text-xs space-y-1"
                       >
-                        <div className="flex items-center justify-between text-[10px] font-mono">
+                        <div className="flex items-center justify-between gap-1 text-[10px] font-mono flex-wrap">
                           <span className="text-rose-300 bg-rose-950/60 px-1.5 py-0.2 rounded border border-rose-500/30">
                             {m.category}
                           </span>
@@ -264,18 +264,18 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
                           </span>
                           <span className="text-cyan-300">{m.blobId.slice(0, 12)}...</span>
                         </div>
-                        <p className="text-slate-200 text-[11px] font-mono">{m.text}</p>
+                        <p className="text-slate-200 text-[11px] font-mono leading-relaxed">{m.text}</p>
                       </div>
                     ))}
                   </div>
                 )}
 
                 {step.index === 5 && (isCurrent || isDone) && (
-                  <div className="mt-3 p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-xs font-mono flex items-center justify-between">
-                    <span className="flex items-center gap-1.5 text-emerald-300">
+                  <div className="mt-3 p-2.5 rounded-lg bg-emerald-950/30 border border-emerald-500/30 text-[11px] sm:text-xs font-mono flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+                    <span className="flex items-center gap-1.5 text-emerald-300 shrink-0">
                       <ShieldCheck className="w-3.5 h-3.5" /> Anchored Blob Hash:
                     </span>
-                    <span className="text-cyan-300">{currentAgent.currentThesis.walrusBlobHash}</span>
+                    <span className="text-cyan-300 break-all">{currentAgent.currentThesis.walrusBlobHash}</span>
                   </div>
                 )}
               </div>
@@ -284,15 +284,15 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
         </div>
 
         {/* Right Column: Confidence Shift & Live STDOUT Terminal (5 cols) */}
-        <div className="lg:col-span-5 space-y-5">
+        <div className="lg:col-span-5 space-y-4 sm:space-y-5">
           {/* Epistemic Modulation Meter */}
-          <div className="cockpit-panel p-5 space-y-4">
-            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+          <div className="cockpit-panel p-3.5 sm:p-5 space-y-4">
+            <div className="flex items-center justify-between gap-2 border-b border-slate-800 pb-3">
               <span className="text-xs sm:text-sm font-bold text-white font-['Orbitron'] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-cyan-400" />
+                <Sparkles className="w-4 h-4 text-cyan-400 shrink-0" />
                 <span>Bayesian Confidence Shift</span>
               </span>
-              <span className="text-xs font-mono font-bold px-2 py-0.5 rounded bg-rose-950/80 border border-rose-500/30 text-rose-300">
+              <span className="text-[11px] font-mono font-bold px-2 py-0.5 rounded bg-rose-950/80 border border-rose-500/30 text-rose-300 shrink-0">
                 Penalty Δ -{currentAgent.currentThesis.rawConfidence - currentAgent.currentThesis.calibratedConfidence}%
               </span>
             </div>
@@ -325,7 +325,7 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
               </div>
             </div>
 
-            <div className="p-3 rounded-xl bg-[#04070e] border border-slate-800 text-xs text-slate-300 leading-relaxed font-mono">
+            <div className="p-3 rounded-xl bg-[#04070e] border border-slate-800 text-[11px] sm:text-xs text-slate-300 leading-relaxed font-mono">
               {currentAgent.currentThesis.reflectionNotes}
             </div>
 
@@ -333,30 +333,30 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
               onClick={() => onPaywallClick(currentAgent)}
               className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-cyan-400 to-emerald-400 hover:from-cyan-300 hover:to-emerald-300 text-slate-950 font-mono text-xs font-bold flex items-center justify-center gap-2 transition-all shadow-lg shadow-cyan-500/15 cursor-pointer"
             >
-              <span>Unlock Position Mandate ({currentAgent.unlockPriceSui} SUI via x402)</span>
-              <ArrowRight className="w-4 h-4" />
+              <span>Unlock Mandate ({currentAgent.unlockPriceSui} SUI via x402)</span>
+              <ArrowRight className="w-4 h-4 shrink-0" />
             </button>
           </div>
 
           {/* Terminal Log Stream */}
-          <div className="cockpit-panel p-4 space-y-2.5 font-mono text-xs">
+          <div className="cockpit-panel p-3.5 sm:p-4 space-y-2.5 font-mono text-xs">
             <div className="flex items-center justify-between text-slate-400 border-b border-slate-800 pb-2 text-[10px]">
               <span className="flex items-center gap-1.5 text-cyan-400 font-bold">
-                <Terminal className="w-3.5 h-3.5" /> Live Epistemic Execution Console
+                <Terminal className="w-3.5 h-3.5 shrink-0" /> Live Epistemic Console
               </span>
               <span className="text-emerald-400">STDOUT • MAINNET</span>
             </div>
 
-            <div className="h-56 overflow-y-auto space-y-1.5 text-[11px] bg-[#03050a] p-3 rounded-lg border border-slate-800/80">
+            <div className="h-48 sm:h-56 overflow-y-auto space-y-1.5 text-[11px] bg-[#03050a] p-3 rounded-lg border border-slate-800/80">
               {logs.length === 0 ? (
                 <div className="text-slate-500 py-8 text-center text-xs">
-                  Click <strong className="text-cyan-300">"Execute 5-Step Trace"</strong> above to stream live RPC &amp; MemWal execution logs...
+                  Tap <strong className="text-cyan-300">"Execute 5-Step Trace"</strong> above to stream live RPC &amp; MemWal execution logs...
                 </div>
               ) : (
                 logs.map((log, idx) => (
                   <div
                     key={idx}
-                    className={
+                    className={`break-words ${
                       log.includes('✓')
                         ? 'text-emerald-400 font-bold'
                         : log.includes('Step 3')
@@ -364,7 +364,7 @@ export const ReflectiveThoughtEngine: React.FC<ReflectiveThoughtEngineProps> = (
                         : log.includes('Step 4')
                         ? 'text-cyan-300'
                         : 'text-slate-300'
-                    }
+                    }`}
                   >
                     {log}
                   </div>
