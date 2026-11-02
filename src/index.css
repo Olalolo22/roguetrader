@@ -1,8 +1,36 @@
 @import "tailwindcss";
 
+/* ─── TYPOGRAPHY: AEONIK WITH PLUS JAKARTA SANS NEU-GROTESK TWIN ─── */
+@font-face {
+  font-family: 'Aeonik';
+  src: local('Aeonik'), local('Aeonik-Regular'), local('Aeonik Pro'),
+       url('/fonts/Aeonik-Regular.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  src: local('Aeonik Medium'), local('Aeonik-Medium'), local('Aeonik Pro Medium'),
+       url('/fonts/Aeonik-Medium.woff2') format('woff2');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Aeonik';
+  src: local('Aeonik Bold'), local('Aeonik-Bold'), local('Aeonik Pro Bold'),
+       url('/fonts/Aeonik-Bold.woff2') format('woff2');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* RogueTrader — late-night execution desk. Graphite ramp, hairlines, one easing curve. */
 @theme {
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Aeonik", "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --color-deep: #0f0f10;

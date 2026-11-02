@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React from 'react';
 import type { TatumMarketState } from '../types';
 
 interface LivingGlyphMascotProps {
@@ -10,214 +10,165 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   marketState,
   interceptActive = false,
 }) => {
-  const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const [fps] = useState(8);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    if (!ctx) return;
-
-    // Fixed internal resolution for consistent 8px glyph cells
-    const width = 400;
-    const height = 360;
-    const cell = 8;
-    canvas.width = width;
-    canvas.height = height;
-
-    const columns = Math.floor(width / cell);
-    const rows = Math.floor(height / cell);
-
-    // 1. Draw procedural high-contrast mascot onto an offscreen canvas
-    const offscreen = document.createElement('canvas');
-    offscreen.width = columns;
-    offscreen.height = rows;
-    const octx = offscreen.getContext('2d', { willReadFrequently: true });
-    if (!octx) return;
-
-    // Draw stylized Cyber-Walrus in normalized 0..columns, 0..rows space
-    const drawMascotTemplate = (interception: boolean) => {
-      octx.clearRect(0, 0, columns, rows);
-
-      // Background is pitch black (0 lightness)
-      octx.fillStyle = '#000000';
-      octx.fillRect(0, 0, columns, rows);
-
-      // Center coords
-      const cx = columns / 2;
-      const cy = rows / 2 - 2;
-
-      // Outer Torso / Broad Shoulders
-      octx.fillStyle = '#22252a';
-      octx.beginPath();
-      octx.ellipse(cx, cy + 16, 20, 16, 0, 0, Math.PI * 2);
-      octx.fill();
-
-      // Tactical harness straps
-      octx.fillStyle = '#444a54';
-      octx.fillRect(cx - 14, cy + 6, 4, 18);
-      octx.fillRect(cx + 10, cy + 6, 4, 18);
-
-      // Walrus Head / Dome
-      octx.fillStyle = '#6b7280';
-      octx.beginPath();
-      octx.ellipse(cx, cy - 4, 14, 13, 0, 0, Math.PI * 2);
-      octx.fill();
-
-      // Cyber Visor across eyes
-      octx.fillStyle = interception ? '#4cc38a' : '#ededed';
-      octx.beginPath();
-      octx.roundRect(cx - 10, cy - 8, 20, 4, 2);
-      octx.fill();
-
-      // Headset band & antenna
-      octx.fillStyle = '#9ca3af';
-      octx.fillRect(cx - 13, cy - 10, 2, 8);
-      octx.fillRect(cx - 13, cy - 14, 2, 4);
-      octx.fillRect(cx + 11, cy - 10, 2, 8);
-
-      // Muzzle / Snout (Walrus Whiskers Pads)
-      octx.fillStyle = '#d1d5db';
-      octx.beginPath();
-      octx.ellipse(cx - 5, cy + 2, 6, 5, 0, 0, Math.PI * 2);
-      octx.ellipse(cx + 5, cy + 2, 6, 5, 0, 0, Math.PI * 2);
-      octx.fill();
-
-      // Nose
-      octx.fillStyle = '#111317';
-      octx.beginPath();
-      octx.ellipse(cx, cy, 3, 2, 0, 0, Math.PI * 2);
-      octx.fill();
-
-      // Tusks (Iconic Walrus Signature)
-      octx.fillStyle = '#ffffff';
-      // Left Tusk
-      octx.beginPath();
-      octx.moveTo(cx - 6, cy + 4);
-      octx.lineTo(cx - 8, cy + 18);
-      octx.lineTo(cx - 4, cy + 5);
-      octx.closePath();
-      octx.fill();
-
-      // Right Tusk
-      octx.beginPath();
-      octx.moveTo(cx + 4, cy + 5);
-      octx.lineTo(cx + 8, cy + 18);
-      octx.lineTo(cx + 6, cy + 4);
-      octx.closePath();
-      octx.fill();
-
-      // Memory Core Reactor in Chest
-      octx.fillStyle = interception ? '#4cc38a' : '#85858b';
-      octx.beginPath();
-      octx.arc(cx, cy + 14, 4, 0, Math.PI * 2);
-      octx.fill();
-    };
-
-    drawMascotTemplate(interceptActive);
-
-    const imgData = octx.getImageData(0, 0, columns, rows).data;
-    const chars = '. :17408$%#{}=';
-    const cells: { x: number; y: number; light: number; color: string; seed: number }[] = [];
-
-    for (let y = 0; y < rows; y++) {
-      for (let x = 0; x < columns; x++) {
-        const i = (y * columns + x) * 4;
-        const r = imgData[i];
-        const g = imgData[i + 1];
-        const b = imgData[i + 2];
-        const light = (0.2126 * r + 0.7152 * g + 0.0722 * b) / 255;
-        cells.push({
-          x,
-          y,
-          light,
-          color: `rgb(${r},${g},${b})`,
-          seed: Math.random(),
-        });
-      }
-    }
-
-    // Prepare glyph atlas for performance (unslop token rule)
-    const atlas = document.createElement('canvas');
-    atlas.width = cell * chars.length;
-    atlas.height = cell;
-    const pen = atlas.getContext('2d');
-    if (pen) {
-      pen.font = `500 ${cell}px "JetBrains Mono", monospace`;
-      pen.textAlign = 'center';
-      pen.textBaseline = 'middle';
-      pen.fillStyle = '#ffffff';
-      [...chars].forEach((char, index) => {
-        pen.fillText(char, index * cell + cell / 2, cell / 2);
-      });
-    }
-
-    const tinted = document.createElement('canvas');
-    tinted.width = cell;
-    tinted.height = cell;
-    const tint = tinted.getContext('2d');
-
-    let animationFrameId: number;
-    let lastTime = 0;
-    let step = 0;
-    let isVisible = true;
-
-    const observer = new IntersectionObserver(([entry]) => {
-      isVisible = entry.isIntersecting;
-    });
-    observer.observe(canvas);
-
-    const drawFrame = (curStep: number) => {
-      ctx.clearRect(0, 0, width, height);
-
-      for (const c of cells) {
-        if (c.light < 0.08) continue;
-
-        // Subtle 8fps shimmer on high-light cells
-        const jitter = Math.sin(c.seed * 999 + curStep) > 0.88 ? 1 : 0;
-        const charIdx = Math.min(chars.length - 1, Math.floor(c.light * chars.length) + jitter);
-
-        if (tint) {
-          tint.globalCompositeOperation = 'copy';
-          tint.drawImage(atlas, charIdx * cell, 0, cell, cell, 0, 0, cell, cell);
-          tint.globalCompositeOperation = 'source-in';
-          tint.fillStyle = c.color;
-          tint.fillRect(0, 0, cell, cell);
-          ctx.drawImage(tinted, c.x * cell, c.y * cell);
-        }
-      }
-    };
-
-    const renderLoop = (now: number) => {
-      animationFrameId = requestAnimationFrame(renderLoop);
-      if (!isVisible || now - lastTime < 1000 / fps) return;
-      lastTime = now;
-      drawFrame(step++);
-    };
-
-    animationFrameId = requestAnimationFrame(renderLoop);
-
-    return () => {
-      cancelAnimationFrame(animationFrameId);
-      observer.disconnect();
-    };
-  }, [fps, interceptActive]);
-
-  const ckpt = marketState?.latestCheckpoint ? `#${marketState.latestCheckpoint.toLocaleString()}` : '#89,412,950';
+  const ckpt = marketState?.latestCheckpoint
+    ? `#${marketState.latestCheckpoint.toLocaleString()}`
+    : '#89,412,950';
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[440px] items-center justify-center p-2 sm:p-4 select-none">
-      {/* Living Canvas */}
-      <canvas
-        ref={canvasRef}
-        className="w-full max-w-[380px] h-auto object-contain rounded-xl"
-        style={{ aspectRatio: '400 / 360' }}
-        title="Wally · The Walrus Memory Sentinel"
-      />
+    <div className="relative mx-auto flex w-full max-w-[420px] items-center justify-center p-2 sm:p-4 select-none">
+      {/* High-Craft Vector Walrus / Seal Sentinel Mascot */}
+      <div className="relative w-full max-w-[340px] flex justify-center items-center py-4">
+        <svg
+          viewBox="0 0 280 260"
+          fill="none"
+          xmlns="http://www.w3.org/2000/svg"
+          className="w-full h-auto drop-shadow-md"
+        >
+          {/* Subtle Ambient Ground Glow */}
+          <ellipse cx="140" cy="242" rx="90" ry="12" fill="rgba(255, 255, 255, 0.04)" />
+
+          {/* Lower Body & Tail Curve */}
+          <path
+            d="M75 220C65 210 50 200 45 185C40 170 48 155 58 148C65 142 75 145 82 152L105 175C118 188 135 198 155 200C185 203 210 185 218 158C222 145 235 142 242 152C248 160 245 172 238 185C225 212 195 232 155 232C122 232 94 227 75 220Z"
+            fill="#181a1f"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="1.5"
+          />
+
+          {/* Main Torso / Chest */}
+          <path
+            d="M85 180C75 150 78 115 95 90C110 68 135 55 160 62C185 68 202 90 208 118C214 148 210 180 195 205C178 220 152 225 130 220C108 215 92 200 85 180Z"
+            fill="#1e222a"
+            stroke="rgba(255,255,255,0.12)"
+            strokeWidth="1.5"
+          />
+
+          {/* Left Flipper / Arm */}
+          <path
+            d="M82 155C65 160 50 172 48 188C46 200 55 208 68 206C82 204 98 190 102 178L82 155Z"
+            fill="#15171c"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="1.2"
+          />
+
+          {/* Right Flipper / Arm */}
+          <path
+            d="M205 160C222 165 235 178 238 194C240 206 230 214 218 212C204 210 190 196 186 182L205 160Z"
+            fill="#15171c"
+            stroke="rgba(255,255,255,0.08)"
+            strokeWidth="1.2"
+          />
+
+          {/* Head & Neck */}
+          <ellipse
+            cx="142"
+            cy="82"
+            rx="46"
+            ry="42"
+            fill="#262b35"
+            stroke="rgba(255,255,255,0.15)"
+            strokeWidth="1.5"
+          />
+
+          {/* Walrus Whiskers Pads / Muzzle */}
+          <ellipse cx="126" cy="100" rx="20" ry="15" fill="#303744" />
+          <ellipse cx="158" cy="100" rx="20" ry="15" fill="#303744" />
+
+          {/* Cute Whisker Dots */}
+          <circle cx="118" cy="98" r="1.5" fill="#85858b" />
+          <circle cx="124" cy="96" r="1.5" fill="#85858b" />
+          <circle cx="122" cy="103" r="1.5" fill="#85858b" />
+          <circle cx="166" cy="98" r="1.5" fill="#85858b" />
+          <circle cx="160" cy="96" r="1.5" fill="#85858b" />
+          <circle cx="162" cy="103" r="1.5" fill="#85858b" />
+
+          {/* Nose */}
+          <path
+            d="M136 88C136 85 148 85 148 88C148 93 143 96 142 96C141 96 136 93 136 88Z"
+            fill="#111317"
+          />
+
+          {/* Signature Ivory Tusks */}
+          {/* Left Tusk */}
+          <path
+            d="M120 106C119 116 117 132 114 148C113 152 118 152 120 148C126 136 130 120 131 107L120 106Z"
+            fill="#ffffff"
+            stroke="#d1d5db"
+            strokeWidth="1"
+          />
+          {/* Right Tusk */}
+          <path
+            d="M164 106C165 116 167 132 170 148C171 152 166 152 164 148C158 136 154 120 153 107L164 106Z"
+            fill="#ffffff"
+            stroke="#d1d5db"
+            strokeWidth="1"
+          />
+
+          {/* Headset Band & Left Antenna */}
+          <path
+            d="M100 78C100 55 120 44 142 44C164 44 184 55 184 78"
+            stroke="#4b5563"
+            strokeWidth="3.5"
+            strokeLinecap="round"
+          />
+          {/* Left Ear Comm Unit */}
+          <rect x="94" y="70" width="7" height="16" rx="3.5" fill="#374151" stroke="#9ca3af" strokeWidth="1" />
+          <line x1="97" y1="70" x2="97" y2="56" stroke="#9ca3af" strokeWidth="1.5" />
+          <circle cx="97" cy="54" r="2.5" fill={interceptActive ? '#4cc38a' : '#ff6b2b'} />
+
+          {/* Right Ear Comm Unit */}
+          <rect x="183" y="70" width="7" height="16" rx="3.5" fill="#374151" stroke="#9ca3af" strokeWidth="1" />
+
+          {/* Cyber Visor across eyes */}
+          <g>
+            <rect
+              x="112"
+              y="66"
+              width="60"
+              height="16"
+              rx="6"
+              fill={interceptActive ? 'rgba(76, 195, 138, 0.18)' : 'rgba(237, 237, 237, 0.12)'}
+              stroke={interceptActive ? '#4cc38a' : '#ededed'}
+              strokeWidth="1.5"
+            />
+            {/* Visor Scanline / HUD Glint */}
+            <line
+              x1="116"
+              y1="74"
+              x2="168"
+              y2="74"
+              stroke={interceptActive ? '#4cc38a' : '#ffffff'}
+              strokeWidth="1.5"
+              strokeDasharray="4 2"
+              opacity="0.8"
+            />
+          </g>
+
+          {/* Chest Tactical Harness & Reactor Core */}
+          <path d="M120 145L132 170" stroke="rgba(255,255,255,0.12)" strokeWidth="2" />
+          <path d="M164 145L152 170" stroke="rgba(255,255,255,0.12)" strokeWidth="2" />
+          
+          {/* Walrus Memory Core Reactor */}
+          <circle
+            cx="142"
+            cy="172"
+            r="12"
+            fill="#11141a"
+            stroke={interceptActive ? '#4cc38a' : 'rgba(255,255,255,0.2)'}
+            strokeWidth="1.5"
+          />
+          <circle
+            cx="142"
+            cy="172"
+            r="6"
+            fill={interceptActive ? '#4cc38a' : '#6b7280'}
+            className={interceptActive ? 'animate-pulse' : ''}
+          />
+        </svg>
+      </div>
 
       {/* Pinned Leader-Line 1: Visor -> Tatum Sui Checkpoint */}
-      <div className="pointer-events-none absolute top-[22%] left-[2%] flex items-center gap-1.5 sm:left-[4%]">
+      <div className="pointer-events-none absolute top-[24%] left-[2%] flex items-center gap-1.5 sm:left-[4%]">
         <div className="flex flex-col items-end">
           <span className="keycap text-[10px] sm:text-xs">
             <span>ckpt</span> {ckpt}
@@ -230,7 +181,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
       </div>
 
       {/* Pinned Leader-Line 2: Left Tusk -> Walrus Recall Latency */}
-      <div className="pointer-events-none absolute bottom-[34%] left-[2%] flex items-center gap-1.5 sm:left-[6%]">
+      <div className="pointer-events-none absolute bottom-[38%] left-[2%] flex items-center gap-1.5 sm:left-[6%]">
         <div className="flex flex-col items-end">
           <span className="keycap text-[10px] sm:text-xs">
             <span>recall</span> 914 ms
@@ -243,7 +194,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
       </div>
 
       {/* Pinned Leader-Line 3: Right Tusk -> Stored Blob State */}
-      <div className="pointer-events-none absolute bottom-[34%] right-[2%] flex items-center gap-1.5 sm:right-[6%]">
+      <div className="pointer-events-none absolute bottom-[38%] right-[2%] flex items-center gap-1.5 sm:right-[6%]">
         <div className="h-[1px] w-6 sm:w-12 bg-line-2 relative">
           <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
         </div>
@@ -256,7 +207,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
       </div>
 
       {/* Pinned Leader-Line 4: Chest Memory Core -> Brier Score */}
-      <div className="pointer-events-none absolute bottom-[10%] right-[6%] flex items-center gap-1.5 sm:right-[10%]">
+      <div className="pointer-events-none absolute bottom-[14%] right-[6%] flex items-center gap-1.5 sm:right-[10%]">
         <div className="h-[1px] w-8 sm:w-14 bg-line-2 relative">
           <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
         </div>
