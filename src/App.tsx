@@ -51,7 +51,7 @@ export function App() {
       <Header marketState={marketState} activeTab={activeTab} setActiveTab={go} onOpenSettings={() => setIsSettingsOpen(true)} />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 sm:px-6">
-        {activeTab === 'check' && <CheckTrade />}
+        {activeTab === 'check' && <CheckTrade marketState={marketState} />}
         {activeTab === 'memory' && <MemoryInspector />}
         {activeTab === 'x402' && (
           <ReceiptsList receipts={receipts} wallet={wallet} onPaymentSuccess={handlePaymentSuccess} />
