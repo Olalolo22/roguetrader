@@ -31,7 +31,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   const isLight = theme === 'light';
   const currentSrc = isLight ? WALLY_SENTINEL.lightSrc : WALLY_SENTINEL.darkSrc;
 
-  // Hover triggers the entire cybernetic assembly
+  // Hover triggers the organic chest plate glass gleam
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
     setShockwaveKey((k) => k + 1);
@@ -62,12 +62,13 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
       className="relative mx-auto flex w-full max-w-[420px] flex-col items-center justify-center select-none pt-2 sm:pt-4 cursor-pointer group"
     >
       {/* 
-        NO Bounding Box: Wally sits directly on the page background
-        with full solid geometry, physical ground contact shadows,
-        and an authentic Wabi Liquid Glass Memory Reactor Node on his chest.
+        NO Bounding Box or Fake Button:
+        Wally sits directly on the page background with full solid geometry.
+        The liquid glass specular gleam and blink happen directly across
+        his actual rendered chest armor plate with zero floating boxes.
       */}
       <div className="relative flex w-full items-center justify-center">
-        {/* Soft Ambient Ground Plane Contact Shadow (Reacts dynamically to hover) */}
+        {/* Soft Ambient Ground Plane Contact Shadow */}
         <div
           className={`pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-44 sm:w-64 rounded-full bg-black/15 blur-xl dark:bg-black/70 transition-all duration-300 ${
             isActive ? 'scale-105 opacity-90' : 'scale-100 opacity-60'
@@ -98,50 +99,49 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           />
 
           {/* 
-            ─── WABI LIQUID GLASS MEMORY REACTOR NODE ───
-            Optical Liquid Glass Dome mounted directly onto Wally's chest harness buckle.
-            Coordinates: 58.2% from top, 53.8% from left.
-            Fires iridescent refraction, specular caustic sweep, and shockwave on mouse hover.
+            ─── ACTUAL CHEST PLATE LIQUID GLASS BLINK & CAUSTIC SHEEN ───
+            No fake square button. No artificial borders.
+            This seamless mask sits directly over Wally's actual rendered chest plate (44% to 68% height),
+            projecting an authentic liquid glass reflection sweep and blink across the titanium vest.
           */}
           <div
-            className="absolute top-[58.2%] left-[53.8%] -translate-x-1/2 -translate-y-1/2 w-[13.5%] aspect-square rounded-xl sm:rounded-2xl pointer-events-none"
-            title="Wally Walrus Memory Reactor · Active on Hover"
+            className="pointer-events-none absolute top-[45%] left-[54%] -translate-x-1/2 w-[32%] h-[24%] rounded-[28px] overflow-hidden"
+            aria-hidden="true"
           >
-            {/* Outer Specular Edge & Iridescent Spectral Rim */}
+            {/* Specular Liquid Glass Caustic Sweep Across the Armor */}
             <div
-              className={`absolute inset-0 rounded-xl sm:rounded-2xl border transition-all duration-300 ${
+              className={`absolute inset-0 -top-full -left-full size-[300%] bg-gradient-to-br from-transparent via-white/40 to-transparent transition-opacity duration-300 ${
+                isActive ? 'opacity-100 animate-caustic-sweep duration-700' : 'opacity-35 animate-caustic-sweep'
+              }`}
+            />
+
+            {/* Subtle Liquid Glass Refractive Surface Sheen */}
+            <div
+              className={`absolute inset-0 rounded-[28px] bg-gradient-to-t from-transparent via-pos/10 to-white/20 transition-opacity duration-300 ${
+                isActive ? 'opacity-100' : 'opacity-0'
+              }`}
+            />
+          </div>
+
+          {/* Natural Illumination Bloom on the 3D Buckle Indicator (No Button Box) */}
+          <div
+            className="pointer-events-none absolute top-[58.2%] left-[53.8%] -translate-x-1/2 -translate-y-1/2 size-4 flex items-center justify-center"
+            aria-hidden="true"
+          >
+            {/* Organic Indicator Light Bloom */}
+            <div
+              className={`w-1.5 h-3 rounded-full bg-pos transition-all duration-300 ${
                 isActive
-                  ? 'border-pos shadow-[0_0_20px_rgba(76,195,138,0.7),inset_1.5px_1.5px_1px_rgba(255,255,255,0.9),inset_-1.5px_-1.5px_1px_rgba(192,132,252,0.85)] scale-105'
-                  : 'border-white/40 dark:border-white/20 shadow-[0_4px_12px_rgba(0,0,0,0.25),inset_1px_1px_1px_rgba(255,255,255,0.75),inset_-1px_-1px_1px_rgba(192,132,252,0.45)]'
-              } backdrop-blur-md bg-gradient-to-br from-white/35 via-white/10 to-black/30 dark:from-white/20 dark:via-white/5 dark:to-black/45 overflow-hidden`}
-            >
-              {/* Traveling Specular Caustic Light Glint */}
-              <div
-                className={`pointer-events-none absolute inset-0 -top-full -left-full size-[300%] bg-gradient-to-br from-transparent via-white/50 to-transparent ${
-                  isActive ? 'animate-caustic-sweep duration-1000' : 'animate-caustic-sweep'
-                }`}
-              />
+                  ? 'shadow-[0_0_12px_#4cc38a,0_0_24px_#4cc38a] scale-125 opacity-100'
+                  : 'shadow-[0_0_6px_#4cc38a] opacity-75 animate-core-breathe'
+              }`}
+            />
 
-              {/* Liquid Glass Internal Refraction Sheen */}
-              <div className="absolute inset-[12%] rounded-lg bg-gradient-to-t from-transparent via-pos/15 to-white/30 pointer-events-none" />
-
-              {/* Central Luminous Memory Core Indicator */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div
-                  className={`w-1 sm:w-1.5 h-3 sm:h-4.5 rounded-full bg-pos transition-all duration-300 ${
-                    isActive
-                      ? 'shadow-[0_0_16px_#4cc38a,0_0_28px_#4cc38a] scale-110'
-                      : 'shadow-[0_0_8px_#4cc38a] animate-core-breathe'
-                  }`}
-                />
-              </div>
-            </div>
-
-            {/* Expanding Glass Shockwave Ring on Mouse Enter / Touch */}
+            {/* Expanding Shockwave Ring on Hover / Touch */}
             {shockwaveKey > 0 && (
               <div
                 key={shockwaveKey}
-                className="absolute inset-0 rounded-xl sm:rounded-2xl border-2 border-pos/80 animate-glass-shockwave pointer-events-none"
+                className="absolute inset-0 size-8 -translate-x-2 -translate-y-2 rounded-full border border-pos/70 animate-glass-shockwave"
               />
             )}
           </div>
