@@ -53,7 +53,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
         />
 
         {/* The Native Mascot Render (True Transparent PNG) */}
-        <div className="relative z-10 w-full max-w-[280px] sm:max-w-[340px]">
+        <div className="relative z-10 w-full max-w-[250px] sm:max-w-[340px]">
           <img
             key={`wally-${theme}`}
             src={currentSrc}
@@ -69,59 +69,58 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
 
         {/* 
           Pinned 1px Hairline Leader-Lines:
-          Displayed on screens >= 640px (tablets & desktops) where there is generous horizontal clearance.
-          Hidden on narrow mobile screens (< 640px) to prevent floating dots and edge clipping.
+          Visible across all viewports (mobile & desktop).
         */}
 
         {/* Leader-Line 1 (Top Left): Visor -> Tatum Checkpoint */}
-        <div className="pointer-events-none absolute top-[16%] -left-2 sm:-left-6 z-20 hidden sm:flex items-center gap-1.5">
+        <div className="pointer-events-none absolute top-[16%] left-0 sm:-left-6 z-20 flex items-center gap-1 sm:gap-1.5">
           <div className="flex flex-col items-end">
-            <span className="keycap text-[10px] sm:text-xs">
+            <span className="keycap text-[9px] sm:text-xs">
               <span>ckpt</span> {ckpt}
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Tatum Sui RPC</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">Tatum Sui RPC</span>
           </div>
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+          <div className="relative h-[1px] w-3 sm:w-8 bg-line-2">
+            <div className="absolute right-0 top-[-2px] size-1 sm:size-1.5 rounded-full bg-fg" />
           </div>
         </div>
 
         {/* Leader-Line 2 (Bottom Left): Recall Core -> Walrus Recall Latency */}
-        <div className="pointer-events-none absolute bottom-[26%] -left-2 sm:-left-4 z-20 hidden sm:flex items-center gap-1.5">
+        <div className="pointer-events-none absolute bottom-[26%] left-0 sm:-left-4 z-20 flex items-center gap-1 sm:gap-1.5">
           <div className="flex flex-col items-end">
-            <span className="keycap text-[10px] sm:text-xs">
+            <span className="keycap text-[9px] sm:text-xs">
               <span>recall</span> &lt;1s
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Walrus Vector</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">Walrus Vector</span>
           </div>
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+          <div className="relative h-[1px] w-3 sm:w-8 bg-line-2">
+            <div className="absolute right-0 top-[-2px] size-1 sm:size-1.5 rounded-full bg-fg" />
           </div>
         </div>
 
         {/* Leader-Line 3 (Top Right): Visor / Tusk -> Memory Blob Hash */}
-        <div className="pointer-events-none absolute top-[18%] -right-2 sm:-right-6 z-20 hidden sm:flex items-center gap-1.5">
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+        <div className="pointer-events-none absolute top-[18%] right-0 sm:-right-6 z-20 flex items-center gap-1 sm:gap-1.5">
+          <div className="relative h-[1px] w-3 sm:w-8 bg-line-2">
+            <div className="absolute left-0 top-[-2px] size-1 sm:size-1.5 rounded-full bg-fg" />
           </div>
           <div className="flex flex-col items-start">
-            <span className="keycap text-[10px] sm:text-xs">
+            <span className="keycap text-[9px] sm:text-xs">
               <span>blob</span> 0x8f9a…2c
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Walrus Epoch</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">Walrus Epoch</span>
           </div>
         </div>
 
         {/* Leader-Line 4 (Bottom Right): Base / Core -> Brier Calibration Delta */}
-        <div className="pointer-events-none absolute bottom-[24%] -right-2 sm:-right-4 z-20 hidden sm:flex items-center gap-1.5">
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+        <div className="pointer-events-none absolute bottom-[24%] right-0 sm:-right-4 z-20 flex items-center gap-1 sm:gap-1.5">
+          <div className="relative h-[1px] w-3 sm:w-8 bg-line-2">
+            <div className="absolute left-0 top-[-2px] size-1 sm:size-1.5 rounded-full bg-fg" />
           </div>
           <div className="flex flex-col items-start">
-            <span className="keycap text-[10px] sm:text-xs">
+            <span className="keycap text-[9px] sm:text-xs">
               <span>brier</span> 0.128
             </span>
-            <span className="text-[9px] font-mono text-pos">seeded bench</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-pos">seeded bench</span>
           </div>
         </div>
       </div>

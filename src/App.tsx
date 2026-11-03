@@ -4,6 +4,7 @@ import { CheckTrade } from './components/CheckTrade';
 import { MemoryInspector } from './components/MemoryInspector';
 import { ReceiptsList } from './components/ReceiptsList';
 import { SettingsModal } from './components/SettingsModal';
+import { LiquidGlassFilter } from './components/LiquidGlassFilter';
 import { tatumSui } from './services/tatumSui';
 import { x402Payment } from './services/x402Payment';
 import type { TatumMarketState, UserWalletState, X402Receipt } from './types';
@@ -75,6 +76,7 @@ export function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-page text-fg">
+      <LiquidGlassFilter />
       <Header
         marketState={marketState}
         activeTab={activeTab}
