@@ -1,69 +1,117 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { TatumMarketState } from '../types';
+
+export type SentinelRole = 'recon' | 'guardian' | 'archivist';
 
 interface LivingGlyphMascotProps {
   marketState: TatumMarketState | null;
   interceptActive?: boolean;
   theme?: 'dark' | 'light';
+  activeRole?: SentinelRole;
+  onRoleSelect?: (role: SentinelRole) => void;
 }
 
-interface SentinelVariant {
-  id: string;
-  name: string;
-  role: string;
+interface RoleDefinition {
+  id: SentinelRole;
+  label: string;
+  subsystem: string;
+  tagline: string;
   darkSrc: string;
   lightSrc: string;
   alt: string;
+  leaderLines: {
+    topLeft: { tag: string; value: string; sub: string };
+    bottomLeft: { tag: string; value: string; sub: string };
+    topRight: { tag: string; value: string; sub: string };
+    bottomRight: { tag: string; value: string; sub: string; highlight?: boolean };
+  };
 }
 
-const SENTINEL_VARIANTS: SentinelVariant[] = [
-  {
-    id: 'guardian',
-    name: 'Sentinel 02',
-    role: 'Active Guardian',
-    darkSrc: '/mascot/walrus-sentinel-2.png',
-    lightSrc: '/mascot/walrus-sentinel-light-1.png',
-    alt: 'Wally Sentinel Guardian — Matte graphite walrus with cyber visor and chest memory node',
-  },
-  {
+const ROLES: Record<SentinelRole, RoleDefinition> = {
+  recon: {
     id: 'recon',
-    name: 'Sentinel 01',
-    role: 'Perimeter Recon',
+    label: '01 · Recon',
+    subsystem: 'Sui Node Telemetry',
+    tagline: 'Perimeter Mempool & Checkpoint Monitor',
     darkSrc: '/mascot/walrus-sentinel-1.png',
     lightSrc: '/mascot/walrus-sentinel-light-2.png',
-    alt: 'Wally Sentinel Recon — Sleek graphite walrus with brushed titanium cyber visor',
+    alt: 'Wally Recon Sentinel — Sleek graphite walrus monitoring Sui network checkpoints',
+    leaderLines: {
+      topLeft: { tag: 'ckpt', value: '#100,185,039', sub: 'Tatum Sui Gateway' },
+      bottomLeft: { tag: 'pool', value: '$24.8M', sub: 'Cetus TVL Depth' },
+      topRight: { tag: 'spread', value: '0.0008 SUI', sub: 'DeepBook v3 Spread' },
+      bottomRight: { tag: 'latency', value: '38ms', sub: 'RPC ping time' },
+    },
   },
-  {
+  guardian: {
+    id: 'guardian',
+    label: '02 · Guardian',
+    subsystem: 'Pre-Trade Risk Gate',
+    tagline: 'Active Memory Intercept & Strike Sizer',
+    darkSrc: '/mascot/walrus-sentinel-2.png',
+    lightSrc: '/mascot/walrus-sentinel-light-1.png',
+    alt: 'Wally Guardian Sentinel — Active cyber visor and chest memory reactor core',
+    leaderLines: {
+      topLeft: { tag: 'ckpt', value: '#100,185,039', sub: 'Resolution Check' },
+      bottomLeft: { tag: 'recall', value: '<1s', sub: 'Walrus Vector' },
+      topRight: { tag: 'blob', value: '0x8f9a…2c', sub: 'Walrus Epoch #41' },
+      bottomRight: { tag: 'brier', value: '0.128', sub: 'seeded bench', highlight: true },
+    },
+  },
+  archivist: {
     id: 'archivist',
-    name: 'Sentinel 03',
-    role: 'Memory Archivist',
+    label: '03 · Archivist',
+    subsystem: 'Walrus Memory Vault',
+    tagline: 'Encrypted Blob Storage & Proofs',
     darkSrc: '/mascot/walrus-sentinel-3.png',
     lightSrc: '/mascot/walrus-sentinel-3.png',
-    alt: 'Wally Sentinel Archivist — Holding glowing frosted memory storage cube',
+    alt: 'Wally Archivist Sentinel — Holding glowing frosted memory storage cube',
+    leaderLines: {
+      topLeft: { tag: 'store', value: 'Walrus', sub: 'Decentralized Blobs' },
+      bottomLeft: { tag: 'cost', value: '0.05 SUI', sub: 'x402 Micropayment' },
+      topRight: { tag: 'seal', value: 'Epoch #41', sub: 'Relayer Certified' },
+      bottomRight: { tag: 'status', value: 'Persistent', sub: 'Zero Amnesia', highlight: true },
+    },
   },
-];
+};
 
 export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   marketState,
   interceptActive = false,
   theme = 'dark',
+  activeRole: controlledRole,
+  onRoleSelect,
 }) => {
-  const [selectedIdx, setSelectedIdx] = useState<number>(0);
-  const currentSentinel = SENTINEL_VARIANTS[selectedIdx];
+  // Option B: Automatically driven by app state (Intercept -> Guardian; Idle -> Recon)
+  const [internalRole, setInternalRole] = useState<SentinelRole>('recon');
+
+  useEffect(() => {
+    if (controlledRole) {
+      setInternalRole(controlledRole);
+    } else if (interceptActive) {
+      setInternalRole('guardian');
+    }
+  }, [controlledRole, interceptActive]);
+
+  const role = ROLES[internalRole];
+  const isLight = theme === 'light';
+  const currentSrc = isLight ? role.lightSrc : role.darkSrc;
 
   const ckpt = marketState?.latestCheckpoint
     ? `#${marketState.latestCheckpoint.toLocaleString()}`
-    : '#89,412,950';
+    : '#100,185,039';
 
-  const isLight = theme === 'light';
-  const currentSrc = isLight ? currentSentinel.lightSrc : currentSentinel.darkSrc;
+  const handleSelect = (r: SentinelRole) => {
+    setInternalRole(r);
+    onRoleSelect?.(r);
+  };
 
   return (
-    <div className="relative mx-auto flex w-full max-w-[420px] flex-col items-center justify-center select-none pt-2 sm:pt-4">
+    <div className="relative mx-auto flex w-full max-w-[440px] flex-col items-center justify-center select-none pt-2 sm:pt-4">
       {/* 
-        NO Bounding Box or Picture Frame:
-        Wally sits directly on the page background with physical contact ground shadows.
-        Both dark and light assets are true transparent PNGs.
+        OPTION B: State-Driven Operational Sentinel
+        - No avatar wardrobe. Roles reflect real protocol states:
+          01 · Recon (Sui Telemetry) | 02 · Guardian (Risk Gate) | 03 · Archivist (Walrus Vault)
       */}
       <div className="relative flex w-full items-center justify-center">
         {/* Soft Ambient Ground Plane Contact Shadow */}
@@ -82,12 +130,12 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           aria-hidden="true"
         />
 
-        {/* The Native Mascot Render (True Transparent PNG) */}
+        {/* The Native Mascot Render (True Transparent PNG with Pose Cross-Fade) */}
         <div className="relative z-10 w-full max-w-[280px] sm:max-w-[340px]">
           <img
-            key={`${currentSentinel.id}-${theme}`}
+            key={`${role.id}-${theme}`}
             src={currentSrc}
-            alt={currentSentinel.alt}
+            alt={role.alt}
             className={`h-auto w-full object-contain transition-all duration-300 ${
               isLight
                 ? 'drop-shadow-[0_18px_24px_rgba(0,0,0,0.12)]'
@@ -99,64 +147,71 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
 
         {/* 
           Pinned 1px Hairline Leader-Lines:
-          Displayed on screens >= 640px (tablets & desktops) where there is generous horizontal clearance.
-          Hidden on narrow mobile screens (< 640px) to prevent floating dots and edge clipping.
+          Displayed on screens >= 640px where there is generous horizontal clearance.
+          Adapts dynamically to the active role (Recon / Guardian / Archivist).
         */}
 
-        {/* Leader-Line 1 (Top Left): Visor -> Tatum Checkpoint */}
-        <div className="pointer-events-none absolute top-[16%] -left-2 sm:-left-6 z-20 hidden sm:flex items-center gap-1.5">
+        {/* Leader-Line 1 (Top Left) */}
+        <div className="pointer-events-none absolute top-[16%] -left-2 sm:-left-6 z-20 hidden sm:flex items-center gap-1.5 transition-all duration-300">
           <div className="flex flex-col items-end">
             <span className="keycap text-[10px] sm:text-xs">
-              <span>ckpt</span> {ckpt}
+              <span>{role.leaderLines.topLeft.tag}</span>{' '}
+              {role.leaderLines.topLeft.tag === 'ckpt' ? ckpt : role.leaderLines.topLeft.value}
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Tatum Sui RPC</span>
+            <span className="text-[9px] font-mono text-fg-3">{role.leaderLines.topLeft.sub}</span>
           </div>
           <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
             <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-fg" />
           </div>
         </div>
 
-        {/* Leader-Line 2 (Bottom Left): Recall Core -> Walrus Recall Latency */}
-        <div className="pointer-events-none absolute bottom-[26%] -left-2 sm:-left-4 z-20 hidden sm:flex items-center gap-1.5">
+        {/* Leader-Line 2 (Bottom Left) */}
+        <div className="pointer-events-none absolute bottom-[26%] -left-2 sm:-left-4 z-20 hidden sm:flex items-center gap-1.5 transition-all duration-300">
           <div className="flex flex-col items-end">
             <span className="keycap text-[10px] sm:text-xs">
-              <span>recall</span> &lt;1s
+              <span>{role.leaderLines.bottomLeft.tag}</span> {role.leaderLines.bottomLeft.value}
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Walrus Vector</span>
+            <span className="text-[9px] font-mono text-fg-3">{role.leaderLines.bottomLeft.sub}</span>
           </div>
           <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
             <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-fg" />
           </div>
         </div>
 
-        {/* Leader-Line 3 (Top Right): Visor / Tusk -> Memory Blob Hash */}
-        <div className="pointer-events-none absolute top-[18%] -right-2 sm:-right-6 z-20 hidden sm:flex items-center gap-1.5">
+        {/* Leader-Line 3 (Top Right) */}
+        <div className="pointer-events-none absolute top-[18%] -right-2 sm:-right-6 z-20 hidden sm:flex items-center gap-1.5 transition-all duration-300">
           <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
             <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
           </div>
           <div className="flex flex-col items-start">
             <span className="keycap text-[10px] sm:text-xs">
-              <span>blob</span> 0x8f9a…2c
+              <span>{role.leaderLines.topRight.tag}</span> {role.leaderLines.topRight.value}
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Walrus Epoch</span>
+            <span className="text-[9px] font-mono text-fg-3">{role.leaderLines.topRight.sub}</span>
           </div>
         </div>
 
-        {/* Leader-Line 4 (Bottom Right): Base / Core -> Brier Calibration Delta */}
-        <div className="pointer-events-none absolute bottom-[24%] -right-2 sm:-right-4 z-20 hidden sm:flex items-center gap-1.5">
+        {/* Leader-Line 4 (Bottom Right) */}
+        <div className="pointer-events-none absolute bottom-[24%] -right-2 sm:-right-4 z-20 hidden sm:flex items-center gap-1.5 transition-all duration-300">
           <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
             <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
           </div>
           <div className="flex flex-col items-start">
             <span className="keycap text-[10px] sm:text-xs">
-              <span>brier</span> 0.128
+              <span>{role.leaderLines.bottomRight.tag}</span> {role.leaderLines.bottomRight.value}
             </span>
-            <span className="text-[9px] font-mono text-pos">seeded bench</span>
+            <span
+              className={`text-[9px] font-mono ${
+                role.leaderLines.bottomRight.highlight ? 'text-pos' : 'text-fg-3'
+              }`}
+            >
+              {role.leaderLines.bottomRight.sub}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Active Sentinel State & Identity Caption */}
+      {/* State-Driven Operational HUD Status Bar */}
       <div className="mt-3 flex flex-col items-center gap-2">
         <div className="inline-flex items-center gap-2 rounded-full border border-line bg-raised/80 px-3 py-1 text-xs font-mono backdrop-blur-sm">
           <span
@@ -166,25 +221,29 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           />
           <span className="text-fg font-medium">Wally</span>
           <span className="text-fg-3">·</span>
-          <span className="text-fg-2">{currentSentinel.role}</span>
+          <span className="text-fg-2">{role.subsystem}</span>
         </div>
 
-        {/* Sentinel Switcher: 3 Studio Render Options */}
+        {/* Architecture Role Inspector: Click to inspect the 3 autonomous pillars */}
         <div className="flex items-center gap-1">
-          {SENTINEL_VARIANTS.map((v, idx) => (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => setSelectedIdx(idx)}
-              className={`rounded-md border px-2 py-0.5 text-[11px] font-mono transition-colors cursor-pointer ${
-                idx === selectedIdx
-                  ? 'border-line-2 bg-raised text-fg font-medium shadow-xs'
-                  : 'border-transparent text-fg-3 hover:border-line hover:text-fg-2'
-              }`}
-            >
-              {v.name}
-            </button>
-          ))}
+          {(['recon', 'guardian', 'archivist'] as SentinelRole[]).map((r) => {
+            const def = ROLES[r];
+            const isSelected = r === internalRole;
+            return (
+              <button
+                key={r}
+                type="button"
+                onClick={() => handleSelect(r)}
+                className={`rounded-md border px-2 py-0.5 text-[11px] font-mono transition-colors cursor-pointer ${
+                  isSelected
+                    ? 'border-line-2 bg-raised text-fg font-medium shadow-xs'
+                    : 'border-transparent text-fg-3 hover:border-line hover:text-fg-2'
+                }`}
+              >
+                {def.label}
+              </button>
+            );
+          })}
         </div>
       </div>
     </div>
