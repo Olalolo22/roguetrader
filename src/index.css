@@ -28,11 +28,8 @@
   font-display: swap;
 }
 
-/* RogueTrader — late-night execution desk. Graphite ramp, hairlines, one easing curve. */
-@theme {
-  --font-sans: "Aeonik", "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
-
+/* ─── COLOR TOKENS: GRAPHITE DARK (DEFAULT) + CRISP PAPER LIGHT ─── */
+:root {
   --color-deep: #0f0f10;
   --color-page: #141415;
   --color-card: #19191b;
@@ -44,6 +41,46 @@
   --color-line-2: rgb(237 237 237 / 0.14);
   --color-pos: #4cc38a;
   --color-neg: #e5484d;
+  --btn-bg: #ededed;
+  --btn-fg: #141415;
+  --btn-hover: #ffffff;
+  --selection-bg: rgb(237 237 237 / 0.2);
+}
+
+[data-theme="light"], .light {
+  --color-deep: #f0f0f3;
+  --color-page: #f6f6f8;
+  --color-card: #ffffff;
+  --color-raised: #eeeff2;
+  --color-fg: #121316;
+  --color-fg-2: #52545e;
+  --color-fg-3: #868894;
+  --color-line: rgb(0 0 0 / 0.08);
+  --color-line-2: rgb(0 0 0 / 0.14);
+  --color-pos: #13854e;
+  --color-neg: #c92a2a;
+  --btn-bg: #121316;
+  --btn-fg: #ffffff;
+  --btn-hover: #000000;
+  --selection-bg: rgb(0 0 0 / 0.12);
+}
+
+/* RogueTrader — late-night execution desk or clean clinical desk. */
+@theme {
+  --font-sans: "Aeonik", "Plus Jakarta Sans", "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+
+  --color-deep: var(--color-deep);
+  --color-page: var(--color-page);
+  --color-card: var(--color-card);
+  --color-raised: var(--color-raised);
+  --color-fg: var(--color-fg);
+  --color-fg-2: var(--color-fg-2);
+  --color-fg-3: var(--color-fg-3);
+  --color-line: var(--color-line);
+  --color-line-2: var(--color-line-2);
+  --color-pos: var(--color-pos);
+  --color-neg: var(--color-neg);
 
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
 
@@ -61,6 +98,7 @@ html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
 }
 
 body {
@@ -71,11 +109,12 @@ body {
   line-height: 20px;
   background: var(--color-page);
   overflow-x: hidden;
+  transition: background-color 200ms var(--ease-out), color 200ms var(--ease-out);
 }
 
 ::selection {
-  background: rgb(237 237 237 / 0.2);
-  color: #ededed;
+  background: var(--selection-bg);
+  color: var(--color-fg);
 }
 
 .num {
@@ -98,7 +137,7 @@ body {
   color: var(--color-fg-2);
   background: var(--color-raised);
   border: 1px solid var(--color-line);
-  box-shadow: inset 0 -1px 0 rgb(0 0 0 / 0.4), inset 0 1px 0 rgb(255 255 255 / 0.04);
+  box-shadow: 0 1px 1px rgb(0 0 0 / 0.04);
   white-space: nowrap;
 }
 .keycap > span:first-child {
@@ -111,12 +150,13 @@ body {
 }
 
 .btn-primary {
-  background: #ededed;
-  color: #141415;
-  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.6);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.2);
+  transition: background-color 150ms var(--ease-out);
 }
 .btn-primary:hover {
-  background: #ffffff;
+  background: var(--btn-hover);
 }
 
 .rise {
@@ -157,6 +197,6 @@ input:focus-visible,
 button:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid rgb(237 237 237 / 0.4);
+  outline: 2px solid var(--color-line-2);
   outline-offset: 2px;
 }

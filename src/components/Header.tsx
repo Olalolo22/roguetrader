@@ -1,5 +1,5 @@
 import type React from 'react';
-import { Settings2 } from 'lucide-react';
+import { Settings2, Sun, Moon } from 'lucide-react';
 import type { TatumMarketState } from '../types';
 
 export type DeskTab = 'check' | 'memory' | 'x402';
@@ -15,13 +15,25 @@ interface HeaderProps {
   activeTab: DeskTab;
   setActiveTab: (tab: DeskTab) => void;
   onOpenSettings: () => void;
+  theme: 'dark' | 'light';
+  onToggleTheme: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ marketState, activeTab, setActiveTab, onOpenSettings }) => {
+export const Header: React.FC<HeaderProps> = ({
+  marketState,
+  activeTab,
+  setActiveTab,
+  onOpenSettings,
+  theme,
+  onToggleTheme,
+}) => {
   return (
     <header className="sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
-        <button onClick={() => setActiveTab('check')} className="h-10 text-base font-medium tracking-tight text-fg">
+        <button
+          onClick={() => setActiveTab('check')}
+          className="h-10 text-base font-medium tracking-tight text-fg cursor-pointer"
+        >
           RogueTrader
         </button>
 
@@ -31,8 +43,8 @@ export const Header: React.FC<HeaderProps> = ({ marketState, activeTab, setActiv
               key={t.id}
               onClick={() => setActiveTab(t.id)}
               aria-current={activeTab === t.id ? 'page' : undefined}
-              className={`h-8 rounded-lg px-3 text-sm transition-colors duration-150 ease-out ${
-                activeTab === t.id ? 'active-surface text-fg' : 'text-fg-2 hover:text-fg'
+              className={`h-8 rounded-lg px-3 text-sm transition-colors duration-150 ease-out cursor-pointer ${
+                activeTab === t.id ? 'active-surface text-fg font-medium' : 'text-fg-2 hover:text-fg'
               }`}
             >
               {t.label}
@@ -40,7 +52,7 @@ export const Header: React.FC<HeaderProps> = ({ marketState, activeTab, setActiv
           ))}
         </nav>
 
-        <div className="ml-auto flex min-w-0 items-center gap-3">
+        <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
           {marketState && (
             <div className="hidden items-center gap-3 sm:flex">
               <span className="num text-meta text-fg-2">
@@ -57,10 +69,29 @@ export const Header: React.FC<HeaderProps> = ({ marketState, activeTab, setActiv
               </span>
             </div>
           )}
+
+          {/* Dark / Light Theme Toggle Button */}
           <button
+            type="button"
+            onClick={onToggleTheme}
+            aria-label={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
+            className="flex size-9 sm:size-10 items-center justify-center rounded-lg text-fg-3 transition-colors duration-150 ease-out hover:bg-raised hover:text-fg cursor-pointer"
+          >
+            {theme === 'dark' ? (
+              <Sun size={16} strokeWidth={1.5} className="text-fg-2 hover:text-fg" />
+            ) : (
+              <Moon size={16} strokeWidth={1.5} className="text-fg-2 hover:text-fg" />
+            )}
+          </button>
+
+          {/* Network Settings Modal Button */}
+          <button
+            type="button"
             onClick={onOpenSettings}
             aria-label="Network settings"
-            className="flex size-10 items-center justify-center rounded-lg text-fg-3 transition-colors duration-150 ease-out hover:bg-raised hover:text-fg"
+            title="Network settings"
+            className="flex size-9 sm:size-10 items-center justify-center rounded-lg text-fg-3 transition-colors duration-150 ease-out hover:bg-raised hover:text-fg cursor-pointer"
           >
             <Settings2 size={16} strokeWidth={1.5} />
           </button>
@@ -76,8 +107,8 @@ export const Header: React.FC<HeaderProps> = ({ marketState, activeTab, setActiv
               role="tab"
               aria-selected={activeTab === t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`h-10 rounded-md text-sm transition-colors duration-150 ease-out ${
-                activeTab === t.id ? 'active-surface text-fg' : 'text-fg-2'
+              className={`h-9 rounded-md text-sm transition-colors duration-150 ease-out cursor-pointer ${
+                activeTab === t.id ? 'active-surface text-fg font-medium' : 'text-fg-2'
               }`}
             >
               {t.label}

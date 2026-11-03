@@ -14,6 +14,33 @@ export function App() {
   const [receipts, setReceipts] = useState<X402Receipt[]>(() => x402Payment.getReceipts());
   const [marketState, setMarketState] = useState<TatumMarketState | null>(null);
 
+  // Dark / Light Theme State with LocalStorage Persistence
+  const [theme, setTheme] = useState<'dark' | 'light'>(() => {
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem('roguetrader-theme');
+      if (saved === 'light' || saved === 'dark') return saved;
+      if (window.matchMedia('(prefers-color-scheme: light)').matches) return 'light';
+    }
+    return 'dark'; // default to graphite execution desk
+  });
+
+  useEffect(() => {
+    const root = document.documentElement;
+    root.setAttribute('data-theme', theme);
+    if (theme === 'light') {
+      root.classList.add('light');
+      root.classList.remove('dark');
+    } else {
+      root.classList.add('dark');
+      root.classList.remove('light');
+    }
+    localStorage.setItem('roguetrader-theme', theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+  };
+
   // Demo payer wallet on Sui mainnet
   const [wallet, setWallet] = useState<UserWalletState>({
     address: '0x4f82a101b9ca990188efacba772109aa988112bc',
@@ -48,7 +75,14 @@ export function App() {
 
   return (
     <div className="flex min-h-screen flex-col bg-page text-fg">
-      <Header marketState={marketState} activeTab={activeTab} setActiveTab={go} onOpenSettings={() => setIsSettingsOpen(true)} />
+      <Header
+        marketState={marketState}
+        activeTab={activeTab}
+        setActiveTab={go}
+        onOpenSettings={() => setIsSettingsOpen(true)}
+        theme={theme}
+        onToggleTheme={toggleTheme}
+      />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 sm:px-6">
         {activeTab === 'check' && <CheckTrade marketState={marketState} />}

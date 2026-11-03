@@ -73,74 +73,74 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           />
 
           {/* Vignette edge-fade so borders blend softly */}
-          <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-line" />
+          <div className="pointer-events-none absolute inset-0 ring-1 ring-inset ring-white/10" />
         </div>
 
         {/* Pinned Leader-Line 1 (Top Left): Pointing toward Cyber Visor */}
         <div className="pointer-events-none absolute top-[20%] left-3 sm:left-4 z-10 flex items-center gap-1.5">
           <div className="flex flex-col items-end">
-            <span className="keycap text-[10px] sm:text-xs">
-              <span>ckpt</span> {ckpt}
+            <span className="inline-flex h-[22px] items-center gap-1.5 rounded border border-white/15 bg-white/10 px-1.5 font-mono text-[10px] sm:text-xs text-zinc-100 shadow-sm backdrop-blur-sm">
+              <span className="text-zinc-400">ckpt</span> {ckpt}
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Tatum Sui RPC</span>
+            <span className="text-[9px] font-mono text-zinc-400">Tatum Sui RPC</span>
           </div>
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+          <div className="relative h-[1px] w-5 sm:w-8 bg-white/20">
+            <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-white" />
           </div>
         </div>
 
         {/* Pinned Leader-Line 2 (Bottom Left): Pointing toward Walrus Recall Core */}
         <div className="pointer-events-none absolute bottom-[26%] left-3 sm:left-4 z-10 flex items-center gap-1.5">
           <div className="flex flex-col items-end">
-            <span className="keycap text-[10px] sm:text-xs">
-              <span>recall</span> &lt;1s
+            <span className="inline-flex h-[22px] items-center gap-1.5 rounded border border-white/15 bg-white/10 px-1.5 font-mono text-[10px] sm:text-xs text-zinc-100 shadow-sm backdrop-blur-sm">
+              <span className="text-zinc-400">recall</span> &lt;1s
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Walrus Vector</span>
+            <span className="text-[9px] font-mono text-zinc-400">Walrus Vector</span>
           </div>
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+          <div className="relative h-[1px] w-5 sm:w-8 bg-white/20">
+            <div className="absolute right-0 top-[-2px] size-1.5 rounded-full bg-white" />
           </div>
         </div>
 
         {/* Pinned Leader-Line 3 (Top Right): Pointing toward Memory Blob State */}
         <div className="pointer-events-none absolute top-[24%] right-3 sm:right-4 z-10 flex items-center gap-1.5">
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+          <div className="relative h-[1px] w-5 sm:w-8 bg-white/20">
+            <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-white" />
           </div>
           <div className="flex flex-col items-start">
-            <span className="keycap text-[10px] sm:text-xs">
-              <span>blob</span> 0x8f9a…2c
+            <span className="inline-flex h-[22px] items-center gap-1.5 rounded border border-white/15 bg-white/10 px-1.5 font-mono text-[10px] sm:text-xs text-zinc-100 shadow-sm backdrop-blur-sm">
+              <span className="text-zinc-400">blob</span> 0x8f9a…2c
             </span>
-            <span className="text-[9px] font-mono text-fg-3">Walrus Epoch</span>
+            <span className="text-[9px] font-mono text-zinc-400">Walrus Epoch</span>
           </div>
         </div>
 
         {/* Pinned Leader-Line 4 (Bottom Right): Pointing toward Brier Calibration */}
         <div className="pointer-events-none absolute bottom-[22%] right-3 sm:right-4 z-10 flex items-center gap-1.5">
-          <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
-            <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
+          <div className="relative h-[1px] w-5 sm:w-8 bg-white/20">
+            <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-white" />
           </div>
           <div className="flex flex-col items-start">
-            <span className="keycap text-[10px] sm:text-xs">
-              <span>brier</span> 0.128
+            <span className="inline-flex h-[22px] items-center gap-1.5 rounded border border-white/15 bg-white/10 px-1.5 font-mono text-[10px] sm:text-xs text-zinc-100 shadow-sm backdrop-blur-sm">
+              <span className="text-zinc-400">brier</span> 0.128
             </span>
-            <span className="text-[9px] font-mono text-pos">seeded bench</span>
+            <span className="text-[9px] font-mono text-[#4cc38a]">seeded bench</span>
           </div>
         </div>
 
         {/* Live Intercept Status Bar at Base of Render */}
-        <div className="flex items-center justify-between border-t border-line bg-page/90 px-3.5 py-2.5 backdrop-blur-sm">
+        <div className="flex items-center justify-between border-t border-white/10 bg-black/80 px-3.5 py-2.5 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <span
               className={`size-2 rounded-full transition-colors ${
-                interceptActive ? 'bg-pos animate-pulse' : 'bg-fg-3'
+                interceptActive ? 'bg-[#4cc38a] animate-pulse' : 'bg-zinc-500'
               }`}
             />
-            <span className="font-mono text-xs text-fg">
+            <span className="font-mono text-xs text-zinc-200">
               Wally · Walrus Memory Sentinel
             </span>
           </div>
-          <span className="font-mono text-[11px] text-fg-3">
+          <span className="font-mono text-[11px] text-zinc-400">
             {currentSentinel.role}
           </span>
         </div>
