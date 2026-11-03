@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Header, type DeskTab } from './components/Header';
+import { LandingPage } from './components/LandingPage';
 import { CheckTrade } from './components/CheckTrade';
 import { MemoryInspector } from './components/MemoryInspector';
 import { ReceiptsList } from './components/ReceiptsList';
@@ -9,7 +10,7 @@ import { x402Payment } from './services/x402Payment';
 import type { TatumMarketState, UserWalletState, X402Receipt } from './types';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<DeskTab>('check');
+  const [activeTab, setActiveTab] = useState<DeskTab>('overview');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [receipts, setReceipts] = useState<X402Receipt[]>(() => x402Payment.getReceipts());
   const [marketState, setMarketState] = useState<TatumMarketState | null>(null);
@@ -85,6 +86,15 @@ export function App() {
       />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 sm:px-6">
+        {activeTab === 'overview' && (
+          <LandingPage
+            marketState={marketState}
+            theme={theme}
+            onLaunchDesk={() => go('check')}
+            onInspectMemory={() => go('memory')}
+            onViewReceipts={() => go('x402')}
+          />
+        )}
         {activeTab === 'check' && <CheckTrade marketState={marketState} theme={theme} />}
         {activeTab === 'memory' && <MemoryInspector />}
         {activeTab === 'x402' && (

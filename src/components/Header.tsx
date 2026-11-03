@@ -2,9 +2,10 @@ import type React from 'react';
 import { Settings2, Sun, Moon } from 'lucide-react';
 import type { TatumMarketState } from '../types';
 
-export type DeskTab = 'check' | 'memory' | 'x402';
+export type DeskTab = 'overview' | 'check' | 'memory' | 'x402';
 
 const TABS: { id: DeskTab; label: string }[] = [
+  { id: 'overview', label: 'Overview' },
   { id: 'check', label: 'Check trade' },
   { id: 'memory', label: 'Memory' },
   { id: 'x402', label: 'x402' }
@@ -31,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
         <button
-          onClick={() => setActiveTab('check')}
+          onClick={() => setActiveTab('overview')}
           className="h-10 text-base font-medium tracking-tight text-fg cursor-pointer"
         >
           RogueTrader
