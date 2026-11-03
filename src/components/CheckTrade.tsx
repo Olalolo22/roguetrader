@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import type { TatumMarketState } from '../types';
 import { LivingGlyphMascot } from './LivingGlyphMascot';
-import { LiquidGlassCapsule } from './LiquidGlassCapsule';
 import { RuledBentoGrid } from './RuledBentoGrid';
 
 interface CheckTradeProps {
@@ -27,17 +26,12 @@ export const CheckTrade: React.FC<CheckTradeProps> = ({ marketState, theme = 'da
           </p>
         </div>
 
-        {/* Right Column: The Living Glyph Mascot paired with the Refractive Liquid Glass Memory Vault */}
-        <div className="lg:col-span-5 flex flex-col items-center gap-4 sm:gap-6">
+        {/* Right Column: The Living Glyph Mascot with Iridescent Liquid Glass Reactor Core */}
+        <div className="lg:col-span-5 flex justify-center">
           <LivingGlyphMascot
             marketState={marketState}
             interceptActive={interceptActive}
             theme={theme}
-          />
-
-          <LiquidGlassCapsule
-            marketState={marketState}
-            onBeatChange={(beat) => setInterceptActive(beat === 2 || beat === 3)}
           />
         </div>
       </section>
