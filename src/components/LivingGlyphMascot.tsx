@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { TatumMarketState } from '../types';
 
 interface LivingGlyphMascotProps {
@@ -7,56 +7,26 @@ interface LivingGlyphMascotProps {
   theme?: 'dark' | 'light';
 }
 
-interface SentinelVariant {
-  id: string;
-  name: string;
-  role: string;
-  darkSrc: string;
-  lightSrc: string;
-  alt: string;
-}
-
-const SENTINEL_VARIANTS: SentinelVariant[] = [
-  {
-    id: 'guardian',
-    name: 'Sentinel 02',
-    role: 'Active Guardian',
-    darkSrc: '/mascot/walrus-sentinel-2.png',
-    lightSrc: '/mascot/walrus-sentinel-light-1.png',
-    alt: 'Wally Sentinel Guardian — Matte graphite walrus with cyber visor and chest memory node',
-  },
-  {
-    id: 'recon',
-    name: 'Sentinel 01',
-    role: 'Perimeter Recon',
-    darkSrc: '/mascot/walrus-sentinel-1.png',
-    lightSrc: '/mascot/walrus-sentinel-light-2.png',
-    alt: 'Wally Sentinel Recon — Sleek graphite walrus with brushed titanium cyber visor',
-  },
-  {
-    id: 'archivist',
-    name: 'Sentinel 03',
-    role: 'Memory Archivist',
-    darkSrc: '/mascot/walrus-sentinel-3.png',
-    lightSrc: '/mascot/walrus-sentinel-3.png',
-    alt: 'Wally Sentinel Archivist — Holding glowing frosted memory storage cube',
-  },
-];
+const WALLY_SENTINEL = {
+  name: 'Wally',
+  title: 'Walrus Memory Sentinel',
+  subtitle: '0.05 SUI x402 Risk Gate · Sui Mainnet',
+  darkSrc: '/mascot/walrus-sentinel-2.png',
+  lightSrc: '/mascot/walrus-sentinel-light-1.png',
+  alt: 'Wally · Walrus Memory Sentinel — Active cyber visor and chest memory reactor core',
+};
 
 export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   marketState,
   interceptActive = false,
   theme = 'dark',
 }) => {
-  const [selectedIdx, setSelectedIdx] = useState<number>(0);
-  const currentSentinel = SENTINEL_VARIANTS[selectedIdx];
-
   const ckpt = marketState?.latestCheckpoint
     ? `#${marketState.latestCheckpoint.toLocaleString()}`
-    : '#89,412,950';
+    : '#100,185,039';
 
   const isLight = theme === 'light';
-  const currentSrc = isLight ? currentSentinel.lightSrc : currentSentinel.darkSrc;
+  const currentSrc = isLight ? WALLY_SENTINEL.lightSrc : WALLY_SENTINEL.darkSrc;
 
   return (
     <div className="relative mx-auto flex w-full max-w-[420px] flex-col items-center justify-center select-none pt-2 sm:pt-4">
@@ -85,9 +55,9 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
         {/* The Native Mascot Render (True Transparent PNG) */}
         <div className="relative z-10 w-full max-w-[280px] sm:max-w-[340px]">
           <img
-            key={`${currentSentinel.id}-${theme}`}
+            key={`wally-${theme}`}
             src={currentSrc}
-            alt={currentSentinel.alt}
+            alt={WALLY_SENTINEL.alt}
             className={`h-auto w-full object-contain transition-all duration-300 ${
               isLight
                 ? 'drop-shadow-[0_18px_24px_rgba(0,0,0,0.12)]'
@@ -156,36 +126,21 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
         </div>
       </div>
 
-      {/* Active Sentinel State & Identity Caption */}
-      <div className="mt-3 flex flex-col items-center gap-2">
+      {/* Option C: Single Definitive Identity Badge & Protocol Mandate */}
+      <div className="mt-3 flex flex-col items-center gap-1 text-center">
         <div className="inline-flex items-center gap-2 rounded-full border border-line bg-raised/80 px-3 py-1 text-xs font-mono backdrop-blur-sm">
           <span
             className={`size-2 rounded-full transition-colors ${
               interceptActive ? 'bg-pos animate-pulse' : 'bg-pos'
             }`}
           />
-          <span className="text-fg font-medium">Wally</span>
+          <span className="text-fg font-medium">{WALLY_SENTINEL.name}</span>
           <span className="text-fg-3">·</span>
-          <span className="text-fg-2">{currentSentinel.role}</span>
+          <span className="text-fg-2">{WALLY_SENTINEL.title}</span>
         </div>
-
-        {/* Sentinel Switcher: 3 Studio Render Options */}
-        <div className="flex items-center gap-1">
-          {SENTINEL_VARIANTS.map((v, idx) => (
-            <button
-              key={v.id}
-              type="button"
-              onClick={() => setSelectedIdx(idx)}
-              className={`rounded-md border px-2 py-0.5 text-[11px] font-mono transition-colors cursor-pointer ${
-                idx === selectedIdx
-                  ? 'border-line-2 bg-raised text-fg font-medium shadow-xs'
-                  : 'border-transparent text-fg-3 hover:border-line hover:text-fg-2'
-              }`}
-            >
-              {v.name}
-            </button>
-          ))}
-        </div>
+        <span className="text-[10px] font-mono text-fg-3 tracking-tight">
+          {WALLY_SENTINEL.subtitle}
+        </span>
       </div>
     </div>
   );
