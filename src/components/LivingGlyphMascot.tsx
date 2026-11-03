@@ -22,7 +22,6 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   theme = 'dark',
 }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [shockwaveKey, setShockwaveKey] = useState(0);
 
   const ckpt = marketState?.latestCheckpoint
     ? `#${marketState.latestCheckpoint.toLocaleString()}`
@@ -31,10 +30,9 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   const isLight = theme === 'light';
   const currentSrc = isLight ? WALLY_SENTINEL.lightSrc : WALLY_SENTINEL.darkSrc;
 
-  // Hover triggers the organic chest plate glass gleam
+  // Hover triggers leader-line illumination
   const handleMouseEnter = useCallback(() => {
     setIsHovered(true);
-    setShockwaveKey((k) => k + 1);
   }, []);
 
   const handleMouseLeave = useCallback(() => {
@@ -44,11 +42,10 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   // Touch triggers on mobile
   const handleTouchStart = useCallback(() => {
     setIsHovered(true);
-    setShockwaveKey((k) => k + 1);
   }, []);
 
   const handleTouchEnd = useCallback(() => {
-    setTimeout(() => setIsHovered(false), 1400);
+    setIsHovered(false);
   }, []);
 
   const isActive = isHovered || interceptActive;
@@ -98,53 +95,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
             loading="eager"
           />
 
-          {/* 
-            ─── ACTUAL CHEST PLATE LIQUID GLASS BLINK & CAUSTIC SHEEN ───
-            No fake square button. No artificial borders.
-            This seamless mask sits directly over Wally's actual rendered chest plate (44% to 68% height),
-            projecting an authentic liquid glass reflection sweep and blink across the titanium vest.
-          */}
-          <div
-            className="pointer-events-none absolute top-[45%] left-[54%] -translate-x-1/2 w-[32%] h-[24%] rounded-[28px] overflow-hidden"
-            aria-hidden="true"
-          >
-            {/* Specular Liquid Glass Caustic Sweep Across the Armor */}
-            <div
-              className={`absolute inset-0 -top-full -left-full size-[300%] bg-gradient-to-br from-transparent via-white/40 to-transparent transition-opacity duration-300 ${
-                isActive ? 'opacity-100 animate-caustic-sweep duration-700' : 'opacity-35 animate-caustic-sweep'
-              }`}
-            />
 
-            {/* Subtle Liquid Glass Refractive Surface Sheen */}
-            <div
-              className={`absolute inset-0 rounded-[28px] bg-gradient-to-t from-transparent via-pos/10 to-white/20 transition-opacity duration-300 ${
-                isActive ? 'opacity-100' : 'opacity-0'
-              }`}
-            />
-          </div>
-
-          {/* Natural Illumination Bloom on the 3D Buckle Indicator (No Button Box) */}
-          <div
-            className="pointer-events-none absolute top-[58.2%] left-[53.8%] -translate-x-1/2 -translate-y-1/2 size-4 flex items-center justify-center"
-            aria-hidden="true"
-          >
-            {/* Organic Indicator Light Bloom */}
-            <div
-              className={`w-1.5 h-3 rounded-full bg-pos transition-all duration-300 ${
-                isActive
-                  ? 'shadow-[0_0_12px_#4cc38a,0_0_24px_#4cc38a] scale-125 opacity-100'
-                  : 'shadow-[0_0_6px_#4cc38a] opacity-75 animate-core-breathe'
-              }`}
-            />
-
-            {/* Expanding Shockwave Ring on Hover / Touch */}
-            {shockwaveKey > 0 && (
-              <div
-                key={shockwaveKey}
-                className="absolute inset-0 size-8 -translate-x-2 -translate-y-2 rounded-full border border-pos/70 animate-glass-shockwave"
-              />
-            )}
-          </div>
         </div>
 
         {/* 
