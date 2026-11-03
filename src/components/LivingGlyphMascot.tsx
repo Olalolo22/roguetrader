@@ -58,7 +58,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
       <div className="relative flex w-full items-center justify-center">
         {/* Soft Ambient Ground Plane Contact Shadow */}
         <div
-          className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-48 sm:w-64 rounded-full bg-black/20 blur-xl dark:bg-black/70 transition-all duration-300"
+          className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-48 sm:w-64 rounded-full bg-black/15 blur-xl dark:bg-black/70 transition-all duration-300"
           aria-hidden="true"
         />
 
@@ -67,18 +67,18 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           className={`pointer-events-none absolute top-12 sm:top-16 size-48 sm:size-56 rounded-full blur-2xl transition-opacity duration-700 ${
             interceptActive
               ? 'bg-pos/25 opacity-100'
-              : 'bg-fg/5 opacity-40 dark:bg-white/5'
+              : 'opacity-0 dark:bg-white/5 dark:opacity-40'
           }`}
           aria-hidden="true"
         />
 
-        {/* The Transparent Cutout 3D Mascot */}
+        {/* The Transparent Cutout 3D Mascot with Light-Mode Tone Calibration */}
         <div className="relative z-10 w-full max-w-[320px] sm:max-w-[350px]">
           <img
             key={currentSentinel.id}
             src={currentSentinel.src}
             alt={currentSentinel.alt}
-            className="h-auto w-full object-contain drop-shadow-[0_20px_24px_rgba(0,0,0,0.18)] dark:drop-shadow-[0_25px_35px_rgba(0,0,0,0.55)] transition-all duration-300"
+            className="h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_25px_35px_rgba(0,0,0,0.55)] contrast-[1.04] brightness-[0.97] dark:contrast-100 dark:brightness-100 transition-all duration-300"
             loading="eager"
           />
         </div>
