@@ -85,7 +85,7 @@ export function App() {
       />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-24 sm:px-6">
-        {activeTab === 'check' && <CheckTrade marketState={marketState} />}
+        {activeTab === 'check' && <CheckTrade marketState={marketState} theme={theme} />}
         {activeTab === 'memory' && <MemoryInspector />}
         {activeTab === 'x402' && (
           <ReceiptsList receipts={receipts} wallet={wallet} onPaymentSuccess={handlePaymentSuccess} />

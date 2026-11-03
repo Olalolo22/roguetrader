@@ -4,13 +4,15 @@ import type { TatumMarketState } from '../types';
 interface LivingGlyphMascotProps {
   marketState: TatumMarketState | null;
   interceptActive?: boolean;
+  theme?: 'dark' | 'light';
 }
 
 interface SentinelVariant {
   id: string;
   name: string;
   role: string;
-  src: string;
+  darkSrc: string;
+  lightSrc: string;
   alt: string;
 }
 
@@ -19,21 +21,24 @@ const SENTINEL_VARIANTS: SentinelVariant[] = [
     id: 'guardian',
     name: 'Sentinel 02',
     role: 'Active Guardian',
-    src: '/mascot/walrus-sentinel-2.png',
+    darkSrc: '/mascot/walrus-sentinel-2.png',
+    lightSrc: '/mascot/walrus-sentinel-light-1-norm.jpg',
     alt: 'Wally Sentinel Guardian — Matte graphite walrus with cyber visor and chest memory node',
   },
   {
     id: 'recon',
     name: 'Sentinel 01',
     role: 'Perimeter Recon',
-    src: '/mascot/walrus-sentinel-1.png',
+    darkSrc: '/mascot/walrus-sentinel-1.png',
+    lightSrc: '/mascot/walrus-sentinel-light-2-norm.jpg',
     alt: 'Wally Sentinel Recon — Sleek graphite walrus with brushed titanium cyber visor',
   },
   {
     id: 'archivist',
     name: 'Sentinel 03',
     role: 'Memory Archivist',
-    src: '/mascot/walrus-sentinel-3.png',
+    darkSrc: '/mascot/walrus-sentinel-3.png',
+    lightSrc: '/mascot/walrus-sentinel-3.png',
     alt: 'Wally Sentinel Archivist — Holding glowing frosted memory storage cube',
   },
 ];
@@ -41,6 +46,7 @@ const SENTINEL_VARIANTS: SentinelVariant[] = [
 export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   marketState,
   interceptActive = false,
+  theme = 'dark',
 }) => {
   const [selectedIdx, setSelectedIdx] = useState<number>(0);
   const currentSentinel = SENTINEL_VARIANTS[selectedIdx];
@@ -49,18 +55,25 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
     ? `#${marketState.latestCheckpoint.toLocaleString()}`
     : '#89,412,950';
 
+  const isLight = theme === 'light';
+  const currentSrc = isLight ? currentSentinel.lightSrc : currentSentinel.darkSrc;
+
   return (
     <div className="relative mx-auto flex w-full max-w-[420px] flex-col items-center justify-center select-none pt-2 sm:pt-4">
       {/* 
-        NO Bounding Box: Wally sits directly on the page background
-        with full solid geometry (0 leaks) and physical contact ground shadows.
+        Native Lighting Integration:
+        - In Dark Mode: Seamless alpha silhouette on graphite.
+        - In Light Mode: Studio daylight render on seamless #f6f6f8 background with multiply blend.
+        Zero borders, zero scissor lines, zero bounding boxes.
       */}
       <div className="relative flex w-full items-center justify-center">
-        {/* Soft Ambient Ground Plane Contact Shadow */}
-        <div
-          className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-44 sm:w-64 rounded-full bg-black/15 blur-xl dark:bg-black/70 transition-all duration-300"
-          aria-hidden="true"
-        />
+        {/* Soft Ambient Ground Plane Contact Shadow (Dark Mode Only; Light Mode uses baked studio contact shadow) */}
+        {!isLight && (
+          <div
+            className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-44 sm:w-64 rounded-full bg-black/70 blur-xl transition-all duration-300"
+            aria-hidden="true"
+          />
+        )}
 
         {/* Visor / Memory Scan Ambient Glow (when Intercept is active) */}
         <div
@@ -72,13 +85,17 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           aria-hidden="true"
         />
 
-        {/* The Transparent Cutout 3D Mascot */}
+        {/* The Native Mascot Render */}
         <div className="relative z-10 w-full max-w-[280px] sm:max-w-[340px]">
           <img
-            key={currentSentinel.id}
-            src={currentSentinel.src}
+            key={`${currentSentinel.id}-${theme}`}
+            src={currentSrc}
             alt={currentSentinel.alt}
-            className="h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_25px_35px_rgba(0,0,0,0.55)] transition-all duration-300"
+            className={`h-auto w-full object-contain transition-all duration-300 ${
+              isLight
+                ? 'mix-blend-multiply'
+                : 'drop-shadow-[0_25px_35px_rgba(0,0,0,0.55)]'
+            }`}
             loading="eager"
           />
         </div>
@@ -155,7 +172,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           <span className="text-fg-2">{currentSentinel.role}</span>
         </div>
 
-        {/* Sentinel Switcher: 3 Studio Render Cutout Options */}
+        {/* Sentinel Switcher: 3 Studio Render Options */}
         <div className="flex items-center gap-1">
           {SENTINEL_VARIANTS.map((v, idx) => (
             <button

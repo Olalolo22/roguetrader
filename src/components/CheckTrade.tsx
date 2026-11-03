@@ -5,9 +5,10 @@ import { RuledBentoGrid } from './RuledBentoGrid';
 
 interface CheckTradeProps {
   marketState: TatumMarketState | null;
+  theme?: 'dark' | 'light';
 }
 
-export const CheckTrade: React.FC<CheckTradeProps> = ({ marketState }) => {
+export const CheckTrade: React.FC<CheckTradeProps> = ({ marketState, theme = 'dark' }) => {
   const [interceptActive, setInterceptActive] = useState(false);
 
   return (
@@ -30,6 +31,7 @@ export const CheckTrade: React.FC<CheckTradeProps> = ({ marketState }) => {
           <LivingGlyphMascot
             marketState={marketState}
             interceptActive={interceptActive}
+            theme={theme}
           />
         </div>
       </section>
