@@ -160,11 +160,11 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
           <div className="p-5 sm:p-6 lg:col-span-2">
             <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
               <div>
-                <span className="text-xs font-mono uppercase tracking-wider text-fg-3">TILE 01 // PRE-TRADE GATE</span>
+                <span className="text-xs font-mono text-fg-3">01 · Pre-trade risk gate</span>
                 <h2 className="text-lg font-medium text-fg">Propose Order &amp; Walrus Memory Intercept</h2>
               </div>
               <span className="keycap text-xs">
-                <span>mode</span> {stage ? 'RECALLING...' : 'LIVE GATE'}
+                <span>mode</span> {stage ? 'recalling…' : 'live gate'}
               </span>
             </div>
 
@@ -298,8 +298,8 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
             <div>
               <div className="flex items-center justify-between border-b border-line pb-4">
                 <div>
-                  <span className="text-xs font-mono uppercase tracking-wider text-fg-3">TILE 02 // CALIBRATION</span>
-                  <h3 className="text-base font-medium text-fg">Brier Calibration Score</h3>
+                  <span className="text-xs font-mono text-fg-3">02 · Brier calibration</span>
+                  <h3 className="text-base font-medium text-fg">Forecast calibration score</h3>
                 </div>
                 <ShieldCheck size={16} className="text-pos" />
               </div>
@@ -309,10 +309,10 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                   0.128
                 </div>
                 <div className="num mt-1 text-xs text-pos font-medium">
-                  -72.6% Error Reduction vs Baseline (0.468)
+                  vs 0.468 baseline error (seeded backtest)
                 </div>
                 <p className="mt-2 text-xs text-fg-3 max-w-[220px] mx-auto leading-relaxed">
-                  (1/N) * Σ(f - o)² across live Tatum resolution checkpoints. Lower is better.
+                  (1/N) * Σ(f - o)² across verified resolution checkpoints. Lower is better.
                 </p>
               </div>
 
@@ -352,10 +352,10 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
           <div className="p-5 sm:p-6 bg-deep">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="text-xs font-mono uppercase tracking-wider text-fg-3">TILE 03 // RPC TELEMETRY</span>
+                <span className="text-xs font-mono text-fg-3">03 · Sui node telemetry</span>
                 <h3 className="text-base font-medium text-fg">Sui Mainnet Node</h3>
               </div>
-              <Activity size={16} className="text-pos animate-pulse" />
+              <Activity size={16} className="text-pos" />
             </div>
 
             <dl className="mt-4 space-y-3 font-mono text-xs">
@@ -394,7 +394,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
           <div className="p-5 sm:p-6 lg:col-span-2">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="text-xs font-mono uppercase tracking-wider text-fg-3">TILE 04 // MACHINE PAYMENTS</span>
+                <span className="text-xs font-mono text-fg-3">04 · Machine payments</span>
                 <h3 className="text-base font-medium text-fg">HTTP 402 Risk Gate Channel</h3>
               </div>
               <span className="keycap text-xs">
