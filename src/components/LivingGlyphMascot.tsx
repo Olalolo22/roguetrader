@@ -52,13 +52,13 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   return (
     <div className="relative mx-auto flex w-full max-w-[420px] flex-col items-center justify-center select-none pt-2 sm:pt-4">
       {/* 
-        NO Bounding Box or Picture Frame:
-        Wally sits directly on the page background with physical contact ground shadows.
+        NO Bounding Box: Wally sits directly on the page background
+        with full solid geometry (0 leaks) and physical contact ground shadows.
       */}
       <div className="relative flex w-full items-center justify-center">
         {/* Soft Ambient Ground Plane Contact Shadow */}
         <div
-          className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-48 sm:w-64 rounded-full bg-black/15 blur-xl dark:bg-black/70 transition-all duration-300"
+          className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-44 sm:w-64 rounded-full bg-black/15 blur-xl dark:bg-black/70 transition-all duration-300"
           aria-hidden="true"
         />
 
@@ -72,19 +72,25 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           aria-hidden="true"
         />
 
-        {/* The Transparent Cutout 3D Mascot with Light-Mode Tone Calibration */}
-        <div className="relative z-10 w-full max-w-[320px] sm:max-w-[350px]">
+        {/* The Transparent Cutout 3D Mascot */}
+        <div className="relative z-10 w-full max-w-[280px] sm:max-w-[340px]">
           <img
             key={currentSentinel.id}
             src={currentSentinel.src}
             alt={currentSentinel.alt}
-            className="h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_25px_35px_rgba(0,0,0,0.55)] contrast-[1.04] brightness-[0.97] dark:contrast-100 dark:brightness-100 transition-all duration-300"
+            className="h-auto w-full object-contain drop-shadow-[0_18px_24px_rgba(0,0,0,0.12)] dark:drop-shadow-[0_25px_35px_rgba(0,0,0,0.55)] transition-all duration-300"
             loading="eager"
           />
         </div>
 
-        {/* Pinned 1px Hairline Leader-Line 1 (Top Left): Visor -> Tatum Checkpoint */}
-        <div className="pointer-events-none absolute top-[16%] left-0 sm:-left-4 z-20 flex items-center gap-1.5">
+        {/* 
+          Pinned 1px Hairline Leader-Lines:
+          Displayed on screens >= 640px (tablets & desktops) where there is generous horizontal clearance.
+          Hidden on narrow mobile screens (< 640px) to prevent floating dots and edge clipping.
+        */}
+
+        {/* Leader-Line 1 (Top Left): Visor -> Tatum Checkpoint */}
+        <div className="pointer-events-none absolute top-[16%] -left-2 sm:-left-6 z-20 hidden sm:flex items-center gap-1.5">
           <div className="flex flex-col items-end">
             <span className="keycap text-[10px] sm:text-xs">
               <span>ckpt</span> {ckpt}
@@ -96,8 +102,8 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           </div>
         </div>
 
-        {/* Pinned 1px Hairline Leader-Line 2 (Bottom Left): Recall Core -> Walrus Recall Latency */}
-        <div className="pointer-events-none absolute bottom-[26%] left-0 sm:-left-3 z-20 flex items-center gap-1.5">
+        {/* Leader-Line 2 (Bottom Left): Recall Core -> Walrus Recall Latency */}
+        <div className="pointer-events-none absolute bottom-[26%] -left-2 sm:-left-4 z-20 hidden sm:flex items-center gap-1.5">
           <div className="flex flex-col items-end">
             <span className="keycap text-[10px] sm:text-xs">
               <span>recall</span> &lt;1s
@@ -109,8 +115,8 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           </div>
         </div>
 
-        {/* Pinned 1px Hairline Leader-Line 3 (Top Right): Visor / Tusk -> Memory Blob Hash */}
-        <div className="pointer-events-none absolute top-[18%] right-0 sm:-right-4 z-20 flex items-center gap-1.5">
+        {/* Leader-Line 3 (Top Right): Visor / Tusk -> Memory Blob Hash */}
+        <div className="pointer-events-none absolute top-[18%] -right-2 sm:-right-6 z-20 hidden sm:flex items-center gap-1.5">
           <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
             <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
           </div>
@@ -122,8 +128,8 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           </div>
         </div>
 
-        {/* Pinned 1px Hairline Leader-Line 4 (Bottom Right): Base / Core -> Brier Calibration Delta */}
-        <div className="pointer-events-none absolute bottom-[24%] right-0 sm:-right-3 z-20 flex items-center gap-1.5">
+        {/* Leader-Line 4 (Bottom Right): Base / Core -> Brier Calibration Delta */}
+        <div className="pointer-events-none absolute bottom-[24%] -right-2 sm:-right-4 z-20 hidden sm:flex items-center gap-1.5">
           <div className="relative h-[1px] w-5 sm:w-8 bg-line-2">
             <div className="absolute left-0 top-[-2px] size-1.5 rounded-full bg-fg" />
           </div>
@@ -137,7 +143,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
       </div>
 
       {/* Active Sentinel State & Identity Caption */}
-      <div className="mt-4 flex flex-col items-center gap-2">
+      <div className="mt-3 flex flex-col items-center gap-2">
         <div className="inline-flex items-center gap-2 rounded-full border border-line bg-raised/80 px-3 py-1 text-xs font-mono backdrop-blur-sm">
           <span
             className={`size-2 rounded-full transition-colors ${
