@@ -22,7 +22,7 @@ const SENTINEL_VARIANTS: SentinelVariant[] = [
     name: 'Sentinel 02',
     role: 'Active Guardian',
     darkSrc: '/mascot/walrus-sentinel-2.png',
-    lightSrc: '/mascot/walrus-sentinel-light-1-norm.jpg',
+    lightSrc: '/mascot/walrus-sentinel-light-1.png',
     alt: 'Wally Sentinel Guardian — Matte graphite walrus with cyber visor and chest memory node',
   },
   {
@@ -30,7 +30,7 @@ const SENTINEL_VARIANTS: SentinelVariant[] = [
     name: 'Sentinel 01',
     role: 'Perimeter Recon',
     darkSrc: '/mascot/walrus-sentinel-1.png',
-    lightSrc: '/mascot/walrus-sentinel-light-2-norm.jpg',
+    lightSrc: '/mascot/walrus-sentinel-light-2.png',
     alt: 'Wally Sentinel Recon — Sleek graphite walrus with brushed titanium cyber visor',
   },
   {
@@ -61,19 +61,16 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
   return (
     <div className="relative mx-auto flex w-full max-w-[420px] flex-col items-center justify-center select-none pt-2 sm:pt-4">
       {/* 
-        Native Lighting Integration:
-        - In Dark Mode: Seamless alpha silhouette on graphite.
-        - In Light Mode: Studio daylight render on seamless #f6f6f8 background with multiply blend.
-        Zero borders, zero scissor lines, zero bounding boxes.
+        NO Bounding Box or Picture Frame:
+        Wally sits directly on the page background with physical contact ground shadows.
+        Both dark and light assets are true transparent PNGs.
       */}
       <div className="relative flex w-full items-center justify-center">
-        {/* Soft Ambient Ground Plane Contact Shadow (Dark Mode Only; Light Mode uses baked studio contact shadow) */}
-        {!isLight && (
-          <div
-            className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-44 sm:w-64 rounded-full bg-black/70 blur-xl transition-all duration-300"
-            aria-hidden="true"
-          />
-        )}
+        {/* Soft Ambient Ground Plane Contact Shadow */}
+        <div
+          className="pointer-events-none absolute bottom-4 sm:bottom-6 h-8 w-44 sm:w-64 rounded-full bg-black/15 blur-xl dark:bg-black/70 transition-all duration-300"
+          aria-hidden="true"
+        />
 
         {/* Visor / Memory Scan Ambient Glow (when Intercept is active) */}
         <div
@@ -85,7 +82,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
           aria-hidden="true"
         />
 
-        {/* The Native Mascot Render */}
+        {/* The Native Mascot Render (True Transparent PNG) */}
         <div className="relative z-10 w-full max-w-[280px] sm:max-w-[340px]">
           <img
             key={`${currentSentinel.id}-${theme}`}
@@ -93,7 +90,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
             alt={currentSentinel.alt}
             className={`h-auto w-full object-contain transition-all duration-300 ${
               isLight
-                ? 'mix-blend-multiply'
+                ? 'drop-shadow-[0_18px_24px_rgba(0,0,0,0.12)]'
                 : 'drop-shadow-[0_25px_35px_rgba(0,0,0,0.55)]'
             }`}
             loading="eager"
