@@ -90,7 +90,7 @@ export const MemoryInspector: React.FC = () => {
             type="submit"
             className="absolute top-1/2 right-1 h-9 -translate-y-1/2 rounded-md bg-raised px-3 text-sm text-fg transition-colors duration-150 ease-out hover:bg-line-2"
           >
-            {isSearching ? 'Recalling…' : 'Recall'}
+            {isSearching ? 'Searching…' : 'Search'}
           </button>
         </form>
         <div className="-mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
@@ -139,8 +139,8 @@ export const MemoryInspector: React.FC = () => {
       </ul>
 
       <form onSubmit={commit} className="rounded-2xl border border-line bg-card p-5">
-        <h2 className="text-base font-medium text-fg">Remember a setup</h2>
-        <p className="mt-1 text-sm text-fg-3">Writes through memwal.remember. Walrus writes settle in roughly 20 seconds.</p>
+        <h2 className="text-base font-medium text-fg">Save a New Lesson to Walrus</h2>
+        <p className="mt-1 text-sm text-fg-3">Permanently records a trade outcome or market trap to Walrus decentralized memory (~20s settlement).</p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
             value={text}
@@ -164,14 +164,14 @@ export const MemoryInspector: React.FC = () => {
             disabled={isCommitting || !text.trim()}
             className="btn-primary h-11 rounded-lg px-4 text-sm font-medium transition-colors duration-150 ease-out disabled:opacity-50"
           >
-            {isCommitting ? 'Writing…' : 'Remember'}
+            {isCommitting ? 'Saving…' : 'Save to Walrus'}
           </button>
         </div>
         {committed && (
           <p className="mt-3 flex flex-wrap items-center gap-2 text-sm text-fg-2">
-            Stored
+            Saved on Walrus
             <span className="keycap">
-              <span>blob</span>
+              <span>walrus</span>
               {shortHash(committed)}
             </span>
           </p>

@@ -109,7 +109,7 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
             <span>Payment</span>
             <span>Tx digest</span>
             <span className="text-right">Amount</span>
-            <span className="text-right">Checkpoint</span>
+            <span className="text-right">Sui Block</span>
             <span />
           </div>
           {receipts.length === 0 && <p className="p-5 text-sm text-fg-3">No receipts yet.</p>}

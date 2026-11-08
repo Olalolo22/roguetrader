@@ -105,13 +105,19 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
     const val = tradeText.trim();
     if (!val || stage) return;
     const trade = parseTrade(val);
-    setStage('Reading Sui checkpoint');
+    setStage('Reading live Sui block');
     onInterceptChange?.(true);
 
     try {
-      const evaluation = await agentEngine.runEvaluationCycle(trade.regimeId, (_s, step) => {
-        setStage(['Reading Sui checkpoint', 'Sizing without memory', 'Recalling from Walrus', 'Scoring'][step - 1] ?? null);
-      });
+      const evaluation = await agentEngine.runEvaluationCycle(
+        trade.regimeId,
+        (_s, step) => {
+          setStage(
+            ['Reading live Sui block', 'Checking blind trade size', 'Checking past blowups on Walrus', 'Protecting your trade size'][step - 1] ?? null
+          );
+        },
+        val
+      );
       const regime = MARKET_REGIMES.find(r => r.id === trade.regimeId)!;
       setResult({ trade, evaluation, outcomeLabel: regime.outcomeLabel });
     } finally {

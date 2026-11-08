@@ -104,8 +104,8 @@ export function App() {
 
       <footer className="border-t border-line">
         <div className="mx-auto flex max-w-6xl flex-col gap-2 px-4 py-6 text-meta text-fg-3 sm:flex-row sm:justify-between sm:px-6">
-          <span>RogueTrader · Tatum × Walrus Memory hackathon</span>
-          <span className="num break-all">relayer.memory.walrus.xyz · sui-mainnet.gateway.tatum.io</span>
+          <span>RogueTrader · Pre-Trade Risk Guard on Sui</span>
+          <span className="num break-all">Powered by Walrus Memory &amp; Tatum · HTTP 402 (x402) Ready</span>
         </div>
       </footer>
 

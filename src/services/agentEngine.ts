@@ -171,35 +171,92 @@ export const HISTORICAL_BENCHMARK_ROWS: HistoricalBrierRow[] = [
 
 class AgentEngineService {
   private activeEvaluation: EpistemicEvaluation | null = null;
+  private llmApiKey: string = import.meta.env.VITE_LLM_API_KEY || '';
+
+  private async queryGeminiGuard(
+    tradeText: string,
+    recalledMemoryText: string,
+    fallbackConfidence: number,
+    fallbackQuote: string
+  ): Promise<{ confidence: number; rationale: string }> {
+    if (!this.llmApiKey) {
+      return { confidence: fallbackConfidence, rationale: fallbackQuote };
+    }
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 3800);
+      const prompt = `You are RogueTrader, a pre-trade risk guard on Sui.
+A trader wants to execute: "${tradeText}".
+We recalled this past blowup from Walrus decentralized memory: "${recalledMemoryText}".
+Respond ONLY with valid JSON in this exact format:
+{"confidence": <integer 35 to 85>, "rationale": "<1 concise plain-English sentence under 140 chars explaining how this past Walrus memory adjusts their trade size>"}`;
+
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.llmApiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          signal: controller.signal,
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: prompt }] }],
+            generationConfig: { responseMimeType: 'application/json', temperature: 0.2 }
+          })
+        }
+      );
+      clearTimeout(timeout);
+      if (!res.ok) return { confidence: fallbackConfidence, rationale: fallbackQuote };
+      const data = await res.json();
+      const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (!rawText) return { confidence: fallbackConfidence, rationale: fallbackQuote };
+      const parsed = JSON.parse(rawText);
+      const confidence =
+        typeof parsed.confidence === 'number'
+          ? Math.max(30, Math.min(90, Math.round(parsed.confidence)))
+          : fallbackConfidence;
+      const rationale =
+        typeof parsed.rationale === 'string' && parsed.rationale.trim().length > 10
+          ? parsed.rationale.trim()
+          : fallbackQuote;
+      return { confidence, rationale };
+    } catch {
+      return { confidence: fallbackConfidence, rationale: fallbackQuote };
+    }
+  }
 
   public async runEvaluationCycle(
     regimeId: string,
-    onProgress?: (stage: string, stepNumber: number) => void
+    onProgress?: (stage: string, stepNumber: number) => void,
+    tradeText?: string
   ): Promise<EpistemicEvaluation> {
     const regime = MARKET_REGIMES.find(r => r.id === regimeId) || MARKET_REGIMES[0];
 
-    // Stage 1: Query live Tatum Sui Gateway checkpoint
-    if (onProgress) onProgress('Querying Tatum Sui Gateway for live sequence finality...', 1);
+    // Stage 1: Query live Tatum Sui Gateway block
+    if (onProgress) onProgress('Reading live Sui block via Tatum…', 1);
     const checkpoint = await tatumSui.getLatestCheckpoint();
-    await new Promise(r => setTimeout(r, 450));
+    await new Promise(r => setTimeout(r, 350));
 
-    // Stage 2: Formulate Stateless Agent prompt (zero memory)
-    if (onProgress) onProgress('Agent A (Stateless): Formulating raw zero-memory hypothesis...', 2);
-    await new Promise(r => setTimeout(r, 600));
+    // Stage 2: Formulate Blind Sizing (without memory)
+    if (onProgress) onProgress('Checking blind trade size…', 2);
+    await new Promise(r => setTimeout(r, 400));
 
-    // Stage 3: Query Walrus Memory Relayer via memwal.recall()
-    if (onProgress) onProgress('Agent B (Walrus): Executing memwal.recall() vector search on Walrus...', 3);
-    const recallResult = await walrusMemory.recall(regime.searchQuery, 1);
+    // Stage 3: Query Walrus Memory Relayer
+    if (onProgress) onProgress('Checking past blowups on Walrus…', 3);
+    const queryStr = tradeText ? `${tradeText} ${regime.searchQuery}` : regime.searchQuery;
+    const recallResult = await walrusMemory.recall(queryStr, 1);
     const recalledItem = recallResult.results[0] || walrusMemory.getAllMemories()[0];
-    await new Promise(r => setTimeout(r, 700));
 
-    // Stage 4: Bayesian Modulation and Brier Scoring
-    if (onProgress) onProgress('Computing Brier Loss Penalties: Brier = (1/N) * Σ(f_t - o_t)²...', 4);
-    await new Promise(r => setTimeout(r, 500));
+    // Stage 4: Adjust Trade Size & Risk with Gemini + Brier Calibration
+    if (onProgress) onProgress('Protecting trade size & leverage…', 4);
+    const llmEval = await this.queryGeminiGuard(
+      tradeText || regime.name,
+      recalledItem.text,
+      regime.calibratedConfidence,
+      regime.calibratedQuote
+    );
 
     // Calculate exact Brier loss: (prob - outcome)^2
     const statelessProbDec = regime.statelessConfidence / 100;
-    const walrusProbDec = regime.calibratedConfidence / 100;
+    const walrusProbDec = llmEval.confidence / 100;
     const statelessBrier = Number(Math.pow(statelessProbDec - regime.outcomeNumeric, 2).toFixed(4));
     const walrusBrier = Number(Math.pow(walrusProbDec - regime.outcomeNumeric, 2).toFixed(4));
 
@@ -216,9 +273,9 @@ class AgentEngineService {
       statelessStance: regime.statelessStance,
       statelessRationale: regime.statelessQuote,
       statelessBrierPenalty: statelessBrier,
-      walrusConfidence: regime.calibratedConfidence,
+      walrusConfidence: llmEval.confidence,
       walrusStance: regime.calibratedStance,
-      walrusRationale: regime.calibratedQuote,
+      walrusRationale: llmEval.rationale,
       walrusBrierPenalty: walrusBrier,
       recalledMemory: recalledItem,
       recallLatencyMs: recallResult.latencyMs,

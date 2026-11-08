@@ -85,6 +85,12 @@ class WalrusMemoryService {
         blobId: m.blobId
       }))
     });
+
+    const envKey = import.meta.env.VITE_MEMWAL_KEY;
+    const envAccount = import.meta.env.VITE_MEMWAL_ACCOUNT_ID;
+    if (envKey && envAccount) {
+      this.configureLive(envKey, envAccount);
+    }
   }
 
   public configureLive(key: string, accountId: string) {
