@@ -40,9 +40,9 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
   return (
     <div className="space-y-8 pt-8 sm:pt-12">
       <div>
-        <h1 className="text-3xl font-medium tracking-tight text-fg">x402</h1>
+        <h1 className="text-3xl font-medium tracking-tight text-fg">Bot API · Pay-Per-Check (x402)</h1>
         <p className="mt-2 max-w-xl text-base text-fg-2">
-          Bots call the same check over HTTP. The endpoint answers 402 until 0.05 SUI is paid, then returns the intercept.
+          Any trading bot can call RogueTrader over HTTP before placing an order. It pays 0.05 SUI per check and gets the protected trade size back.
         </p>
       </div>
 
@@ -124,8 +124,8 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
                 <span className="num truncate text-meta text-fg-2 md:order-2 md:text-sm">{mid(r.txDigest, 8, 6)}</span>
                 <span className="text-right md:order-4">
                   <span className="keycap">
-                    <span>ckpt</span>
-                    {r.tatumCheckpoint.toLocaleString('en-US')}
+                    <span>block</span>
+                    #{r.tatumCheckpoint.toLocaleString('en-US')}
                   </span>
                 </span>
                 <button

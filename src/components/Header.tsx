@@ -7,8 +7,8 @@ export type DeskTab = 'overview' | 'check' | 'memory' | 'x402';
 const TABS: { id: DeskTab; label: string }[] = [
   { id: 'overview', label: 'Overview' },
   { id: 'check', label: 'Check trade' },
-  { id: 'memory', label: 'Memory' },
-  { id: 'x402', label: 'x402' }
+  { id: 'memory', label: 'Past blowups' },
+  { id: 'x402', label: 'Bot API (x402)' }
 ];
 
 interface HeaderProps {
@@ -63,10 +63,10 @@ export const Header: React.FC<HeaderProps> = ({
                   {marketState.change24h.toFixed(2)}%
                 </span>
               </span>
-              <span className="keycap" title={marketState.isTatumRpc ? 'Tatum Sui gateway' : 'Public Sui RPC fallback'}>
+              <span className="keycap" title={marketState.isTatumRpc ? 'Live via Tatum Sui gateway' : 'Live via public Sui RPC'}>
                 <span className="live-dot" aria-hidden />
-                <span>ckpt</span>
-                {marketState.latestCheckpoint.toLocaleString('en-US')}
+                <span>block</span>
+                #{marketState.latestCheckpoint.toLocaleString('en-US')}
               </span>
             </div>
           )}
@@ -101,7 +101,7 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile: compact segmented control */}
       <div className="px-4 pb-3 md:hidden">
-        <div className="grid grid-cols-3 gap-1 rounded-lg border border-line bg-deep p-1" role="tablist">
+        <div className="grid grid-cols-4 gap-1 rounded-lg border border-line bg-deep p-1" role="tablist">
           {TABS.map(t => (
             <button
               key={t.id}

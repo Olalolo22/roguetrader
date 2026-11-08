@@ -9,11 +9,11 @@ interface LivingGlyphMascotProps {
 
 const WALLY_SENTINEL = {
   name: 'Wally',
-  title: 'Walrus Memory Sentinel',
-  subtitle: '0.05 SUI x402 Risk Gate · Sui Mainnet',
+  title: 'Pre-Trade Guard',
+  subtitle: 'Checks your trade against past blowups before you size',
   darkSrc: '/mascot/walrus-sentinel-2.png',
   lightSrc: '/mascot/walrus-sentinel-light-1.png',
-  alt: 'Wally · Walrus Memory Sentinel — Active cyber visor and chest memory reactor core',
+  alt: 'Wally · Pre-Trade Guard on Sui',
 };
 
 export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({

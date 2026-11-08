@@ -68,12 +68,12 @@ export const MemoryInspector: React.FC = () => {
   return (
     <div className="space-y-8 pt-8 sm:pt-12">
       <div>
-        <h1 className="text-3xl font-medium tracking-tight text-fg">Memory</h1>
+        <h1 className="text-3xl font-medium tracking-tight text-fg">Past Blowups &amp; Setups</h1>
         <p className="mt-2 max-w-xl text-base text-fg-2">
-          Every setup the desk remembers. Recall searches this vault before a trade is sized.
+          Every past trap and market lesson stored on Walrus. RogueTrader searches this vault before sizing your trade.
         </p>
         <p className="num mt-2 text-meta text-fg-3">
-          {live ? 'Live MemWal relayer' : 'Local index · seeded from backtest'} · {memories.length} entries
+          {live ? 'Live on Walrus Mainnet' : 'Seeded from historical Sui backtest'} · {memories.length} past setups
         </p>
       </div>
 
@@ -121,17 +121,17 @@ export const MemoryInspector: React.FC = () => {
             <p className="text-sm text-fg-2">{m.text}</p>
             <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
               <span className="keycap">
-                <span>blob</span>
+                <span>walrus</span>
                 {shortHash(m.blobId)}
               </span>
               {m.tatumCheckpoint && (
                 <span className="keycap">
-                  <span>ckpt</span>
-                  {m.tatumCheckpoint.toLocaleString('en-US')}
+                  <span>block</span>
+                  #{m.tatumCheckpoint.toLocaleString('en-US')}
                 </span>
               )}
               <span className={`num text-meta ${m.weightImpact.startsWith('-') ? 'text-neg' : 'text-pos'}`}>
-                {m.weightImpact.replace(' Confidence', ' conf.')}
+                {m.weightImpact.replace(' Confidence', ' confidence')}
               </span>
             </div>
           </li>

@@ -160,11 +160,11 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
           <div className="p-5 sm:p-6 lg:col-span-2">
             <div className="flex items-center justify-between gap-3 border-b border-line pb-4">
               <div>
-                <span className="text-xs font-mono text-fg-3">01 · Pre-trade risk gate</span>
-                <h2 className="text-lg font-medium text-fg">Propose Order &amp; Walrus Memory Intercept</h2>
+                <span className="text-xs font-mono text-fg-3">01 · Pre-trade check</span>
+                <h2 className="text-lg font-medium text-fg">Check Your Trade Against Past Blowups</h2>
               </div>
               <span className="keycap text-xs">
-                <span>mode</span> {stage ? 'recalling…' : 'live gate'}
+                <span>status</span> {stage ? 'checking…' : 'ready'}
               </span>
             </div>
 
@@ -214,38 +214,38 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               <div className="rounded-xl border border-line bg-deep p-4">
                 <div className="flex items-center justify-between text-xs text-fg-3">
                   <span>Without memory</span>
-                  <span className="num text-neg">Uncalibrated</span>
+                  <span className="num text-neg">Blind sizing</span>
                 </div>
                 <div className="num mt-2 text-base font-medium text-fg">
                   {result ? `${result.trade.side} ${result.trade.asset}, ${result.trade.leverage}x` : 'Long SUI, 3x'}
                 </div>
                 <div className="mt-3 space-y-1.5 font-mono text-xs">
                   <div className="flex justify-between text-fg-2">
-                    <span>Forecast Confidence:</span>
+                    <span>Confidence:</span>
                     <span className="num text-fg">{beforeConf}%</span>
                   </div>
                   <div className="flex justify-between text-fg-2">
-                    <span>Liquidation Distance:</span>
+                    <span>Wipeout drop:</span>
                     <span className="num text-fg">{liq(tradeLev)}</span>
                   </div>
                 </div>
                 <p className="mt-3 border-t border-line pt-2 text-[11px] text-fg-3">
-                  Sizes blindly on current tick. No recall of prior liquidations.
+                  Sizes on today's chart alone. Ignores what happened last time.
                 </p>
               </div>
 
               {/* With Walrus Memory (Intercept Card) */}
               <div className="rounded-xl border border-line-2 bg-raised p-4">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-fg-3">With Walrus memory</span>
-                  <span className="num text-pos font-medium">Intercepted</span>
+                  <span className="text-fg-3">With RogueTrader memory</span>
+                  <span className="num text-pos font-medium">Protected</span>
                 </div>
                 <div className="num mt-2 text-base font-medium text-fg">
                   {result ? `${result.trade.side} ${result.trade.asset}, ${afterLev}x` : 'Long SUI, 2x'}
                 </div>
                 <div className="mt-3 space-y-1.5 font-mono text-xs">
                   <div className="flex justify-between text-fg-2">
-                    <span>Forecast Confidence:</span>
+                    <span>Confidence:</span>
                     <span className="num flex items-center gap-1.5">
                       <span className="line-through text-fg-3">{beforeConf}%</span>
                       <ArrowRight size={10} className="text-fg-3" />
@@ -254,7 +254,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                     </span>
                   </div>
                   <div className="flex justify-between text-fg-2">
-                    <span>Liquidation Distance:</span>
+                    <span>Wipeout drop:</span>
                     <span className="num flex items-center gap-1.5">
                       <span className="line-through text-fg-3">{liq(tradeLev)}</span>
                       <ArrowRight size={10} className="text-fg-3" />
@@ -263,7 +263,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                   </div>
                 </div>
                 <p className="mt-3 border-t border-line pt-2 text-[11px] text-fg-3">
-                  Walrus memory modulated size &amp; tightened risk boundaries.
+                  Found a matching past blowup on Walrus and cut leverage automatically.
                 </p>
               </div>
             </div>
@@ -273,21 +273,24 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               <div className="mt-3 rounded-lg border border-line bg-deep p-3 font-mono">
                 <div className="flex items-start gap-2">
                   <CornerDownRight size={14} className="mt-0.5 shrink-0 text-fg-3" />
-                  <p className="text-xs text-fg-2 leading-relaxed">{m.text}</p>
+                  <p className="text-xs text-fg-2 leading-relaxed">
+                    <span className="text-fg font-medium">Why we cut your size: </span>
+                    {m.text}
+                  </p>
                 </div>
                 <div className="mt-2.5 flex flex-wrap items-center gap-2 pl-5 text-[11px]">
                   <span className="keycap">
-                    <span>blob</span> {shortHash(m.blobId)}
+                    <span>walrus</span> {shortHash(m.blobId)}
                   </span>
                   {m.tatumCheckpoint && (
                     <span className="keycap">
-                      <span>ckpt</span> {m.tatumCheckpoint.toLocaleString('en-US')}
+                      <span>block</span> #{m.tatumCheckpoint.toLocaleString('en-US')}
                     </span>
                   )}
                   <span className="text-fg-3">
-                    {Math.round(m.similarityScore * 100)}% match · {result?.evaluation.recallLatencyMs}ms
+                    {Math.round(m.similarityScore * 100)}% match · checked in {result?.evaluation.recallLatencyMs}ms
                   </span>
-                  {isSeeded(m) && <span className="text-fg-3">· seeded from backtest</span>}
+                  {isSeeded(m) && <span className="text-fg-3">· from historical backtest</span>}
                 </div>
               </div>
             )}
@@ -298,21 +301,21 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
             <div>
               <div className="flex items-center justify-between border-b border-line pb-4">
                 <div>
-                  <span className="text-xs font-mono text-fg-3">02 · Brier calibration</span>
-                  <h3 className="text-base font-medium text-fg">Forecast calibration score</h3>
+                  <span className="text-xs font-mono text-fg-3">02 · Track record</span>
+                  <h3 className="text-base font-medium text-fg">Overconfidence cut by 74%</h3>
                 </div>
                 <ShieldCheck size={16} className="text-pos" />
               </div>
 
               <div className="mt-6 text-center">
                 <div className="text-4xl font-mono font-medium tracking-tight text-fg">
-                  0.128
+                  74% less error
                 </div>
                 <div className="num mt-1 text-xs text-pos font-medium">
-                  vs 0.468 baseline error (seeded backtest)
+                  0.128 vs 0.468 Brier error (historical backtest)
                 </div>
-                <p className="mt-2 text-xs text-fg-3 max-w-[220px] mx-auto leading-relaxed">
-                  (1/N) * Σ(f - o)² across verified resolution checkpoints. Lower is better.
+                <p className="mt-2 text-xs text-fg-3 max-w-[240px] mx-auto leading-relaxed">
+                  Measures how often high-confidence calls actually win instead of getting stopped out. Lower error is better.
                 </p>
               </div>
 
@@ -320,8 +323,8 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               <div className="mt-6 space-y-3 font-mono text-xs">
                 <div>
                   <div className="flex justify-between text-fg-3 mb-1">
-                    <span>Stateless LLM Error</span>
-                    <span className="text-neg">0.468</span>
+                    <span>Without memory (blind)</span>
+                    <span className="text-neg">0.468 error</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-raised overflow-hidden">
                     <div className="h-full bg-neg rounded-full" style={{ width: '46.8%' }} />
@@ -330,8 +333,8 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
 
                 <div>
                   <div className="flex justify-between text-fg-3 mb-1">
-                    <span>Walrus Calibrated Error</span>
-                    <span className="text-pos">0.128</span>
+                    <span>With Walrus memory</span>
+                    <span className="text-pos">0.128 error</span>
                   </div>
                   <div className="h-1.5 w-full rounded-full bg-raised overflow-hidden">
                     <div className="h-full bg-pos rounded-full" style={{ width: '12.8%' }} />
@@ -341,7 +344,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
             </div>
 
             <div className="mt-6 rounded-lg border border-line bg-raised p-3 text-[11px] font-mono text-fg-3">
-              <span>Boundary: Directional swing (~900ms recall). Storage writes (~20s) occur post-settlement.</span>
+              <span>Built for swing trades (checks in &lt;1s before you order; saves new outcomes to Walrus after settlement).</span>
             </div>
           </div>
         </div>
@@ -352,19 +355,19 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
           <div className="p-5 sm:p-6 bg-deep">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="text-xs font-mono text-fg-3">03 · Sui node telemetry</span>
-                <h3 className="text-base font-medium text-fg">Sui Mainnet Node</h3>
+                <span className="text-xs font-mono text-fg-3">03 · Live market feed</span>
+                <h3 className="text-base font-medium text-fg">Sui Mainnet (via Tatum)</h3>
               </div>
               <Activity size={16} className="text-pos" />
             </div>
 
             <dl className="mt-4 space-y-3 font-mono text-xs">
               <div className="flex justify-between border-b border-line/60 pb-2">
-                <dt className="text-fg-3">Gateway</dt>
+                <dt className="text-fg-3">Tatum Gateway</dt>
                 <dd className="text-fg">sui-mainnet.gateway.tatum.io</dd>
               </div>
               <div className="flex justify-between border-b border-line/60 pb-2">
-                <dt className="text-fg-3">Live Checkpoint</dt>
+                <dt className="text-fg-3">Current Sui Block</dt>
                 <dd className="num text-fg">
                   #{marketState?.latestCheckpoint.toLocaleString() || '89,412,950'}
                 </dd>
@@ -394,18 +397,18 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
           <div className="p-5 sm:p-6 lg:col-span-2">
             <div className="flex items-center justify-between border-b border-line pb-4">
               <div>
-                <span className="text-xs font-mono text-fg-3">04 · Machine payments</span>
-                <h3 className="text-base font-medium text-fg">HTTP 402 Risk Gate Channel</h3>
+                <span className="text-xs font-mono text-fg-3">04 · Bot API (x402)</span>
+                <h3 className="text-base font-medium text-fg">Let Your Trading Bot Call This Guard</h3>
               </div>
               <span className="keycap text-xs">
-                <span>rate</span> 0.05 SUI / query
+                <span>cost</span> 0.05 SUI / check
               </span>
             </div>
 
             <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">
               <div>
                 <p className="text-xs text-fg-2 leading-relaxed">
-                  Autonomous trading bots query this pre-trade risk gate programmatically. The API server returns standard HTTP 402 until the 0.05 SUI micropayment digest is verified via Tatum RPC.
+                  Any trading bot can call this check over HTTP before signing an order. It pays 0.05 SUI per check via HTTP 402—no API keys or monthly subscriptions needed.
                 </p>
                 <div className="mt-3 flex items-center gap-2">
                   <button
@@ -414,11 +417,11 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                     disabled={isSettling}
                     className="btn-primary h-9 rounded-md px-3 text-xs font-medium cursor-pointer transition-colors"
                   >
-                    {isSettling ? 'Broadcasting…' : 'Simulate 0.05 SUI Settlement'}
+                    {isSettling ? 'Sending…' : 'Test 0.05 SUI Bot Payment'}
                   </button>
                   {settledTx && (
                     <span className="num text-xs text-pos font-mono">
-                      ✓ Digest verified
+                      ✓ Payment receipt verified
                     </span>
                   )}
                 </div>
