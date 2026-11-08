@@ -1,8 +1,8 @@
 import type { TatumMarketState } from '../types';
 
 class TatumSuiService {
-  // TODO(security): Use BFF with HttpOnly cookies for production key persistence instead of client-side Web Storage
-  private tatumApiKey: string = '';
+  // Read Tatum API Key from env if present, with fallback to public Sui RPC
+  private tatumApiKey: string = (import.meta.env.VITE_TATUM_API_KEY as string | undefined)?.trim() || '';
   private gatewayUrl = 'https://sui-mainnet.gateway.tatum.io';
   private publicFallbackUrl = 'https://fullnode.mainnet.sui.io:443';
 

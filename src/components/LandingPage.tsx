@@ -185,54 +185,6 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                 theme={theme}
               />
 
-              {/* 
-                ─── WABI LIQUID GLASS SATELLITE CARD 01 (Top-Right) ───
-                Framed with true optical backdrop blur, delicate specular border, and tabular metadata
-              */}
-              <div className="pointer-events-none absolute -top-4 -right-2 sm:-right-8 z-30 w-52 sm:w-60 rounded-2xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] p-3 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12),inset_1px_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_1px_1px_1px_rgba(255,255,255,0.1)] transition-all duration-300">
-                <div className="flex items-center justify-between border-b border-line/60 pb-1.5 text-[10px]">
-                  <span className="font-medium text-pos flex items-center gap-1">
-                    <span className="size-1.5 rounded-full bg-pos animate-pulse" />
-                    WALRUS RECALL
-                  </span>
-                  <span className="num text-fg-3">12.4ms</span>
-                </div>
-                <div className="pt-2 space-y-1 text-xs">
-                  <div className="font-medium text-fg truncate">2024-11 Liquidation Trap</div>
-                  <div className="flex items-center justify-between text-[11px] text-fg-2">
-                    <span>Similarity</span>
-                    <span className="num font-semibold text-pos">96.4% match</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px] text-fg-3">
-                    <span>Blob ID</span>
-                    <span className="num text-fg-2">0x8f9a..2c</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* 
-                ─── WABI LIQUID GLASS SATELLITE CARD 02 (Bottom-Left) ───
-                x402 Micropayment Guard Chip
-              */}
-              <div className="pointer-events-none absolute -bottom-6 -left-2 sm:-left-6 z-30 w-48 sm:w-56 rounded-2xl border border-white/30 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] p-3 backdrop-blur-2xl shadow-[0_8px_32px_rgba(0,0,0,0.12),inset_1px_1px_1px_rgba(255,255,255,0.6)] dark:shadow-[0_12px_40px_rgba(0,0,0,0.6),inset_1px_1px_1px_rgba(255,255,255,0.1)] transition-all duration-300">
-                <div className="flex items-center justify-between border-b border-line/60 pb-1.5 text-[10px]">
-                  <span className="font-medium text-fg-2 flex items-center gap-1">
-                    <Zap className="size-3 text-pos" />
-                    x402 MICROPAY
-                  </span>
-                  <span className="num text-pos">SETTLED</span>
-                </div>
-                <div className="pt-2 space-y-1 text-xs">
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-fg-3">Protocol Fee</span>
-                    <span className="num font-medium text-fg">0.002 SUI</span>
-                  </div>
-                  <div className="flex items-center justify-between text-[11px]">
-                    <span className="text-fg-3">Network</span>
-                    <span className="text-fg-2">Sui Mainnet</span>
-                  </div>
-                </div>
-              </div>
             </div>
           </div>
         </div>

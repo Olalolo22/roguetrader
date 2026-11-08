@@ -112,9 +112,9 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
                 isActive ? 'border-pos text-pos shadow-[0_0_8px_rgba(76,195,138,0.3)]' : ''
               }`}
             >
-              <span>ckpt</span> {ckpt}
+              <span className="live-dot" aria-hidden /> Live on Sui
             </span>
-            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">Tatum Sui RPC</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">block {ckpt}</span>
           </div>
           <div className="relative h-[1px] w-3 sm:w-8 bg-line-2">
             <div
@@ -133,9 +133,9 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
                 isActive ? 'border-pos text-pos shadow-[0_0_8px_rgba(76,195,138,0.3)]' : ''
               }`}
             >
-              <span>recall</span> &lt;1s
+              Checks in &lt;1s
             </span>
-            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">Walrus Vector</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">before you trade</span>
           </div>
           <div className="relative h-[1px] w-3 sm:w-8 bg-line-2">
             <div
@@ -161,9 +161,9 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
                 isActive ? 'border-pos text-pos shadow-[0_0_8px_rgba(76,195,138,0.3)]' : ''
               }`}
             >
-              <span>blob</span> 0x8f9a…2c
+              6 past blowups
             </span>
-            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">Walrus Epoch</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">remembered</span>
           </div>
         </div>
 
@@ -182,9 +182,9 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
                 isActive ? 'border-pos text-pos shadow-[0_0_8px_rgba(76,195,138,0.3)]' : ''
               }`}
             >
-              <span>brier</span> 0.128
+              74% less overconfident
             </span>
-            <span className="text-[8px] sm:text-[9px] font-mono text-pos">seeded bench</span>
+            <span className="text-[8px] sm:text-[9px] font-mono text-pos">vs. no memory · backtest</span>
           </div>
         </div>
       </div>
@@ -204,11 +204,11 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
             }`}
           />
           <span className="font-medium">
-            {isActive ? 'Telemetry Active' : WALLY_SENTINEL.name}
+            {isActive ? 'Watching' : WALLY_SENTINEL.name}
           </span>
           <span className="text-fg-3">·</span>
           <span className={isActive ? 'text-pos' : 'text-fg-2'}>
-            {isActive ? 'Walrus Calibrated' : WALLY_SENTINEL.title}
+            {isActive ? 'Memory on' : WALLY_SENTINEL.title}
           </span>
         </div>
         <span className="text-[10px] font-mono text-fg-3 tracking-tight">
