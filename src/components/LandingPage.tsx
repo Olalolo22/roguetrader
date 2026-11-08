@@ -109,13 +109,13 @@ export const LandingPage: React.FC<LandingPageProps> = ({
           {/* Left Column: The 20-Second Human Payoff */}
           <div className="lg:col-span-7 space-y-6">
             {/* Simple Live Status Pill */}
-            <div className="inline-flex items-center gap-2.5 rounded-full border border-white/20 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-xl shadow-[0_4px_16px_rgba(0,0,0,0.06)] text-xs">
+            <div className="inline-flex flex-wrap items-center gap-x-2.5 gap-y-1 rounded-full border border-white/20 dark:border-white/10 bg-white/60 dark:bg-white/[0.04] px-3.5 py-1.5 backdrop-blur-xl shadow-[0_4px_16px_rgba(0,0,0,0.06)] text-xs max-w-full">
               <span className="live-dot" />
               <span className="font-medium text-fg">Live on Sui</span>
               <span className="text-fg-3">·</span>
               <span className="text-fg-2">6 past blowups remembered</span>
-              <span className="text-fg-3">·</span>
-              <span className="num text-pos">
+              <span className="hidden sm:inline text-fg-3">·</span>
+              <span className="hidden sm:inline num text-pos">
                 block #{marketState?.latestCheckpoint.toLocaleString() ?? '100,186,772'}
               </span>
             </div>
@@ -215,10 +215,10 @@ export const LandingPage: React.FC<LandingPageProps> = ({
                   : 'border-line bg-card/50 hover:bg-card hover:border-line-2'
               }`}
             >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-[11px] text-fg-3">{beat.tag}</span>
+              <div className="flex items-center justify-between gap-1">
+                <span className="font-mono text-[10px] sm:text-[11px] text-fg-3 truncate">{beat.tag}</span>
                 {pipelineStep === beat.step && (
-                  <span className="size-2 rounded-full bg-pos animate-pulse" />
+                  <span className="size-2 shrink-0 rounded-full bg-pos animate-pulse" />
                 )}
               </div>
               <div className="font-medium text-sm text-fg mt-1.5 truncate">{beat.title}</div>

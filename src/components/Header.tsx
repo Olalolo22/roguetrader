@@ -4,11 +4,11 @@ import type { TatumMarketState } from '../types';
 
 export type DeskTab = 'overview' | 'check' | 'memory' | 'x402';
 
-const TABS: { id: DeskTab; label: string }[] = [
-  { id: 'overview', label: 'Overview' },
-  { id: 'check', label: 'Check trade' },
-  { id: 'memory', label: 'Past blowups' },
-  { id: 'x402', label: 'Bot API (x402)' }
+const TABS: { id: DeskTab; label: string; mobileLabel: string }[] = [
+  { id: 'overview', label: 'Overview', mobileLabel: 'Overview' },
+  { id: 'check', label: 'Check trade', mobileLabel: 'Check trade' },
+  { id: 'memory', label: 'Past blowups', mobileLabel: 'Past blowups' },
+  { id: 'x402', label: 'Bot API (x402)', mobileLabel: 'Bot API' }
 ];
 
 interface HeaderProps {
@@ -108,11 +108,12 @@ export const Header: React.FC<HeaderProps> = ({
               role="tab"
               aria-selected={activeTab === t.id}
               onClick={() => setActiveTab(t.id)}
-              className={`h-9 rounded-md text-sm transition-colors duration-150 ease-out cursor-pointer ${
+              className={`h-9 rounded-md px-1 text-xs sm:text-sm truncate transition-colors duration-150 ease-out cursor-pointer ${
                 activeTab === t.id ? 'active-surface text-fg font-medium' : 'text-fg-2'
               }`}
             >
-              {t.label}
+              <span className="sm:hidden">{t.mobileLabel}</span>
+              <span className="hidden sm:inline">{t.label}</span>
             </button>
           ))}
         </div>
