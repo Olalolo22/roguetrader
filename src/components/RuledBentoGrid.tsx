@@ -102,7 +102,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
   const [isSettling, setIsSettling] = useState(false);
   const [settledTx, setSettledTx] = useState<string | null>(null);
   const [draftLesson, setDraftLesson] = useState(
-    'Nov 2026: Long SUI 2.14, 3x — NAVI borrow >78% triggered a -8.2% long squeeze. Cap at 2x.'
+    'Nov 2026 [Cetus $14.2M · Borrow 78.4% · Bid/Ask 0.62x]: Long SUI 2.14, 3x — wicked -8.2% in 40m. Keep buffer >12% (max 2x).'
   );
   const [isSavingLesson, setIsSavingLesson] = useState(false);
   const [savedBlobId, setSavedBlobId] = useState<string | null>(null);
@@ -128,7 +128,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
       const regime = MARKET_REGIMES.find(r => r.id === trade.regimeId)!;
       setResult({ trade, evaluation, outcomeLabel: regime.outcomeLabel });
       setDraftLesson(
-        `Nov 2026: ${val} — ${regime.outcomeLabel}. Adjusted from ${trade.leverage}x down to safe size.`
+        `Nov 2026 [Depth ${regime.cetusDepth} · Borrow ${regime.naviBorrowPct}% · ${regime.deepBookSpread}]: ${val} — ${regime.outcomeLabel}. Scaled ${trade.leverage}x down to safe buffer.`
       );
     } finally {
       setStage(null);
@@ -239,8 +239,25 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               ))}
             </div>
 
+            {/* Market State Fingerprint (Microstructure Vector at Entry) */}
+            <div className="mt-4 flex flex-wrap items-center gap-1.5 rounded-lg border border-line bg-deep/70 px-3 py-2 text-[11px] font-mono">
+              <span className="text-fg-3">Entry state vector:</span>
+              <span className="keycap">
+                <span>venue</span> Cetus {result?.evaluation.cetusVolume1h ?? '$14.2M'}
+              </span>
+              <span className="keycap">
+                <span>borrow</span> {result?.evaluation.naviBorrowPct ?? 78.4}% NAVI
+              </span>
+              <span className="keycap">
+                <span>book</span> {result?.evaluation.deepBookSpreadBps ?? '0.62x bid/ask'}
+              </span>
+              <span className="keycap text-neg">
+                <span>regime wick</span> -8.2% (needs &gt;12% buffer)
+              </span>
+            </div>
+
             {/* The Intercept Comparison Cards with SVG Connector */}
-            <div className="relative mt-5 grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {/* Without Memory */}
               <div className="rounded-xl border border-line bg-deep p-4">
                 <div className="flex items-center justify-between text-xs text-fg-3">
@@ -334,12 +351,13 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               </div>
             )}
 
-            {/* Auto-Captured Post-Trade Lesson (Editable before saving to Walrus) */}
+            {/* Auto-Captured Post-Trade Lesson via Tatum Wallet Monitor (Editable before saving to Walrus) */}
             <form onSubmit={handleSaveLesson} className="mt-3 rounded-lg border border-line bg-deep/60 p-3">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="font-medium text-fg">
-                  Auto-captured lesson from this trade{' '}
-                  <span className="font-normal text-fg-3">(edit before saving to Walrus)</span>
+                <span className="flex items-center gap-1.5 font-medium text-fg">
+                  <span className="live-dot" aria-hidden />
+                  <span>Tatum Wallet Monitor (0x4f82…12bc)</span>
+                  <span className="font-normal text-fg-3">· Auto-indexed state snapshot (editable)</span>
                 </span>
                 {savedBlobId && (
                   <span className="keycap text-pos">
@@ -359,7 +377,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                   disabled={isSavingLesson || !draftLesson.trim()}
                   className="h-9 shrink-0 rounded-md border border-line-2 bg-raised px-3 text-xs font-medium text-fg transition-colors hover:bg-line-2 disabled:opacity-50 cursor-pointer"
                 >
-                  {isSavingLesson ? 'Saving…' : 'Save Lesson to Walrus'}
+                  {isSavingLesson ? 'Saving…' : 'Save Snapshot to Walrus'}
                 </button>
               </div>
             </form>

@@ -49,10 +49,23 @@ You Enter: "Long SUI 2.14, 3x"
   - **Post-Trade Lesson (`memwal.remember` ~20 s):** Erasure-coding and committing blobs to Walrus takes 15–25 seconds, so RogueTrader only writes new trade lessons asynchronously *after* a position closes—never blocking trade execution.
 
 ### 2. Tatum Sui Mainnet Gateway (`sui-mainnet.gateway.tatum.io`)
-- **Live On-Chain Context:** Pulls real-time Sui Mainnet block height (`sui_getLatestCheckpointSequenceNumber`), live SUI reference price, and transaction finality through Tatum's RPC gateway.
+- **Live On-Chain Context & Auto-Indexed Wallet History:** Pulls real-time Sui Mainnet block height (`sui_getLatestCheckpointSequenceNumber`), live SUI reference price, and settled wallet transactions through Tatum's RPC gateway so post-trade outcomes are captured automatically (with optional trader annotation before committing to Walrus).
 - **Payment Verification:** Verifies Sui transaction digests when external trading bots pay for pre-trade checks.
 
-### 3. 74% Less Overconfident: Brier Score Calibration
+### 3. What We Recall & Compare: The 5-Variable Market State Vector (Not "Diary Text")
+Price levels (`$2.14`) and ticker names (`SUI`) do not cause liquidations—**sizing into the wrong market microstructure** does. Instead of naive text matching, RogueTrader evaluates the **5-variable entry state vector (`State_t`)**:
+
+```text
+1. Size-to-Depth Ratio:         Order_Size / Active_Tick_Liquidity (Cetus / DeepBook pool depth)
+2. Crowding & Borrow Skew:      NAVI / Scallop Borrow_Utilization (e.g. >75% crowded longs)
+3. Orderbook Imbalance:         DeepBook_Bid_Depth / Ask_Depth (spot support vs. thin air)
+4. Volatility vs. Wipeout:      (1 / Leverage) vs. 1h_Realized_Volatility (wick liquidation risk)
+5. Venue / Oracle Lag:          abs(AMM_Spot_Price - Pyth_Reference_Price) at epoch boundaries
+```
+
+When a proposed trade matches a high-wick microstructure fingerprint stored on Walrus, RogueTrader scales down leverage so your **Wipeout Buffer (`100% / Leverage`)** stays wider than the historical regime's **Max Adverse Wick** (plus a safety margin).
+
+### 4. 74% Less Overconfident: Brier Score Calibration
 To prove that Walrus memory actually improves decision quality (rather than just lowering leverage arbitrarily), every forecast is scored against real on-chain outcomes using the **Brier Score**:
 
 ```text
@@ -65,7 +78,7 @@ Where:
 - `N` is the total number of evaluated setups.
 - **Result:** Across our historical Sui DEX backtest, checking Walrus memory before sizing cut Brier calibration error from **`0.468` (blind)** down to **`0.128` (with Walrus memory)**—a **74% reduction in overconfidence**.
 
-### 4. Bot API: HTTP 402 (`x402`) Pay-Per-Check on Sui
+### 5. Bot API: HTTP 402 (`x402`) Pay-Per-Check on Sui
 Other trading agents don't need to build their own risk memory. They can query RogueTrader's guard via standard HTTP 402 micropayments:
 
 ```bash

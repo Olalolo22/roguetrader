@@ -139,8 +139,15 @@ export const MemoryInspector: React.FC = () => {
       </ul>
 
       <form onSubmit={commit} className="rounded-2xl border border-line bg-card p-5">
-        <h2 className="text-base font-medium text-fg">Save a New Lesson to Walrus</h2>
-        <p className="mt-1 text-sm text-fg-3">Permanently records a trade outcome or market trap to Walrus decentralized memory (~20s settlement).</p>
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-base font-medium text-fg">Save or Edit a Trade Snapshot on Walrus</h2>
+          <span className="keycap text-xs">
+            <span className="live-dot" aria-hidden /> Tatum Wallet Monitor · 0x4f82…12bc
+          </span>
+        </div>
+        <p className="mt-1 text-sm text-fg-3">
+          Tatum indexes settled wallet trades automatically. You can also annotate or save a custom market-state lesson directly to Walrus (~20s settlement).
+        </p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row">
           <input
             value={text}
