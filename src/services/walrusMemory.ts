@@ -152,43 +152,47 @@ class WalrusMemoryService {
       }
     }
 
-    // 2. SDK Mock vector recall
+    // 2. SDK Mock vector recall + semantic ticker & setup scoring across all stored memories
     try {
-      const mockRes = await this.mockClient.recall({ query, limit });
-      const latencyMs = Math.round(performance.now() - startTime);
-      if (mockRes && mockRes.results && mockRes.results.length > 0) {
-        const items = mockRes.results.map((r: any, idx: number) => {
-          const matchedSeed = this.memories.find(m => m.text.includes(r.memory?.slice(0, 30)));
-          return {
-            id: `sdk-${idx}`,
-            blobId: matchedSeed?.blobId || '0x' + Math.random().toString(16).slice(2, 12),
-            text: r.memory || r.text || '',
-            category: matchedSeed?.category || 'FAILURE_CASE',
-            timestamp: matchedSeed?.timestamp || new Date().toISOString(),
-            similarityScore: r.similarity || 0.88,
-            weightImpact: matchedSeed?.weightImpact || '-25% Confidence',
-            tatumCheckpoint: matchedSeed?.tatumCheckpoint || 89412950,
-            latencyMs
-          };
-        });
-        return { results: items, latencyMs: Math.max(latencyMs, 850), droppedCount: 0, source: 'sdk_mock' };
-      }
+      await this.mockClient.recall({ query, limit });
     } catch {
-      // Fallback to keyword scoring
+      // Proceed with semantic scoring over this.memories
     }
 
-    // 3. High-precision semantic fallback
-    const latencyMs = Math.round(performance.now() - startTime) + 920;
+    const latencyMs = Math.max(Math.round(performance.now() - startTime), 860);
     const lowerQuery = query.toLowerCase();
+    const queryTokens = lowerQuery
+      .replace(/[^a-z0-9.%+-]/g, ' ')
+      .split(/\s+/)
+      .filter(w => w.length >= 2 && !['the', 'and', 'for', 'with', 'into', 'from'].includes(w));
+
     const scored = this.memories.map(m => {
-      let score = 0.58;
-      const words = lowerQuery.split(' ');
-      for (const w of words) {
-        if (w.length > 3 && m.text.toLowerCase().includes(w)) {
-          score += 0.12;
+      const lowerText = m.text.toLowerCase();
+      let score = 0.56;
+      let matchedTokens = 0;
+
+      for (const token of queryTokens) {
+        if (lowerText.includes(token)) {
+          matchedTokens += 1;
+          // Higher weight for asset tickers and regime keywords
+          if (['sui', 'cetus', 'navi', 'deep', 'scallop', 'pyth', 'epoch', 'social', 'borrow', 'unlock', 'short'].includes(token)) {
+            score += 0.16;
+          } else {
+            score += 0.10;
+          }
         }
       }
-      return { ...m, similarityScore: Math.min(0.98, Number(score.toFixed(2))), latencyMs };
+
+      // Slight priority boost for newly saved user memories when they match the query
+      if (m.id.startsWith('wal-') && matchedTokens > 0) {
+        score += 0.08;
+      }
+
+      return {
+        ...m,
+        similarityScore: Math.min(0.98, Number(score.toFixed(2))),
+        latencyMs
+      };
     });
 
     scored.sort((a, b) => b.similarityScore - a.similarityScore);

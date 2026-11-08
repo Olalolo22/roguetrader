@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { ArrowRight, CornerDownRight, Check, Copy, Activity, ShieldCheck } from 'lucide-react';
 import type { TatumMarketState, EpistemicEvaluation, WalrusMemoryItem } from '../types';
 import { agentEngine, MARKET_REGIMES } from '../services/agentEngine';
+import { walrusMemory } from '../services/walrusMemory';
 import { x402Payment } from '../services/x402Payment';
 
 const EXAMPLES = [
@@ -100,12 +101,18 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
   const [copiedCurl, setCopiedCurl] = useState(false);
   const [isSettling, setIsSettling] = useState(false);
   const [settledTx, setSettledTx] = useState<string | null>(null);
+  const [draftLesson, setDraftLesson] = useState(
+    'Nov 2026: Long SUI 2.14, 3x — NAVI borrow >78% triggered a -8.2% long squeeze. Cap at 2x.'
+  );
+  const [isSavingLesson, setIsSavingLesson] = useState(false);
+  const [savedBlobId, setSavedBlobId] = useState<string | null>(null);
 
   const runCheck = async (tradeText: string) => {
     const val = tradeText.trim();
     if (!val || stage) return;
     const trade = parseTrade(val);
     setStage('Reading live Sui block');
+    setSavedBlobId(null);
     onInterceptChange?.(true);
 
     try {
@@ -120,8 +127,26 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
       );
       const regime = MARKET_REGIMES.find(r => r.id === trade.regimeId)!;
       setResult({ trade, evaluation, outcomeLabel: regime.outcomeLabel });
+      setDraftLesson(
+        `Nov 2026: ${val} — ${regime.outcomeLabel}. Adjusted from ${trade.leverage}x down to safe size.`
+      );
     } finally {
       setStage(null);
+    }
+  };
+
+  const handleSaveLesson = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!draftLesson.trim() || isSavingLesson) return;
+    setIsSavingLesson(true);
+    try {
+      const ckpt = marketState?.latestCheckpoint ?? 100352470;
+      const res = await walrusMemory.remember(draftLesson.trim(), 'FAILURE_CASE', ckpt);
+      if (res.success) {
+        setSavedBlobId(res.memory.blobId);
+      }
+    } finally {
+      setIsSavingLesson(false);
     }
   };
 
@@ -279,10 +304,18 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               <div className="mt-3 rounded-lg border border-line bg-deep p-3 font-mono">
                 <div className="flex items-start gap-2">
                   <CornerDownRight size={14} className="mt-0.5 shrink-0 text-fg-3" />
-                  <p className="text-xs text-fg-2 leading-relaxed">
-                    <span className="text-fg font-medium">Why we cut your size: </span>
-                    {m.text}
-                  </p>
+                  <div className="space-y-1 text-xs text-fg-2 leading-relaxed">
+                    <p>
+                      <span className="text-fg font-medium">Past blowup recalled from Walrus: </span>
+                      {m.text}
+                    </p>
+                    {result?.evaluation.walrusRationale && result.evaluation.walrusRationale !== m.text && (
+                      <p className="text-pos">
+                        <span className="font-medium">Guard adjustment: </span>
+                        {result.evaluation.walrusRationale}
+                      </p>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-2.5 flex flex-wrap items-center gap-2 pl-5 text-[11px]">
                   <span className="keycap">
@@ -300,6 +333,36 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Auto-Captured Post-Trade Lesson (Editable before saving to Walrus) */}
+            <form onSubmit={handleSaveLesson} className="mt-3 rounded-lg border border-line bg-deep/60 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
+                <span className="font-medium text-fg">
+                  Auto-captured lesson from this trade{' '}
+                  <span className="font-normal text-fg-3">(edit before saving to Walrus)</span>
+                </span>
+                {savedBlobId && (
+                  <span className="keycap text-pos">
+                    <span>saved on walrus</span> {shortHash(savedBlobId)}
+                  </span>
+                )}
+              </div>
+              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={draftLesson}
+                  onChange={e => setDraftLesson(e.target.value)}
+                  aria-label="Edit auto-captured trade lesson"
+                  className="h-9 min-w-0 flex-1 rounded-md border border-line bg-card px-2.5 text-xs text-fg focus:border-line-2 focus:outline-none"
+                />
+                <button
+                  type="submit"
+                  disabled={isSavingLesson || !draftLesson.trim()}
+                  className="h-9 shrink-0 rounded-md border border-line-2 bg-raised px-3 text-xs font-medium text-fg transition-colors hover:bg-line-2 disabled:opacity-50 cursor-pointer"
+                >
+                  {isSavingLesson ? 'Saving…' : 'Save Lesson to Walrus'}
+                </button>
+              </div>
+            </form>
           </div>
 
           {/* TILE 2: 1-Col Span - Live Calibration & Risk Needle */}

@@ -241,24 +241,34 @@ Respond ONLY with valid JSON in this exact format:
 
     // Stage 3: Query Walrus Memory Relayer
     if (onProgress) onProgress('Checking past blowups on Walrus…', 3);
-    const queryStr = tradeText ? `${tradeText} ${regime.searchQuery}` : regime.searchQuery;
+    const queryStr = tradeText?.trim() || regime.searchQuery;
     const recallResult = await walrusMemory.recall(queryStr, 1);
     const recalledItem = recallResult.results[0] || walrusMemory.getAllMemories()[0];
+
+    // Dynamic confidence & rationale derived from the recalled Walrus memory
+    const isPositiveCatalyst = recalledItem.category === 'CATALYST';
+    const dynamicFallbackConfidence = isPositiveCatalyst
+      ? Math.min(88, regime.statelessConfidence + 12)
+      : Math.max(38, Math.round(regime.statelessConfidence - 38 * recalledItem.similarityScore));
+    const dynamicFallbackQuote = recalledItem.id.startsWith('wal-')
+      ? `Matched your saved Walrus lesson (${Math.round(recalledItem.similarityScore * 100)}% match): "${recalledItem.text}"`
+      : recalledItem.text;
 
     // Stage 4: Adjust Trade Size & Risk with Gemini + Brier Calibration
     if (onProgress) onProgress('Protecting trade size & leverage…', 4);
     const llmEval = await this.queryGeminiGuard(
       tradeText || regime.name,
       recalledItem.text,
-      regime.calibratedConfidence,
-      regime.calibratedQuote
+      dynamicFallbackConfidence,
+      dynamicFallbackQuote
     );
 
+    const outcomeNumeric = isPositiveCatalyst ? 1 : 0;
     // Calculate exact Brier loss: (prob - outcome)^2
     const statelessProbDec = regime.statelessConfidence / 100;
     const walrusProbDec = llmEval.confidence / 100;
-    const statelessBrier = Number(Math.pow(statelessProbDec - regime.outcomeNumeric, 2).toFixed(4));
-    const walrusBrier = Number(Math.pow(walrusProbDec - regime.outcomeNumeric, 2).toFixed(4));
+    const statelessBrier = Number(Math.pow(statelessProbDec - outcomeNumeric, 2).toFixed(4));
+    const walrusBrier = Number(Math.pow(walrusProbDec - outcomeNumeric, 2).toFixed(4));
 
     const evalResult: EpistemicEvaluation = {
       id: `eval-${Date.now()}`,
