@@ -84,7 +84,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
         actualOutcome: regime.actualOutcome,
         recalledMemory: {
           id: 'mem-seed-1',
-          blobId: '0x8f9a2c9188efacba772109aa988112bc',
+          blobId: 'thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0',
           category: 'FAILURE_CASE',
           text: regime.calibratedQuote,
           timestamp: '14 days ago',
@@ -153,7 +153,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
     setIsSettling(true);
     try {
       const inv = x402Payment.generateInvoice(0.05);
-      const res = await x402Payment.settleInvoice(inv, '0x4f82a101b9ca990188efacba772109aa988112bc');
+      const res = await x402Payment.settleInvoice(inv, '0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d');
       if (res.success && res.receipt) {
         setSettledTx(res.receipt.txDigest);
       }
@@ -163,7 +163,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
   };
 
   const curlCommand = `curl -X POST https://api.roguetrader.xyz/api/x402/check \\
-  -H "X-PAYMENT: sui:${settledTx ?? '0x992fa100eb81711200dfa8829011b9881023bc4a889100188efacba772109aa'}" \\
+  -H "X-PAYMENT: sui:${settledTx ?? '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N'}" \\
   -H "Content-Type: application/json" \\
   -d '{"trade":"${input}"}'`;
 
@@ -373,7 +373,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                 <div className="flex items-center gap-2">
                   <span className="inline-flex items-center gap-1.5 rounded-md border border-pos/30 bg-pos/10 px-2 py-0.5 font-mono text-[10px] font-medium text-pos">
                     <span className="live-dot" aria-hidden />
-                    3. TATUM WALLET MONITOR · 0x4f82…12bc
+                    3. TATUM WALLET MONITOR · 0xaff0…4b4d
                   </span>
                   <span className="text-fg-2 hidden sm:inline">Auto-saves trade outcome (edit note optional)</span>
                 </div>

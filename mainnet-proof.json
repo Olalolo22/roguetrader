@@ -1,0 +1,74 @@
+{
+  "timestamp": "2026-11-09T15:38:37.973Z",
+  "network": "sui:mainnet",
+  "ownerAddress": "0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d",
+  "memwalAccountId": "0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223",
+  "packageId": "0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5",
+  "registryId": "0x8bf82c9e09e36b8d1c38298f68b7cb68e7b8762887e7592add9986d5e9cf199f",
+  "transactions": {
+    "createAccountTx": "BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX",
+    "addDelegateKeyTx": "9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S",
+    "x402PaymentTx": "5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N"
+  },
+  "writtenBlobs": [
+    {
+      "id": "dd9ff553-f3ad-455b-8e5c-2580d6a00780",
+      "blob_id": "thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0",
+      "status": "done",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "d2c98ac6-597d-4ce6-9d06-47b033a21960",
+      "blob_id": "1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM",
+      "status": "done",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "d296199d-1a34-402a-80d7-defc71ca8b02",
+      "blob_id": "qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E",
+      "status": "done",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "20d110a0-c89d-4b2b-aa3f-a77fe332c8ae",
+      "blob_id": "BamlyvKWqCgUcjK_kQ2YiM94grCFrkl5u1f3fRYA2z8",
+      "status": "done",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "e9b9632e-8d07-475a-8755-60c3f704019d",
+      "blob_id": "gi3MnkJ1wY-f7nPs1ODkjnx7D0CJBdKixFqH1LoNxW0",
+      "status": "done",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "f41a69f9-851c-4a3e-a868-2857b883403a",
+      "blob_id": "u29gxoSNeyIB6DOBR-GL1rieV6O3lXFfwdfomb2ytHY",
+      "status": "done",
+      "namespace": "roguetrader"
+    }
+  ],
+  "recallVerification": {
+    "results": [
+      {
+        "blob_id": "thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0",
+        "text": "Oct 14 2026 [Venue: Cetus $14.2M | Borrow: 78.4% NAVI | Book: 0.62x Bid/Ask]: Failed SUI breakout above $2.15. High borrow crowding (>75%) triggered an -8.2% long-squeeze cascade 40m later. Mandate: Cut leverage to 2x (keep wipeout buffer >12%).",
+        "distance": 0.21592432067035516,
+        "created_at": "2026-11-09T15:38:32.071223Z"
+      },
+      {
+        "blob_id": "1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM",
+        "text": "Oct 16 2026 [Venue: Cetus $24.1M | Borrow: 48.2% NAVI | Book: 1.8 bps Spread]: SUI/USDC sustained +12.4% institutional breakout over 24h. Low borrow crowding (<52%) and DeepBook spot bid absorption confirmed real trend.",
+        "distance": 0.2660618158599467,
+        "created_at": "2026-11-09T15:38:30.047460Z"
+      },
+      {
+        "blob_id": "qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E",
+        "text": "Oct 18 2026 [Venue: CETUS/SUI | Pool Depth: Shallow | Scallop Borrow: 74%]: False reversal wick on CETUS/SUI. Thin liquidation pool depth caused artificial oracle wick that stopped out leveraged longs.",
+        "distance": 0.4145032496924409,
+        "created_at": "2026-11-09T15:38:30.985613Z"
+      }
+    ],
+    "total": 3
+  }
+}

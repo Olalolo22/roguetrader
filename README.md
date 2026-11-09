@@ -89,14 +89,35 @@ curl -i https://api.roguetrader.xyz/api/x402/check \
 
 # 2. RogueTrader responds with HTTP 402 Payment Required (0.05 SUI)
 HTTP/1.1 402 Payment Required
-WWW-Authenticate: x402-sui realm="roguetrader-risk-gate", amount="0.05", currency="SUI", recipient="0x7a8f941029ba8ec001b92040188efacb772109aa", paymentId="x402_99bc_1761350400"
+WWW-Authenticate: x402-sui realm="roguetrader-risk-gate", amount="0.05", currency="SUI", recipient="0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d", paymentId="x402_mainnet_verified_01"
 
 # 3. Bot pays 0.05 SUI on Sui Mainnet and retries with the transaction digest
 curl https://api.roguetrader.xyz/api/x402/check \
-  -H "X-PAYMENT: sui:0x992fa100eb81711200dfa8829011b9881023bc4a889100188efacba772109aa" \
+  -H "X-PAYMENT: sui:5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N" \
   -H "Content-Type: application/json" \
   -d '{"trade":"Long SUI 2.14, 3x"}'
 ```
+
+---
+
+## Verified Sui Mainnet & Walrus Mainnet Proof (`mainnet-proof.json`)
+
+All on-chain account registrations, delegate keys, HTTP 402 (`x402`) micropayment settlements, and Walrus decentralized memory blobs are live on **Sui Mainnet** and **Walrus Mainnet** (`relayer.memory.walrus.xyz`, namespace `roguetrader`):
+
+| Component | Mainnet Identifier / Digest |
+| :--- | :--- |
+| **Sui Mainnet Owner Wallet** | `0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d` |
+| **MemWal Package ID (Mainnet)** | `0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5` |
+| **MemWalAccount Object ID** | `0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223` |
+| **`create_account` Mainnet Tx** | `BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX` |
+| **`add_delegate_key` Mainnet Tx** | `9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S` |
+| **`0.05 SUI x402` Settlement Tx** | `5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N` |
+| **Walrus Blob #1 (`mem-001` NAVI Squeeze)** | `thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0` |
+| **Walrus Blob #2 (`mem-002` Cetus Breakout)** | `1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM` |
+| **Walrus Blob #3 (`mem-003` Scallop Wick)** | `qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E` |
+| **Walrus Blob #4 (`mem-004` Pyth Latency)** | `BamlyvKWqCgUcjK_kQ2YiM94grCFrkl5u1f3fRYA2z8` |
+| **Walrus Blob #5 (`mem-005` Social Trap)** | `gi3MnkJ1wY-f7nPs1ODkjnx7D0CJBdKixFqH1LoNxW0` |
+| **Walrus Blob #6 (`mem-006` Whale Absorption)** | `u29gxoSNeyIB6DOBR-GL1rieV6O3lXFfwdfomb2ytHY` |
 
 ---
 

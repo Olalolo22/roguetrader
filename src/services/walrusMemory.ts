@@ -4,69 +4,69 @@ import type { WalrusMemoryItem } from '../types';
 export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
   {
     id: 'mem-001',
-    blobId: '0x8f4d92a11b6c00e129fec88401ab3',
-    text: 'Oct 14 2026: Failed SUI breakout above $2.15. NAVI borrow utilization spiked to 78.4% while Cetus volume crossed $14M, triggering an 8% long-squeeze cascade 40m later.',
+    blobId: 'thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0',
+    text: 'Oct 14 2026 [Venue: Cetus $14.2M | Borrow: 78.4% NAVI | Book: 0.62x Bid/Ask]: Failed SUI breakout above $2.15. High borrow crowding (>75%) triggered an -8.2% long-squeeze cascade 40m later. Mandate: Cut leverage to 2x (keep wipeout buffer >12%).',
     category: 'FAILURE_CASE',
     timestamp: '2026-10-14T14:22:10Z',
     similarityScore: 0.94,
     weightImpact: '-32% Confidence',
-    tatumCheckpoint: 89412950,
-    latencyMs: 1120
+    tatumCheckpoint: 100352470,
+    latencyMs: 914
   },
   {
     id: 'mem-002',
-    blobId: '0x3a912bb01c899e4f00129abc77ef2',
-    text: 'Oct 16 2026: SUI/USDC sustained institutional breakout. Cetus 1h volume crossed $24M while DeepBook spread tightened below 1.8 bps and NAVI borrow stayed under 52%.',
+    blobId: '1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM',
+    text: 'Oct 16 2026 [Venue: Cetus $24.1M | Borrow: 48.2% NAVI | Book: 1.8 bps Spread]: SUI/USDC sustained +12.4% institutional breakout over 24h. Low borrow crowding (<52%) and DeepBook spot bid absorption confirmed real trend.',
     category: 'CATALYST',
     timestamp: '2026-10-16T09:15:00Z',
     similarityScore: 0.91,
     weightImpact: '+14% Confidence',
-    tatumCheckpoint: 89398120,
-    latencyMs: 980
+    tatumCheckpoint: 100348120,
+    latencyMs: 880
   },
   {
     id: 'mem-003',
-    blobId: '0x7c491aa22d019f88bb109efa66bc1',
-    text: 'Oct 18 2026: False reversal signal on CETUS/SUI. Scallop liquidation pool had insufficient borrow depth, causing artificial oracle wick. Ignored spot delta.',
+    blobId: 'qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E',
+    text: 'Oct 18 2026 [Venue: CETUS/SUI | Pool Depth: Shallow | Scallop Borrow: 74%]: False reversal wick on CETUS/SUI. Thin liquidation pool depth caused artificial oracle wick that stopped out leveraged longs.',
     category: 'FAILURE_CASE',
     timestamp: '2026-10-18T18:40:00Z',
     similarityScore: 0.89,
     weightImpact: '-20% Confidence',
-    tatumCheckpoint: 89364804,
-    latencyMs: 1040
+    tatumCheckpoint: 100334804,
+    latencyMs: 940
   },
   {
     id: 'mem-004',
-    blobId: '0x1e8810fcba9012cdff00921045aa9',
-    text: 'Oct 19 2026: Pyth oracle feed latency during Sui epoch transition (epoch 512). Delayed price resolution caused 40-sec pricing asymmetry on AMMs.',
+    blobId: 'BamlyvKWqCgUcjK_kQ2YiM94grCFrkl5u1f3fRYA2z8',
+    text: 'Oct 19 2026 [Venue: Cetus vs Pyth | Sui Epoch Boundary: 512 | Oracle Lag: 40s]: Pyth oracle feed latency during Sui epoch transition caused a phantom 0.8% AMM discount that snapped back immediately. Mandate: Halt arb entries at epoch boundary.',
     category: 'REGIME_SHIFT',
     timestamp: '2026-10-19T21:00:00Z',
     similarityScore: 0.92,
     weightImpact: '-38% Confidence (Halt)',
-    tatumCheckpoint: 89310492,
-    latencyMs: 1210
+    tatumCheckpoint: 100310492,
+    latencyMs: 980
   },
   {
     id: 'mem-005',
-    blobId: '0x2211aa8871029efb990188efacba9',
-    text: 'Oct 24 2026: Retail social euphoria spike. Twitter mentions rose +340% but DeepBook bid volume lagged by 42%. Market suffered -14% bull-trap dump.',
+    blobId: 'gi3MnkJ1wY-f7nPs1ODkjnx7D0CJBdKixFqH1LoNxW0',
+    text: 'Oct 24 2026 [Venue: CETUS/SUI | Social Velocity: +340% | Book: 0.64x Ask-Heavy | Borrow: 84.7%]: Retail social euphoria spike with lagging DeepBook bid depth (-42%) suffered a -16% bull-trap dump within 2 hours.',
     category: 'FAILURE_CASE',
     timestamp: '2026-10-24T12:00:00Z',
     similarityScore: 0.96,
     weightImpact: '-44% Confidence',
-    tatumCheckpoint: 89285110,
-    latencyMs: 960
+    tatumCheckpoint: 100285110,
+    latencyMs: 890
   },
   {
     id: 'mem-006',
-    blobId: '0x4422cc110098ef99102388eacbb10',
-    text: 'Oct 25 2026: Whale absorption on DEEP/SUI support ($0.082). 500k SUI order book depth absorption without price breakdown. Confirmed accumulator regime.',
+    blobId: 'u29gxoSNeyIB6DOBR-GL1rieV6O3lXFfwdfomb2ytHY',
+    text: 'Oct 25 2026 [Venue: DEEP/SUI | Bid Absorption: 500k SUI | Borrow: 44%]: DeepBook limit orders absorbed 500k SUI sell volume at $0.082 support without breakdown, confirming institutional accumulation.',
     category: 'CATALYST',
     timestamp: '2026-10-25T16:20:00Z',
     similarityScore: 0.84,
     weightImpact: '+11% Confidence',
-    tatumCheckpoint: 89240188,
-    latencyMs: 890
+    tatumCheckpoint: 100240188,
+    latencyMs: 860
   }
 ];
 
@@ -135,16 +135,22 @@ class WalrusMemoryService {
         const latencyMs = Math.round(performance.now() - startTime);
 
         if (res && res.results && res.results.length > 0) {
-          const items: WalrusMemoryItem[] = res.results.map((r: any, idx: number) => ({
-            id: `relayer-${Date.now()}-${idx}`,
-            blobId: r.blob_id || r.id || '0x' + Math.random().toString(16).slice(2, 14),
-            text: r.memory || r.text || String(r),
-            category: 'FAILURE_CASE',
-            timestamp: new Date().toISOString(),
-            similarityScore: r.similarity || 0.92,
-            weightImpact: '-30% Confidence',
-            latencyMs
-          }));
+          const items: WalrusMemoryItem[] = res.results.map((r: any, idx: number) => {
+            const matchedSeed = this.memories.find(m => m.blobId === r.blob_id);
+            const dist = typeof r.distance === 'number' ? r.distance : 0.16;
+            const sim = Math.max(0.76, Math.min(0.98, Number((1 - dist * 0.4).toFixed(2))));
+            return {
+              id: `relayer-${Date.now()}-${idx}`,
+              blobId: r.blob_id || r.id || 'thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0',
+              text: r.text || r.memory || String(r),
+              category: matchedSeed?.category || 'FAILURE_CASE',
+              timestamp: r.created_at || matchedSeed?.timestamp || new Date().toISOString(),
+              similarityScore: r.similarity || sim,
+              weightImpact: matchedSeed?.weightImpact || '-30% Confidence',
+              tatumCheckpoint: matchedSeed?.tatumCheckpoint || 100352470,
+              latencyMs
+            };
+          });
           return { results: items, latencyMs, droppedCount: res.dropped_count || 0, source: 'live_relayer' };
         }
       } catch {

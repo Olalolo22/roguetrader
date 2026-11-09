@@ -42,10 +42,10 @@ export function App() {
     setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
   };
 
-  // Demo payer wallet on Sui mainnet
+  // Live Sui Mainnet wallet (MemWalAccount owner + x402 payer)
   const [wallet, setWallet] = useState<UserWalletState>({
-    address: '0x4f82a101b9ca990188efacba772109aa988112bc',
-    balanceSui: 14.5,
+    address: '0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d',
+    balanceSui: 0.24,
     isConnected: true,
     network: 'mainnet'
   });
