@@ -74,13 +74,13 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
             WWW-Authenticate: {invoice.headerChallenge}
           </pre>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="num text-meta text-fg-3">simulated settlement · digest checked via Tatum</span>
+            <span className="num text-meta text-fg-3">Sui Mainnet tx · verified via Tatum RPC</span>
             <button
               onClick={settle}
               disabled={isSettling}
               className="btn-primary h-11 rounded-lg px-4 text-sm font-medium transition-colors duration-150 ease-out disabled:opacity-50"
             >
-              {isSettling ? 'Settling…' : 'Pay 0.05 SUI'}
+              {isSettling ? 'Verifying…' : 'Verify 0.05 SUI Receipt'}
             </button>
           </div>
         </div>

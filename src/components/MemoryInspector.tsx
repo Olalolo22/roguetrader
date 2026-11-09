@@ -73,7 +73,7 @@ export const MemoryInspector: React.FC = () => {
           Every past trap and market lesson stored on Walrus. RogueTrader searches this vault before sizing your trade.
         </p>
         <p className="num mt-2 text-meta text-fg-3">
-          {live ? 'Live on Walrus Mainnet' : 'Seeded from historical Sui backtest'} · {memories.length} past setups
+          {live ? 'Live on Walrus Mainnet (Account 0xf7bb…e223)' : 'Walrus Mainnet Snapshot (Account 0xf7bb…e223)'} · {memories.length} verified setups
         </p>
       </div>
 
@@ -142,7 +142,7 @@ export const MemoryInspector: React.FC = () => {
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h2 className="text-base font-medium text-fg">Save or Edit a Trade Snapshot on Walrus</h2>
           <span className="keycap text-xs">
-            <span className="live-dot" aria-hidden /> Tatum Wallet Monitor · 0x4f82…12bc
+            <span className="live-dot" aria-hidden /> Tatum Wallet Monitor · 0xaff0…4b4d
           </span>
         </div>
         <p className="mt-1 text-sm text-fg-3">

@@ -17,8 +17,13 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose, o
 
 const SettingsPanel: React.FC<Omit<SettingsModalProps, 'isOpen'>> = ({ onClose, onSaved }) => {
   const [tatumKey, setTatumKey] = useState(tatumSui.getApiKey());
-  const [walrusAccount, setWalrusAccount] = useState('');
-  const [walrusKey, setWalrusKey] = useState('');
+  const [walrusAccount, setWalrusAccount] = useState(
+    (import.meta.env.VITE_MEMWAL_ACCOUNT_ID as string | undefined) ||
+      '0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223'
+  );
+  const [walrusKey, setWalrusKey] = useState(
+    (import.meta.env.VITE_MEMWAL_KEY as string | undefined) || ''
+  );
   const [testing, setTesting] = useState(false);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
 

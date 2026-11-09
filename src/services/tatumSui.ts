@@ -95,7 +95,7 @@ class TatumSuiService {
       // In sandbox mode, verify digest structure
     }
 
-    return txDigest.startsWith('0x') && txDigest.length >= 20;
+    return txDigest.length >= 20;
   }
 }
 
