@@ -162,7 +162,8 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
     }
   };
 
-  const curlCommand = `curl -X POST https://api.roguetrader.xyz/api/x402/check \\
+  const apiBase = typeof window !== 'undefined' ? window.location.origin : 'https://roguetrader.vercel.app';
+  const curlCommand = `curl -X POST ${apiBase}/api/x402/check \\
   -H "X-PAYMENT: sui:${settledTx ?? '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N'}" \\
   -H "Content-Type: application/json" \\
   -d '{"trade":"${input}"}'`;

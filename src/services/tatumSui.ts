@@ -60,13 +60,31 @@ class TatumSuiService {
     let cetusVolume24h = 3321068;
     let dexLiquidityUsd = 777665;
 
+    // Step 1: Query Tatum's Official Exchange Rate API for SUI USD Resolution
+    if (this.tatumApiKey) {
+      try {
+        const rateRes = await fetch('https://api.tatum.io/v3/tatum/rate/SUI?basePair=USD', {
+          headers: { 'x-api-key': this.tatumApiKey }
+        });
+        if (rateRes.ok) {
+          const rateData = await rateRes.json();
+          if (rateData?.value) {
+            suiPrice = parseFloat(rateData.value) || suiPrice;
+          }
+        }
+      } catch {
+        // Fallback to DEX
+      }
+    }
+
+    // Step 2: Query Live Sui DEX Liquidity & Volume
     try {
       const dexRes = await fetch('https://api.dexscreener.com/latest/dex/tokens/0x2::sui::SUI');
       if (dexRes.ok) {
         const dexData = await dexRes.json();
         const pairs = Array.isArray(dexData?.pairs) ? dexData.pairs : [];
         const topPair = pairs[0];
-        if (topPair?.priceUsd) {
+        if (!this.tatumApiKey && topPair?.priceUsd) {
           suiPrice = parseFloat(topPair.priceUsd) || suiPrice;
         }
         if (typeof topPair?.priceChange?.h24 === 'number') {

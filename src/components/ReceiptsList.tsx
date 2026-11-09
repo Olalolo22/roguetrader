@@ -33,8 +33,10 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
     setTimeout(() => setCopied(null), 1600);
   };
 
-  const curl = `curl https://api.roguetrader.xyz/api/x402/check \\
-  -H "X-PAYMENT: sui:${receipts[0]?.txDigest ?? '<tx digest>'}" \\
+  const apiBase = typeof window !== 'undefined' ? window.location.origin : 'https://roguetrader.vercel.app';
+  const curl = `curl -X POST ${apiBase}/api/x402/check \\
+  -H "X-PAYMENT: sui:${receipts[0]?.txDigest ?? '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N'}" \\
+  -H "Content-Type: application/json" \\
   -d '{"trade":"Long SUI 0.85, 3x"}'`;
 
   return (

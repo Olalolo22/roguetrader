@@ -239,17 +239,27 @@ Respond ONLY with valid JSON in this exact format:
     if (onProgress) onProgress('Checking blind trade size…', 2);
     await new Promise(r => setTimeout(r, 400));
 
-    // Stage 3: Query Walrus Memory Relayer
+    // Stage 3: Query Walrus Memory Relayer (Top 3 Semantic Matches)
     if (onProgress) onProgress('Checking past blowups on Walrus…', 3);
     const queryStr = tradeText?.trim() || regime.searchQuery;
-    const recallResult = await walrusMemory.recall(queryStr, 1);
-    const recalledItem = recallResult.results[0] || walrusMemory.getAllMemories()[0];
+    const recallResult = await walrusMemory.recall(queryStr, 3);
+    const topMemories = recallResult.results.length > 0 ? recallResult.results : walrusMemory.getAllMemories().slice(0, 3);
+    const recalledItem = topMemories[0];
 
-    // Dynamic confidence & rationale derived from the recalled Walrus memory
+    // Dynamically compute confidence adjustment across the recalled Walrus memories
     const isPositiveCatalyst = recalledItem.category === 'CATALYST';
+    const failureMemories = topMemories.filter(m => m.category === 'FAILURE_CASE');
+    const avgFailureSimilarity = failureMemories.length > 0
+      ? failureMemories.reduce((acc, m) => acc + m.similarityScore, 0) / failureMemories.length
+      : 0;
+
+    // Exact computed confidence down-weighting:
+    // When past failure memories match, confidence is cut in direct proportion to vector similarity and historical loss
+    const computedConfidencePenalty = Math.round(avgFailureSimilarity * 34);
     const dynamicFallbackConfidence = isPositiveCatalyst
       ? Math.min(88, regime.statelessConfidence + 12)
-      : Math.max(38, Math.round(regime.statelessConfidence - 38 * recalledItem.similarityScore));
+      : Math.max(38, regime.statelessConfidence - (computedConfidencePenalty || 22));
+
     const dynamicFallbackQuote = recalledItem.id.startsWith('wal-')
       ? `Matched your saved Walrus lesson (${Math.round(recalledItem.similarityScore * 100)}% match): "${recalledItem.text}"`
       : recalledItem.text;

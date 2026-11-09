@@ -98,14 +98,14 @@ Human traders use the web desk, but autonomous trading agents need a programmati
 
 Every transaction and memory blob below is live on **Sui Mainnet** and **Walrus Mainnet** (`relayer.memory.walrus.xyz`, namespace `roguetrader`):
 
-| Component | Mainnet Identifier / Digest |
+| Component | Mainnet Identifier / Digest (Clickable Suiscan Links) |
 | :--- | :--- |
-| **Sui Mainnet Owner Wallet** | `0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d` |
-| **MemWal Package ID (Mainnet)** | `0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5` |
-| **`MemWalAccount` Object ID** | `0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223` |
-| **`create_account` Mainnet Tx** | `BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX` |
-| **`add_delegate_key` Mainnet Tx** | `9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S` |
-| **`0.05 SUI x402` Settlement Tx** | `5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N` |
+| **Sui Mainnet Owner Wallet** | [`0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d`](https://suiscan.xyz/mainnet/account/0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d) |
+| **MemWal Package ID (Mainnet)** | [`0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5`](https://suiscan.xyz/mainnet/object/0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5) |
+| **`MemWalAccount` Object ID** | [`0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223`](https://suiscan.xyz/mainnet/object/0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223) |
+| **`create_account` Mainnet Tx** | [`BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX`](https://suiscan.xyz/mainnet/tx/BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX) |
+| **`add_delegate_key` Mainnet Tx** | [`9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S`](https://suiscan.xyz/mainnet/tx/9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S) |
+| **`0.05 SUI x402` Settlement Tx** | [`5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N`](https://suiscan.xyz/mainnet/tx/5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N) |
 | **Walrus Blob #1 (`mem-001` NAVI Squeeze)** | `thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0` |
 | **Walrus Blob #2 (`mem-002` Cetus Breakout)** | `1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM` |
 | **Walrus Blob #3 (`mem-003` Scallop Wick)** | `qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E` |
@@ -122,3 +122,4 @@ Every transaction and memory blob below is live on **Sui Mainnet** and **Walrus 
 ---
 
 *Built by Olumide Lala (`@pray_4motivatio` / `@Olalolo22`) for the Tatum × Walrus Memory "Total Recall" Hackathon.*
+

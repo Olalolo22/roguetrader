@@ -1,9 +1,23 @@
 # RogueTrader
 
 > **Every rogue trader had the same problem. Nobody remembered the last blowup.**  
-> A 1-click pre-trade guard on Sui that checks your order against past market blowups before you size—permanently remembered on **Walrus** and live-verified via **Tatum**.  
-> Built for the **Tatum × Walrus Memory Hackathon ("Total Recall")**  
-> **Track 1:** Markets ($1,000) • **Special Bounties:** Best Walrus Memory ($500) · Best Use of Agent Payments on Sui ($500)
+> A pre-trade market prediction and sizing guard on Sui that checks your order against past market blowups before you size—permanently remembered on **Walrus Mainnet** and live-verified via **Tatum RPC & Price API**.  
+> **Submitted to Tatum × Walrus Memory Hackathon ("Total Recall")**  
+> 🎯 **Primary Track:** Track 1: Markets & Sports Prediction ($1,000)  
+> 🏆 **Special Bounties:** Best Walrus Memory ($500) · Best Use of Agent Payments on Sui ($500)
+
+---
+
+## Track 1: The Closed-Loop Prediction Engine
+
+The Track 1 brief explicitly rewards products where:
+> *"Memory must affect future behavior. For example, suppose a forecasting application learns that an analyst consistently overestimates the likelihood of certain market movements. It should use that information when presenting or weighting the analyst's future predictions."*
+
+RogueTrader implements this as a 4-step on-chain loop:
+1. **Forecast (`f_t`):** Trader or autonomous agent proposes a trade (e.g. `Long SUI 0.85, 3x`) with raw forecast confidence `f_t = 84%`.
+2. **Recall (`memwal.recall` <1s):** Semantic vector search scans 12 historical market regime vectors on Walrus Mainnet. If high borrow crowding (>75%) or an orderbook bid vacuum is detected, confidence is down-weighted to `62%` and leverage capped at `2.0x`.
+3. **Resolve (`o_t`):** When the position resolves, real market outcome `o_t` (`1` if profit target hit, `0` if stopped out or liquidated) is verified via **Tatum Exchange Rate API** (`/v3/tatum/rate/SUI?basePair=USD`) and Sui checkpoint finality.
+4. **Learn (`memwal.remember`):** Outcome and 5-variable entry state vector are committed to Walrus Mainnet via our on-chain `MemWalAccount`, updating the Brier calibration score and preventing repeat blowups.
 
 ---
 
@@ -84,19 +98,19 @@ Other trading agents don't need to build their own risk memory. They can query R
 
 ```bash
 # 1. Bot requests a pre-trade check
-curl -i https://api.roguetrader.xyz/api/x402/check \
+curl -i https://roguetrader.vercel.app/api/x402/check \
   -H "Content-Type: application/json" \
-  -d '{"trade":"Long SUI 2.14, 3x"}'
+  -d '{"trade":"Long SUI 0.85, 3x"}'
 
 # 2. RogueTrader responds with HTTP 402 Payment Required (0.05 SUI)
 HTTP/1.1 402 Payment Required
 WWW-Authenticate: x402-sui realm="roguetrader-risk-gate", amount="0.05", currency="SUI", recipient="0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d", paymentId="x402_mainnet_verified_01"
 
 # 3. Bot pays 0.05 SUI on Sui Mainnet and retries with the transaction digest
-curl https://api.roguetrader.xyz/api/x402/check \
+curl https://roguetrader.vercel.app/api/x402/check \
   -H "X-PAYMENT: sui:5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N" \
   -H "Content-Type: application/json" \
-  -d '{"trade":"Long SUI 2.14, 3x"}'
+  -d '{"trade":"Long SUI 0.85, 3x"}'
 ```
 
 ---
@@ -105,14 +119,14 @@ curl https://api.roguetrader.xyz/api/x402/check \
 
 All on-chain account registrations, delegate keys, HTTP 402 (`x402`) micropayment settlements, and **12 Walrus decentralized memory blobs** (exceeding the hackathon's "at least 10 writes" requirement) are live on **Sui Mainnet** and **Walrus Mainnet** (`relayer.memory.walrus.xyz`, namespace `roguetrader`):
 
-| Component | Mainnet Identifier / Digest |
+| Component | Mainnet Identifier / Digest (Clickable Suiscan Links) |
 | :--- | :--- |
-| **Sui Mainnet Owner Wallet** | `0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d` |
-| **MemWal Package ID (Mainnet)** | `0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5` |
-| **MemWalAccount Object ID** | `0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223` |
-| **`create_account` Mainnet Tx** | `BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX` |
-| **`add_delegate_key` Mainnet Tx** | `9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S` |
-| **`0.05 SUI x402` Settlement Tx** | `5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N` |
+| **Sui Mainnet Owner Wallet** | [`0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d`](https://suiscan.xyz/mainnet/account/0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d) |
+| **MemWal Package ID (Mainnet)** | [`0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5`](https://suiscan.xyz/mainnet/object/0xe7c16fbea0560e7057e2bf7422feaa4fb313749fc69c9e9092fac7a33b81d7f5) |
+| **MemWalAccount Object ID** | [`0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223`](https://suiscan.xyz/mainnet/object/0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223) |
+| **`create_account` Mainnet Tx** | [`BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX`](https://suiscan.xyz/mainnet/tx/BgV89J5qHbSLusCrcYXatxaDeJCpUBygWdBoDbFusJFX) |
+| **`add_delegate_key` Mainnet Tx** | [`9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S`](https://suiscan.xyz/mainnet/tx/9b9bWSAgJoBjRj98vu2psfJfB9WsiMQz3HRKnFNy7s7S) |
+| **`0.05 SUI x402` Settlement Tx** | [`5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N`](https://suiscan.xyz/mainnet/tx/5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N) |
 | **Walrus Blob #1 (`mem-001` NAVI Squeeze)** | `thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0` |
 | **Walrus Blob #2 (`mem-002` Cetus Breakout)** | `1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM` |
 | **Walrus Blob #3 (`mem-003` Scallop Wick)** | `qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E` |
