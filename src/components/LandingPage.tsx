@@ -43,51 +43,52 @@ export const LandingPage: React.FC<LandingPageProps> = ({
       step: 1,
       tag: '01 · YOU PROPOSE A TRADE',
       title: 'You want to go 15x Long on SUI',
-      desc: 'SUI is pumping and you (or your trading bot) want to ape into a 15x leveraged long on DeepBook.',
-      badge: 'Unchecked Order',
+      desc: 'Before your order hits Cetus or DeepBook, RogueTrader reads the live market state vector (pool depth, borrow load, orderbook skew) via Tatum.',
+      badge: 'Reading Entry State',
       badgeColor: 'text-amber-500 bg-amber-500/10 border-amber-500/20',
       terminal: [
-        '> Proposed trade: Long SUI/USDC at 15x leverage',
-        '  Position size: $104,200',
-        '  Wipeout price: $1.98 (a 5.4% dip liquidates everything)',
-        '  Status: Waiting for RogueTrader check…'
+        '> Proposed trade: Long SUI/USDC at 15x ($104,200)',
+        '  1. Pool Depth:   $14.2M on Cetus (4.2% impact)',
+        '  2. Borrow Load:  78.4% on NAVI (crowded longs)',
+        '  3. Orderbook:    0.62x bid/ask (thin support)',
+        '  4. Wipeout Drop: 6.6% (15x leverage)'
       ]
     },
     {
       step: 2,
       tag: '02 · WE CHECK PAST BLOWUPS',
-      title: 'Wally finds an identical past trap',
-      desc: 'In under a second, RogueTrader searches past trades stored on Walrus and finds the exact same setup from Oct 14—which dumped 8% and liquidated longs.',
-      badge: '96% Match to Past Blowup',
+      title: 'Wally matches the market fingerprint on Walrus',
+      desc: 'In under a second, RogueTrader compares that market state against past trade snapshots stored on Walrus—finding an identical Oct 14 borrow squeeze.',
+      badge: '96% State Match on Walrus',
       badgeColor: 'text-sky-400 bg-sky-400/10 border-sky-400/20',
       terminal: [
-        '> Searching past trades on Walrus…',
-        '  Found match: Oct 14 SUI breakout trap (96.4% similar)',
-        '  What happened last time: Borrow rates spiked >78%, then price dumped -8.2% in 40m',
-        '  Checked in: 0.9s on live Sui mainnet',
-        '  Status: WARNING — REPEATED TRAP DETECTED'
+        '> Matching entry state vector against Walrus…',
+        '  Matched blob: Oct 14 NAVI borrow squeeze (96.4% match)',
+        '  Past regime move: Wicked -8.2% in 40m before recovering',
+        '  Checked in: 0.9s on live Sui Mainnet',
+        '  Status: DANGER — 6.6% BUFFER WILL GET LIQUIDATED'
       ]
     },
     {
       step: 3,
       tag: '03 · YOUR SIZE IS PROTECTED',
-      title: 'Leverage is cut from 15x down to 2x',
-      desc: 'Instead of letting you repeat the same mistake at 15x and get wiped out on a wick, RogueTrader automatically scales the trade down to a safe 2x.',
+      title: 'Leverage is scaled from 15x down to 2x',
+      desc: 'Because that microstructure regime historically wicked -8.2%, RogueTrader automatically scales your leverage down so your wipeout buffer is wider than the wick.',
       badge: 'Saved from Wipeout',
       badgeColor: 'text-pos bg-pos/10 border-pos/20',
       terminal: [
-        '> Applying pre-trade protection…',
-        '  Blind confidence without memory: 88% (reckless)',
-        '  Adjusted confidence with memory: 46% (cautious)',
-        '  Action: Cut leverage from 15x -> 2x',
-        '  Result: Saved $92,400 from getting liquidated on the dip'
+        '> Scaling leverage to survive -8.2% regime wick…',
+        '  Blind confidence (no memory): 88% at 15x (6.6% buffer)',
+        '  Protected size (Walrus):      46% at 2x  (50.0% buffer)',
+        '  Tatum Wallet Monitor: Auto-saves outcome snapshot to Walrus',
+        '  Result: Saved $92,400 from getting liquidated on the wick'
       ]
     },
     {
       step: 4,
       tag: '04 · BOTS USE IT AUTOMATICALLY',
       title: 'Any trading bot can call this for 0.05 SUI',
-      desc: 'Running an automated trading bot? Point it at RogueTrader before it signs a trade. It pays 0.05 SUI per check over HTTP and gets the safe size back.',
+      desc: 'Running an automated trading bot? Point it at RogueTrader before it signs a trade. It pays 0.05 SUI per check over HTTP (x402) and gets the safe size back.',
       badge: 'Bot Guard Ready',
       badgeColor: 'text-pos bg-pos/10 border-pos/20',
       terminal: [

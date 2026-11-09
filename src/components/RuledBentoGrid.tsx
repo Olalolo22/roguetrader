@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ArrowRight, CornerDownRight, Check, Copy, Activity, ShieldCheck } from 'lucide-react';
-import type { TatumMarketState, EpistemicEvaluation, WalrusMemoryItem } from '../types';
+import type { TatumMarketState, EpistemicEvaluation } from '../types';
 import { agentEngine, MARKET_REGIMES } from '../services/agentEngine';
 import { walrusMemory } from '../services/walrusMemory';
 import { x402Payment } from '../services/x402Payment';
@@ -41,7 +41,6 @@ const shortHash = (h: string) => {
   const s = h.replace(/^0x/, '');
   return s.length > 8 ? `${s.slice(0, 4)}…${s.slice(-2)}` : s;
 };
-const isSeeded = (m: WalrusMemoryItem) => !m.id.startsWith('wal-') && !m.id.startsWith('relayer-');
 
 interface RuledBentoGridProps {
   marketState: TatumMarketState | null;
@@ -102,7 +101,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
   const [isSettling, setIsSettling] = useState(false);
   const [settledTx, setSettledTx] = useState<string | null>(null);
   const [draftLesson, setDraftLesson] = useState(
-    'Nov 2026 [Cetus $14.2M · Borrow 78.4% · Bid/Ask 0.62x]: Long SUI 2.14, 3x — wicked -8.2% in 40m. Keep buffer >12% (max 2x).'
+    'Long SUI 3x [Borrow 78.4% · Book 0.62x] -> Wicked -8.2% in 40m. Cap at 2x.'
   );
   const [isSavingLesson, setIsSavingLesson] = useState(false);
   const [savedBlobId, setSavedBlobId] = useState<string | null>(null);
@@ -128,7 +127,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
       const regime = MARKET_REGIMES.find(r => r.id === trade.regimeId)!;
       setResult({ trade, evaluation, outcomeLabel: regime.outcomeLabel });
       setDraftLesson(
-        `Nov 2026 [Depth ${regime.cetusDepth} · Borrow ${regime.naviBorrowPct}% · ${regime.deepBookSpread}]: ${val} — ${regime.outcomeLabel}. Scaled ${trade.leverage}x down to safe buffer.`
+        `${val} [Borrow ${regime.naviBorrowPct}% · Vol ${regime.cetusVolume1h}] -> ${regime.outcomeLabel}`
       );
     } finally {
       setStage(null);
@@ -239,24 +238,47 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               ))}
             </div>
 
-            {/* Market State Fingerprint (Microstructure Vector at Entry) */}
-            <div className="mt-4 flex flex-wrap items-center gap-1.5 rounded-lg border border-line bg-deep/70 px-3 py-2 text-[11px] font-mono">
-              <span className="text-fg-3">Entry state vector:</span>
-              <span className="keycap">
-                <span>venue</span> Cetus {result?.evaluation.cetusVolume1h ?? '$14.2M'}
-              </span>
-              <span className="keycap">
-                <span>borrow</span> {result?.evaluation.naviBorrowPct ?? 78.4}% NAVI
-              </span>
-              <span className="keycap">
-                <span>book</span> {result?.evaluation.deepBookSpreadBps ?? '0.62x bid/ask'}
-              </span>
-              <span className="keycap text-neg">
-                <span>regime wick</span> -8.2% (needs &gt;12% buffer)
-              </span>
+            {/* Market State Fingerprint (4-Column Visual Strip) */}
+            <div className="mt-4 overflow-hidden rounded-xl border border-line-2 bg-raised/70">
+              <div className="flex items-center justify-between border-b border-line px-3 py-1.5 text-[11px] font-mono">
+                <span className="font-medium text-fg">1. Market State Checked at Entry</span>
+                <span className="text-fg-3">Live Sui DEX + Lending State</span>
+              </div>
+              <div className="grid grid-cols-2 divide-x divide-y divide-line sm:grid-cols-4 sm:divide-y-0">
+                <div className="p-2.5">
+                  <div className="font-mono text-[10px] uppercase text-fg-3">Pool Volume (1h)</div>
+                  <div className="num mt-0.5 text-xs font-medium text-fg">
+                    {result?.evaluation.cetusVolume1h ?? '$14.2M (+18%)'}
+                  </div>
+                </div>
+                <div className="p-2.5">
+                  <div className="font-mono text-[10px] uppercase text-fg-3">Borrow Crowding</div>
+                  <div className={`num mt-0.5 text-xs font-medium ${(result?.evaluation.naviBorrowPct ?? 78.4) > 70 ? 'text-neg' : 'text-pos'}`}>
+                    {result?.evaluation.naviBorrowPct ?? 78.4}% NAVI
+                  </div>
+                </div>
+                <div className="p-2.5">
+                  <div className="font-mono text-[10px] uppercase text-fg-3">Orderbook Skew</div>
+                  <div className="num mt-0.5 truncate text-xs font-medium text-fg">
+                    {result?.evaluation.deepBookSpreadBps ?? '1.62x Imbalance'}
+                  </div>
+                </div>
+                <div className="p-2.5">
+                  <div className="font-mono text-[10px] uppercase text-fg-3">Past Regime Move</div>
+                  <div className={`num mt-0.5 truncate text-xs font-medium ${result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION' ? 'text-pos' : 'text-neg'}`}>
+                    {result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION'
+                      ? '+12.4% trend'
+                      : result?.evaluation.actualOutcome === 'ORACLE_WICK_REVERSAL'
+                        ? '40s oracle lag'
+                        : result?.trade.regimeId === 'meme-euphoria-trap'
+                          ? '-16% bull-trap'
+                          : '-8.2% squeeze'}
+                  </div>
+                </div>
+              </div>
             </div>
 
-            {/* The Intercept Comparison Cards with SVG Connector */}
+            {/* The Intercept Comparison Cards */}
             <div className="relative mt-3 grid grid-cols-1 gap-3 sm:grid-cols-2">
               {/* Without Memory */}
               <div className="rounded-xl border border-line bg-deep p-4">
@@ -264,7 +286,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                   <span>Without memory</span>
                   <span className="num text-neg">Blind sizing</span>
                 </div>
-                <div className="num mt-2 text-base font-medium text-fg">
+                <div className="num mt-1.5 text-lg font-medium text-fg">
                   {result ? `${result.trade.side} ${result.trade.asset}, ${result.trade.leverage}x` : 'Long SUI, 3x'}
                 </div>
                 <div className="mt-3 space-y-1.5 font-mono text-xs">
@@ -277,18 +299,15 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                     <span className="num text-fg">{liq(tradeLev)}</span>
                   </div>
                 </div>
-                <p className="mt-3 border-t border-line pt-2 text-[11px] text-fg-3">
-                  Sizes on today's chart alone. Ignores what happened last time.
-                </p>
               </div>
 
               {/* With Walrus Memory (Intercept Card) */}
-              <div className="rounded-xl border border-line-2 bg-raised p-4">
+              <div className="rounded-xl border border-pos/40 bg-raised p-4 shadow-[0_0_20px_rgba(76,195,138,0.06)]">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-fg-3">With RogueTrader memory</span>
+                  <span className="font-medium text-fg">With RogueTrader memory</span>
                   <span className="num text-pos font-medium">Protected</span>
                 </div>
-                <div className="num mt-2 text-base font-medium text-fg">
+                <div className="num mt-1.5 text-lg font-medium text-pos">
                   {result ? `${result.trade.side} ${result.trade.asset}, ${afterLev}x` : 'Long SUI, 2x'}
                 </div>
                 <div className="mt-3 space-y-1.5 font-mono text-xs">
@@ -298,7 +317,6 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                       <span className="line-through text-fg-3">{beforeConf}%</span>
                       <ArrowRight size={10} className="text-fg-3" />
                       <span className="text-fg">{afterConf}%</span>
-                      <span className="text-neg">(-{beforeConf - afterConf} pts)</span>
                     </span>
                   </div>
                   <div className="flex justify-between text-fg-2">
@@ -310,31 +328,20 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                     </span>
                   </div>
                 </div>
-                <p className="mt-3 border-t border-line pt-2 text-[11px] text-fg-3">
-                  Found a matching past blowup on Walrus and cut leverage automatically.
-                </p>
               </div>
             </div>
 
-            {/* Recalled Memory Receipt */}
+            {/* Recalled Memory Receipt (Compact) */}
             {m && (
-              <div className="mt-3 rounded-lg border border-line bg-deep p-3 font-mono">
+              <div className="mt-3 rounded-xl border border-line bg-deep p-3 font-mono">
                 <div className="flex items-start gap-2">
-                  <CornerDownRight size={14} className="mt-0.5 shrink-0 text-fg-3" />
-                  <div className="space-y-1 text-xs text-fg-2 leading-relaxed">
-                    <p>
-                      <span className="text-fg font-medium">Past blowup recalled from Walrus: </span>
-                      {m.text}
-                    </p>
-                    {result?.evaluation.walrusRationale && result.evaluation.walrusRationale !== m.text && (
-                      <p className="text-pos">
-                        <span className="font-medium">Guard adjustment: </span>
-                        {result.evaluation.walrusRationale}
-                      </p>
-                    )}
-                  </div>
+                  <CornerDownRight size={14} className="mt-0.5 shrink-0 text-pos" />
+                  <p className="text-xs text-fg-2 leading-relaxed">
+                    <span className="text-fg font-medium">2. Matched Walrus Memory ({Math.round(m.similarityScore * 100)}%): </span>
+                    {result?.evaluation.walrusRationale || m.text}
+                  </p>
                 </div>
-                <div className="mt-2.5 flex flex-wrap items-center gap-2 pl-5 text-[11px]">
+                <div className="mt-2 flex flex-wrap items-center gap-2 pl-5 text-[11px]">
                   <span className="keycap">
                     <span>walrus</span> {shortHash(m.blobId)}
                   </span>
@@ -343,39 +350,38 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                       <span>block</span> #{m.tatumCheckpoint.toLocaleString('en-US')}
                     </span>
                   )}
-                  <span className="text-fg-3">
-                    {Math.round(m.similarityScore * 100)}% match · checked in {result?.evaluation.recallLatencyMs}ms
-                  </span>
-                  {isSeeded(m) && <span className="text-fg-3">· from historical backtest</span>}
+                  <span className="text-fg-3">checked in {result?.evaluation.recallLatencyMs}ms</span>
                 </div>
               </div>
             )}
 
-            {/* Auto-Captured Post-Trade Lesson via Tatum Wallet Monitor (Editable before saving to Walrus) */}
-            <form onSubmit={handleSaveLesson} className="mt-3 rounded-lg border border-line bg-deep/60 p-3">
+            {/* Auto-Captured Post-Trade Lesson via Tatum Wallet Monitor (High-Visibility Card) */}
+            <form onSubmit={handleSaveLesson} className="mt-3 rounded-xl border border-pos/35 bg-pos/[0.04] p-3.5">
               <div className="flex flex-wrap items-center justify-between gap-2 text-xs">
-                <span className="flex items-center gap-1.5 font-medium text-fg">
-                  <span className="live-dot" aria-hidden />
-                  <span>Tatum Wallet Monitor (0x4f82…12bc)</span>
-                  <span className="font-normal text-fg-3">· Auto-indexed state snapshot (editable)</span>
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className="inline-flex items-center gap-1.5 rounded-md border border-pos/30 bg-pos/10 px-2 py-0.5 font-mono text-[10px] font-medium text-pos">
+                    <span className="live-dot" aria-hidden />
+                    3. TATUM WALLET MONITOR · 0x4f82…12bc
+                  </span>
+                  <span className="text-fg-2 hidden sm:inline">Auto-saves trade outcome (edit note optional)</span>
+                </div>
                 {savedBlobId && (
-                  <span className="keycap text-pos">
+                  <span className="keycap border-pos text-pos">
                     <span>saved on walrus</span> {shortHash(savedBlobId)}
                   </span>
                 )}
               </div>
-              <div className="mt-2 flex flex-col gap-2 sm:flex-row">
+              <div className="mt-2.5 flex flex-col gap-2 sm:flex-row">
                 <input
                   value={draftLesson}
                   onChange={e => setDraftLesson(e.target.value)}
                   aria-label="Edit auto-captured trade lesson"
-                  className="h-9 min-w-0 flex-1 rounded-md border border-line bg-card px-2.5 text-xs text-fg focus:border-line-2 focus:outline-none"
+                  className="h-9 min-w-0 flex-1 rounded-lg border border-line-2 bg-card px-3 text-xs text-fg focus:border-pos focus:outline-none"
                 />
                 <button
                   type="submit"
                   disabled={isSavingLesson || !draftLesson.trim()}
-                  className="h-9 shrink-0 rounded-md border border-line-2 bg-raised px-3 text-xs font-medium text-fg transition-colors hover:bg-line-2 disabled:opacity-50 cursor-pointer"
+                  className="btn-primary h-9 shrink-0 rounded-lg px-3.5 text-xs font-medium transition-colors disabled:opacity-50 cursor-pointer"
                 >
                   {isSavingLesson ? 'Saving…' : 'Save Snapshot to Walrus'}
                 </button>
