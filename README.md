@@ -47,6 +47,7 @@ You Enter: "Long SUI 2.14, 3x"
 - **Fast Pre-Trade Reads vs. Async Post-Trade Writes:**
   - **Pre-Trade Check (`memwal.recall` ~900 ms):** Vector similarity search runs in under 1 second before sizing a swing or directional position (`1x–5x`).
   - **Post-Trade Lesson (`memwal.remember` ~20 s):** Erasure-coding and committing blobs to Walrus takes 15–25 seconds, so RogueTrader only writes new trade lessons asynchronously *after* a position closes—never blocking trade execution.
+- **Zero-Custody Delegate Key Architecture (For Judge Testing):** The live web desk comes pre-connected to our Sui Mainnet trader account (`0xaff0…4b4d`, `MemWalAccount` `0xf7bb…e223`) using a scoped, zero-balance Ed25519 MemWal delegate key (`0x9a49…7ff8`) so judges can test live Mainnet vector recall and memory writes in 1 click without connecting a wallet, while wallet custody keys remain strictly offline. In production multi-tenant deployments, client requests route through a backend relayer proxy.
 
 ### 2. Tatum Sui Mainnet Gateway (`sui-mainnet.gateway.tatum.io`)
 - **Live On-Chain Context & Auto-Indexed Wallet History:** Pulls real-time Sui Mainnet block height (`sui_getLatestCheckpointSequenceNumber`), live SUI reference price, and settled wallet transactions through Tatum's RPC gateway so post-trade outcomes are captured automatically (with optional trader annotation before committing to Walrus).

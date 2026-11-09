@@ -55,7 +55,7 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="ml-auto flex min-w-0 items-center gap-2 sm:gap-3">
           {marketState && (
-            <div className="hidden items-center gap-3 sm:flex">
+            <div className="hidden items-center gap-2.5 lg:flex">
               <span className="num text-meta text-fg-2">
                 SUI ${marketState.suiPrice.toFixed(3)}{' '}
                 <span className={marketState.change24h >= 0 ? 'text-pos' : 'text-neg'}>
@@ -70,6 +70,18 @@ export const Header: React.FC<HeaderProps> = ({
               </span>
             </div>
           )}
+
+          {/* Connected Demo Trader Account Badge */}
+          <button
+            type="button"
+            onClick={onOpenSettings}
+            title="Pre-connected Sui Mainnet trader desk (MemWalAccount 0xf7bb…e223) for instant 1-click judge testing"
+            className="keycap cursor-pointer transition-colors hover:border-line-2 hover:text-fg"
+          >
+            <span className="live-dot" aria-hidden />
+            <span className="hidden sm:inline">Demo trader ·</span>
+            <span>0xaff0…4b4d</span>
+          </button>
 
           {/* Dark / Light Theme Toggle Button */}
           <button
