@@ -67,6 +67,72 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     weightImpact: '+11% Confidence',
     tatumCheckpoint: 100240188,
     latencyMs: 860
+  },
+  {
+    id: 'mem-007',
+    blobId: 'kxziGvQVIZ25vsfvvMxZo9GSzdeQAhGJgL6Z-CAXBcs',
+    text: 'Oct 28 2026 [Venue: Cetus vs DeepBook | Volatility: 4.8% 1h | NAVI Borrow: 76.2%]: SUI flash dip through DeepBook bid vacuum. Rapid stop-hunt wicked longs before bouncing. Mandate: Require orderbook depth > 2x position size.',
+    category: 'FAILURE_CASE',
+    timestamp: '2026-10-28T11:15:00Z',
+    similarityScore: 0.87,
+    weightImpact: '-26% Confidence',
+    tatumCheckpoint: 100212040,
+    latencyMs: 895
+  },
+  {
+    id: 'mem-008',
+    blobId: 'oceCZClMB-mLNKFGNhyAyqHPm7i-GiTaWeXdcddveAE',
+    text: 'Oct 30 2026 [Venue: NAVI / Scallop Flash-Loan | Borrow: 82%]: Large flash-loan liquidity shift temporarily distorted lending pool APY to 140%, forcing automated vault deleveraging. Mandate: Filter out flash-loan-induced APY spikes.',
+    category: 'FAILURE_CASE',
+    timestamp: '2026-10-30T14:45:00Z',
+    similarityScore: 0.89,
+    weightImpact: '-30% Confidence',
+    tatumCheckpoint: 100185900,
+    latencyMs: 910
+  },
+  {
+    id: 'mem-009',
+    blobId: 'VyTfLjzJqL7MBYOufVlPBvD2WFs54HxoztDQHCxXdzk',
+    text: 'Nov 02 2026 [Venue: Cetus SUI/USDC | Spread: 0.9 bps | Vol: $31M (+45%)]: Clean trend continuation post-consolidation with low leverage (<40%). Long positions scaled safely up to 3x with zero liquidation stress.',
+    category: 'CATALYST',
+    timestamp: '2026-11-02T08:30:00Z',
+    similarityScore: 0.93,
+    weightImpact: '+18% Confidence',
+    tatumCheckpoint: 100150220,
+    latencyMs: 875
+  },
+  {
+    id: 'mem-010',
+    blobId: 'F6pMrdzRAen9NQZzsADr7Lj8bUAr8WXzzy_9OwFwKHs',
+    text: 'Nov 04 2026 [Venue: Cetus Meme Pools | Scallop Borrow: 86%]: Overleveraged longs on high-beta meme tokens experienced a -22% cascade liquidation within 15 minutes. Mandate: Cap meme asset leverage at 1x spot.',
+    category: 'FAILURE_CASE',
+    timestamp: '2026-11-04T19:10:00Z',
+    similarityScore: 0.95,
+    weightImpact: '-40% Confidence',
+    tatumCheckpoint: 100115000,
+    latencyMs: 920
+  },
+  {
+    id: 'mem-011',
+    blobId: '-geRj7clDG5AxtiNpmz35jpoRrUg0LcavGuLAYsnjoM',
+    text: 'Nov 06 2026 [Venue: Sui Checkpoint Lag | Oracle Tick: Delayed 25s]: Network congestion caused temporary 25s delay in Pyth price push on Cetus CLMM. Directional market orders suffered 1.2% slippage. Mandate: Enforce limit orders only during congestion.',
+    category: 'REGIME_SHIFT',
+    timestamp: '2026-11-06T15:20:00Z',
+    similarityScore: 0.88,
+    weightImpact: '-25% Confidence',
+    tatumCheckpoint: 100085440,
+    latencyMs: 940
+  },
+  {
+    id: 'mem-012',
+    blobId: 'uCWoMfbtNImcsKdyhkHh5Yzql2z3ehK_v6HteE3KJIQ',
+    text: 'Nov 08 2026 [Venue: DeepBook v3 Wholesale | Bid Depth: $8.2M]: Wall of institutional bids absorbed heavy sell pressure at $2.02, preventing cascading liquidations across Sui perps. Mandate: Re-enable trend-following above verified wall.',
+    category: 'CATALYST',
+    timestamp: '2026-11-08T13:40:00Z',
+    similarityScore: 0.90,
+    weightImpact: '+16% Confidence',
+    tatumCheckpoint: 100045100,
+    latencyMs: 885
   }
 ];
 

@@ -102,7 +102,7 @@ curl https://api.roguetrader.xyz/api/x402/check \
 
 ## Verified Sui Mainnet & Walrus Mainnet Proof (`mainnet-proof.json`)
 
-All on-chain account registrations, delegate keys, HTTP 402 (`x402`) micropayment settlements, and Walrus decentralized memory blobs are live on **Sui Mainnet** and **Walrus Mainnet** (`relayer.memory.walrus.xyz`, namespace `roguetrader`):
+All on-chain account registrations, delegate keys, HTTP 402 (`x402`) micropayment settlements, and **12 Walrus decentralized memory blobs** (exceeding the hackathon's "at least 10 writes" requirement) are live on **Sui Mainnet** and **Walrus Mainnet** (`relayer.memory.walrus.xyz`, namespace `roguetrader`):
 
 | Component | Mainnet Identifier / Digest |
 | :--- | :--- |
@@ -118,12 +118,18 @@ All on-chain account registrations, delegate keys, HTTP 402 (`x402`) micropaymen
 | **Walrus Blob #4 (`mem-004` Pyth Latency)** | `BamlyvKWqCgUcjK_kQ2YiM94grCFrkl5u1f3fRYA2z8` |
 | **Walrus Blob #5 (`mem-005` Social Trap)** | `gi3MnkJ1wY-f7nPs1ODkjnx7D0CJBdKixFqH1LoNxW0` |
 | **Walrus Blob #6 (`mem-006` Whale Absorption)** | `u29gxoSNeyIB6DOBR-GL1rieV6O3lXFfwdfomb2ytHY` |
+| **Walrus Blob #7 (`mem-007` Orderbook Vacuum Wick)** | `kxziGvQVIZ25vsfvvMxZo9GSzdeQAhGJgL6Z-CAXBcs` |
+| **Walrus Blob #8 (`mem-008` Flash-Loan Lending Spike)** | `oceCZClMB-mLNKFGNhyAyqHPm7i-GiTaWeXdcddveAE` |
+| **Walrus Blob #9 (`mem-009` Cetus Breakout Continuation)** | `VyTfLjzJqL7MBYOufVlPBvD2WFs54HxoztDQHCxXdzk` |
+| **Walrus Blob #10 (`mem-010` Meme Token Leverage Cascade)** | `F6pMrdzRAen9NQZzsADr7Lj8bUAr8WXzzy_9OwFwKHs` |
+| **Walrus Blob #11 (`mem-011` Oracle Push Delay)** | `-geRj7clDG5AxtiNpmz35jpoRrUg0LcavGuLAYsnjoM` |
+| **Walrus Blob #12 (`mem-012` DeepBook Wholesale Support Wall)** | `uCWoMfbtNImcsKdyhkHh5Yzql2z3ehK_v6HteE3KJIQ` |
 
 ---
 
 ## Interface & Product Design
 
-- **4-Second Consumer Entry (`Overview` Tab):** Interactive 4-step walkthrough and **Wally**—our Pre-Trade Guard mascot—showing live Sui status, `<1s` check speed, `6 past blowups` on Walrus, and `74%` overconfidence reduction without overwhelming jargon.
+- **4-Second Consumer Entry (`Overview` Tab):** Interactive 4-step walkthrough and **Wally**—our Pre-Trade Guard mascot—showing live Sui status, `<1s` check speed, `12 past blowups` on Walrus, and `74%` overconfidence reduction without overwhelming jargon.
 - **Adaptive Dark & Light Mode:** Graphite execution desk (`#090a0f`) and crisp daylight mode (`#f8fafc`) with one-click theme switching.
 - **1-Click Trade Check (`Check trade` Tab):** Side-by-side comparison of **Without memory (Blind sizing)** vs. **With RogueTrader memory (Protected)** with live Gemini LLM + Walrus evaluation.
 

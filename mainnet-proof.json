@@ -46,29 +46,72 @@
       "blob_id": "u29gxoSNeyIB6DOBR-GL1rieV6O3lXFfwdfomb2ytHY",
       "status": "done",
       "namespace": "roguetrader"
+    },
+    {
+      "id": "b5918f08-44c4-4a78-9bbd-444b000abf26",
+      "job_id": "b5918f08-44c4-4a78-9bbd-444b000abf26",
+      "blob_id": "kxziGvQVIZ25vsfvvMxZo9GSzdeQAhGJgL6Z-CAXBcs",
+      "owner": "0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "0b609b90-7dee-451c-93a3-70f673154dee",
+      "job_id": "0b609b90-7dee-451c-93a3-70f673154dee",
+      "blob_id": "oceCZClMB-mLNKFGNhyAyqHPm7i-GiTaWeXdcddveAE",
+      "owner": "0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "8ae819bf-082f-4326-b257-088464de7faa",
+      "job_id": "8ae819bf-082f-4326-b257-088464de7faa",
+      "blob_id": "VyTfLjzJqL7MBYOufVlPBvD2WFs54HxoztDQHCxXdzk",
+      "owner": "0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "904062ab-bba7-484e-afc6-95072c8f35aa",
+      "job_id": "904062ab-bba7-484e-afc6-95072c8f35aa",
+      "blob_id": "F6pMrdzRAen9NQZzsADr7Lj8bUAr8WXzzy_9OwFwKHs",
+      "owner": "0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "d6d02853-0233-4c62-833c-06786fd03705",
+      "job_id": "d6d02853-0233-4c62-833c-06786fd03705",
+      "blob_id": "-geRj7clDG5AxtiNpmz35jpoRrUg0LcavGuLAYsnjoM",
+      "owner": "0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d",
+      "namespace": "roguetrader"
+    },
+    {
+      "id": "d56411f2-8f23-469c-a7f0-b95707f89ce4",
+      "job_id": "d56411f2-8f23-469c-a7f0-b95707f89ce4",
+      "blob_id": "uCWoMfbtNImcsKdyhkHh5Yzql2z3ehK_v6HteE3KJIQ",
+      "owner": "0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d",
+      "namespace": "roguetrader"
     }
   ],
   "recallVerification": {
     "results": [
       {
+        "blob_id": "F6pMrdzRAen9NQZzsADr7Lj8bUAr8WXzzy_9OwFwKHs",
+        "text": "Nov 04 2026 [Venue: Cetus Meme Pools | Scallop Borrow: 86%]: Overleveraged longs on high-beta meme tokens experienced a -22% cascade liquidation within 15 minutes. Mandate: Cap meme asset leverage at 1x spot.",
+        "distance": 0.20825986571063515,
+        "created_at": "2026-11-09T16:20:01.888010Z"
+      },
+      {
         "blob_id": "thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0",
         "text": "Oct 14 2026 [Venue: Cetus $14.2M | Borrow: 78.4% NAVI | Book: 0.62x Bid/Ask]: Failed SUI breakout above $2.15. High borrow crowding (>75%) triggered an -8.2% long-squeeze cascade 40m later. Mandate: Cut leverage to 2x (keep wipeout buffer >12%).",
-        "distance": 0.21592432067035516,
+        "distance": 0.43002869992473325,
         "created_at": "2026-11-09T15:38:32.071223Z"
       },
       {
-        "blob_id": "1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM",
-        "text": "Oct 16 2026 [Venue: Cetus $24.1M | Borrow: 48.2% NAVI | Book: 1.8 bps Spread]: SUI/USDC sustained +12.4% institutional breakout over 24h. Low borrow crowding (<52%) and DeepBook spot bid absorption confirmed real trend.",
-        "distance": 0.2660618158599467,
-        "created_at": "2026-11-09T15:38:30.047460Z"
-      },
-      {
-        "blob_id": "qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E",
-        "text": "Oct 18 2026 [Venue: CETUS/SUI | Pool Depth: Shallow | Scallop Borrow: 74%]: False reversal wick on CETUS/SUI. Thin liquidation pool depth caused artificial oracle wick that stopped out leveraged longs.",
-        "distance": 0.4145032496924409,
-        "created_at": "2026-11-09T15:38:30.985613Z"
+        "blob_id": "oceCZClMB-mLNKFGNhyAyqHPm7i-GiTaWeXdcddveAE",
+        "text": "Oct 30 2026 [Venue: NAVI / Scallop Flash-Loan | Borrow: 82%]: Large flash-loan liquidity shift temporarily distorted lending pool APY to 140%, forcing automated vault deleveraging. Mandate: Filter out flash-loan-induced APY spikes.",
+        "distance": 0.4346848498052015,
+        "created_at": "2026-11-09T16:19:12.245058Z"
       }
     ],
     "total": 3
-  }
+  },
+  "totalMemoriesOnMainnet": 12
 }

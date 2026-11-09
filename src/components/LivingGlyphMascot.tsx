@@ -161,7 +161,7 @@ export const LivingGlyphMascot: React.FC<LivingGlyphMascotProps> = ({
                 isActive ? 'border-pos text-pos shadow-[0_0_8px_rgba(76,195,138,0.3)]' : ''
               }`}
             >
-              6 past blowups
+              12 past blowups
             </span>
             <span className="text-[8px] sm:text-[9px] font-mono text-fg-3">remembered</span>
           </div>

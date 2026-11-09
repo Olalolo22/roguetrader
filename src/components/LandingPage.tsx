@@ -114,7 +114,7 @@ export const LandingPage: React.FC<LandingPageProps> = ({
               <span className="live-dot" />
               <span className="font-medium text-fg">Live on Sui</span>
               <span className="text-fg-3">·</span>
-              <span className="text-fg-2">6 past blowups remembered</span>
+              <span className="text-fg-2">12 past blowups remembered</span>
               <span className="hidden sm:inline text-fg-3">·</span>
               <span className="hidden sm:inline num text-pos">
                 block #{marketState?.latestCheckpoint.toLocaleString() ?? '100,186,772'}
