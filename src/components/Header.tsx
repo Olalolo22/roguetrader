@@ -71,15 +71,15 @@ export const Header: React.FC<HeaderProps> = ({
             </div>
           )}
 
-          {/* Connected Demo Trader Account Badge */}
+          {/* Connected Sui Mainnet Trader Account Badge */}
           <button
             type="button"
             onClick={onOpenSettings}
-            title="Pre-connected Sui Mainnet trader desk (MemWalAccount 0xf7bb…e223) for instant 1-click judge testing"
+            title="Connected Sui Mainnet trader desk (MemWalAccount 0xf7bb…e223)"
             className="keycap cursor-pointer transition-colors hover:border-line-2 hover:text-fg"
           >
             <span className="live-dot" aria-hidden />
-            <span className="hidden sm:inline">Demo trader ·</span>
+            <span className="hidden sm:inline">Sui Mainnet ·</span>
             <span>0xaff0…4b4d</span>
           </button>
 
