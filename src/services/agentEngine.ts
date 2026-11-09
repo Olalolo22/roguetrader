@@ -35,7 +35,7 @@ export const MARKET_REGIMES: MarketRegimePreset[] = [
     conditionDescription: 'High spot volume breakout accompanied by extreme leverage borrow utilization (>75%)',
     statelessConfidence: 88,
     statelessStance: 'AGGRESSIVE 5X LONG',
-    statelessQuote: 'Raw LLM: Cetus 1h volume crossed $14M! Breakout confirmed above $2.14, deploying maximum leverage.',
+    statelessQuote: 'Raw LLM: Cetus 1h volume crossed $14M! Breakout confirmed above $0.85, deploying maximum leverage.',
     searchQuery: 'SUI breakout Cetus volume >14M NAVI borrow utilization >75% liquidation',
     calibratedConfidence: 46,
     calibratedStance: 'CAUTIOUS SPOT ACCUMULATION',

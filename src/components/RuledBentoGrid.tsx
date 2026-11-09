@@ -6,7 +6,7 @@ import { walrusMemory } from '../services/walrusMemory';
 import { x402Payment } from '../services/x402Payment';
 
 const EXAMPLES = [
-  'Long SUI 2.14, 3x',
+  'Long SUI 0.85, 3x',
   'Long CETUS on social spike, 5x',
   'Buy SUI Cetus discount at epoch boundary, 2x',
   'Long SUI breakout, 1x spot'
@@ -51,7 +51,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
   marketState,
   onInterceptChange,
 }) => {
-  const [input, setInput] = useState('Long SUI 2.14, 3x');
+  const [input, setInput] = useState('Long SUI 0.85, 3x');
   const [stage, setStage] = useState<string | null>(null);
   const [result, setResult] = useState<{
     trade: ParsedTrade;
@@ -59,7 +59,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
     outcomeLabel: string;
   } | null>(() => {
     // Initial seeded display for instant 20s comprehension
-    const t = parseTrade('Long SUI 2.14, 3x');
+    const t = parseTrade('Long SUI 0.85, 3x');
     const regime = MARKET_REGIMES[0];
     return {
       trade: t,
@@ -211,7 +211,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               <input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                placeholder="Long SUI 2.14, 3x"
+                placeholder="Long SUI 0.85, 3x"
                 className="num h-11 min-w-0 flex-1 rounded-lg border border-line bg-raised px-3.5 text-sm text-fg placeholder:text-fg-3 focus:border-line-2 focus:outline-none"
               />
               <button
@@ -485,22 +485,26 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                 </dd>
               </div>
               <div className="flex justify-between border-b border-line/60 pb-2">
-                <dt className="text-fg-3">SUI Price</dt>
+                <dt className="text-fg-3">SUI Price (Live DEX)</dt>
                 <dd className="num text-fg">
-                  ${marketState?.suiPrice.toFixed(3) || '2.140'}{' '}
+                  ${marketState?.suiPrice.toFixed(3) || '0.849'}{' '}
                   <span className={marketState && marketState.change24h >= 0 ? 'text-pos' : 'text-neg'}>
                     {marketState && marketState.change24h >= 0 ? '+' : ''}
-                    {marketState?.change24h.toFixed(2) || '+4.12'}%
+                    {marketState?.change24h.toFixed(2) || '+0.57'}%
                   </span>
                 </dd>
               </div>
               <div className="flex justify-between border-b border-line/60 pb-2">
-                <dt className="text-fg-3">Cetus SUI/USDC Depth</dt>
-                <dd className="num text-fg">$24.8M</dd>
+                <dt className="text-fg-3">Sui DEX Pool Liquidity</dt>
+                <dd className="num text-fg">
+                  ${((marketState?.dexLiquidityUsd ?? 4280000) / 1_000_000).toFixed(2)}M
+                </dd>
               </div>
               <div className="flex justify-between">
-                <dt className="text-fg-3">DeepBook v3 Spread</dt>
-                <dd className="num text-fg">0.0008 SUI</dd>
+                <dt className="text-fg-3">Sui DEX 24h Volume</dt>
+                <dd className="num text-fg">
+                  ${((marketState?.cetusVolume24h ?? 14200000) / 1_000_000).toFixed(2)}M
+                </dd>
               </div>
             </dl>
           </div>

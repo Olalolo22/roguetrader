@@ -57,6 +57,7 @@ export interface TatumMarketState {
   change24h: number;
   volatility1h: number;
   cetusVolume24h: number;
+  dexLiquidityUsd?: number;
   latestCheckpoint: number;
   isTatumRpc: boolean;
   gatewayHost: string;

@@ -35,7 +35,7 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
 
   const curl = `curl https://api.roguetrader.xyz/api/x402/check \\
   -H "X-PAYMENT: sui:${receipts[0]?.txDigest ?? '<tx digest>'}" \\
-  -d '{"trade":"Long SUI 2.14, 3x"}'`;
+  -d '{"trade":"Long SUI 0.85, 3x"}'`;
 
   return (
     <div className="space-y-8 pt-8 sm:pt-12">

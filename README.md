@@ -12,7 +12,7 @@
 Traders and AI bots don't blow up from a lack of price charts. They blow up because nothing stops them from repeating the **exact same losing trade setup** they took two weeks ago.
 
 **RogueTrader** sits right before your "Buy / Long" button:
-1. **Type your trade in plain English:** e.g. `Long SUI 2.14, 3x`.
+1. **Type your trade in plain English:** e.g. `Long SUI 0.85, 3x`.
 2. **Instant Blowup Check (<1s):** Before you risk a dollar, RogueTrader checks your setup against past liquidation traps stored permanently on **Walrus** alongside live Sui market conditions from **Tatum**.
 3. **Automatic Size Protection:** If your trade matches a past blowup (like longing a Cetus volume spike while NAVI borrow rates are overheated at 78%), RogueTrader **cuts your leverage from `3.0x` to `2.0x`** and widens your wipeout buffer from `33.3%` to `50.0%`—before you get liquidated.
 4. **Pay-Per-Check for Bots (`0.05 SUI`):** Any autonomous trading bot can call the exact same pre-trade guard over HTTP (`x402`) for `0.05 SUI` per check.
@@ -22,7 +22,7 @@ Traders and AI bots don't blow up from a lack of price charts. They blow up beca
 ## What Happens When You Click "Check This Trade"
 
 ```text
-You Enter: "Long SUI 2.14, 3x"
+You Enter: "Long SUI 0.85, 3x"
                   │
                   ▼
    [ 1. Live Market Check (via Tatum) ]
