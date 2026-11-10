@@ -111,3 +111,4 @@ RogueTrader is currently positioned as an advisory **Pre-Trade Risk System (PTRS
 Deploy an optional Sui Move wrapper module (`roguetrader::router`) that wraps Cetus and DeepBook swap endpoints:
 * Traders configure risk mandates (e.g., *"Do not execute any order where Walrus similarity to past liquidation traps exceeds 0.80"*).
 * The Move contract verifies an off-chain risk signature or viewing key before dispatching the trade, providing optional hard execution enforcement for risk-averse treasuries and autonomous agents.
+
