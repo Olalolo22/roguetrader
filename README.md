@@ -4,7 +4,8 @@
 > A pre-trade market prediction and sizing guard on Sui that checks your order against past market blowups before you size—permanently remembered on **Walrus Mainnet** and live-verified via **Tatum RPC & Price API**.  
 > **Submitted to Tatum × Walrus Memory Hackathon ("Total Recall")**  
 > 🎯 **Primary Track:** Track 1: Markets & Sports Prediction ($1,000)  
-> 🏆 **Special Bounties:** Best Walrus Memory ($500) · Best Use of Agent Payments on Sui ($500)
+> 🏆 **Special Bounties:** Best Walrus Memory ($500) · Best Use of Agent Payments on Sui ($500)  
+> 📖 **Read the Essay on Substack:** [RogueTrader: How Market Memory Influences Risk](https://olumide2956.substack.com/p/roguetrader-how-market-memory-influences)
 
 > [!IMPORTANT]
 > ### Product Scope & Architectural Boundary
