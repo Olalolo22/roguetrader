@@ -113,5 +113,28 @@
     ],
     "total": 3
   },
-  "totalMemoriesOnMainnet": 12
+  "totalMemoriesOnMainnet": 12,
+  "liveForecastBlobs": [
+    {
+      "id": "forecast-20261109-001",
+      "blob_id": "PWaVduVd5UBZBSlLso__hftk2-nff-lmHWSBqaqXtuk",
+      "owner": "0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223",
+      "namespace": "roguetrader",
+      "committed_at": "2026-11-09T22:17:10.076Z"
+    },
+    {
+      "id": "forecast-20261109-002",
+      "blob_id": "8AXIPosW12-MR-5U4jk2DCFYJbV19rXm9ovp9-W03Uw",
+      "owner": "0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223",
+      "namespace": "roguetrader",
+      "committed_at": "2026-11-09T22:17:10.076Z"
+    },
+    {
+      "id": "forecast-20261109-003",
+      "blob_id": "8YTdc-avOz6EGVReq_5B3DsFD8F6qUScIUkgGIcaGic",
+      "owner": "0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223",
+      "namespace": "roguetrader",
+      "committed_at": "2026-11-09T22:17:10.076Z"
+    }
+  ]
 }
