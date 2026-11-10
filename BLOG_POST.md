@@ -18,13 +18,13 @@ So for the **Tatum × Walrus Memory Hackathon ("Total Recall")**, I built **Rogu
 
 ## 1. The 20-Second Payoff: What RogueTrader Actually Does
 
-RogueTrader sits right in front of your execution desk (and exposes an HTTP 402 endpoint for autonomous trading bots).
+RogueTrader is an advisory pre-flight risk check for traders and autonomous bots on Sui (accessible via a web desk or an HTTP 402 endpoint).
 
 When you type an intended trade like `Long SUI 0.85, 3x` and click **Check Trade**:
 
 1. **Reads the Live Sui Market State (via Tatum + Sui DEX Feed):** Pulls the current Sui Mainnet checkpoint (`sui_getLatestCheckpointSequenceNumber` via `sui-mainnet.gateway.tatum.io`), live SUI reference price (`~$0.85`), Cetus pool liquidity, and borrow utilization.
-2. **Recalls Matching Blowups from Walrus Mainnet (`<1s`):** Queries our `roguetrader` namespace on `relayer.memory.walrus.xyz` across **12 verified Sui DEX liquidation and breakout regimes** stored on Walrus Mainnet.
-3. **Cuts Leverage Before You Get Liquidated:** Instead of letting you enter at `3.0x` leverage (where a `33.3%` move wipes you out), RogueTrader matches the `78.4% NAVI borrow squeeze` regime, penalizes overconfidence from `84%` down to `62%`, and **cuts your size from `3.0x` to `2.0x`**—widening your wipeout buffer to `50.0%` and **protecting `$1,420` from a repeat stop-out** *(illustrative on a $10,000 position: cutting leverage from 3.0x to 2.0x widens liquidation buffer by +16.7% against an adverse wick)*.
+2. **Recalls Matching Blowups from Walrus Mainnet (`<1s`):** Queries our `roguetrader` namespace on `relayer.memory.walrus.xyz` across **12 seeded historical Sui DEX liquidation and breakout regimes** stored on Walrus Mainnet.
+3. **Advises Cutting Leverage Before You Get Liquidated:** Instead of letting you enter blind at `3.0x` leverage (where a `33.3%` move wipes you out), RogueTrader matches the `78.4% NAVI borrow squeeze` regime, penalizes overconfidence from `84%` down to `62%`, and **advises cutting your size from `3.0x` to `2.0x`**—widening your wipeout buffer to `50.0%` and **protecting `$1,420` from a repeat stop-out** *(illustrative on a $10,000 position: cutting leverage from 3.0x to 2.0x widens liquidation buffer by +16.7% against an adverse wick)*.
 4. **Captures New Trade Outcomes Back to Walrus:** Below the check card, our **Tatum Wallet Monitor (`0xaff0…4b4d`)** lets you save post-trade outcome snapshots directly back to Walrus Mainnet so the guard gets smarter after every trade.
 
 ---
@@ -43,7 +43,9 @@ What actually causes liquidations is **sizing into the wrong market microstructu
 5. Venue / Oracle Lag:      abs(AMM_Spot_Price - Pyth_Reference_Price) at Sui epoch boundaries
 ```
 
-When a proposed order matches a high-wick microstructure fingerprint recalled from Walrus, RogueTrader scales down leverage so your **Wipeout Buffer (`100% / Leverage`)** remains safely wider than that regime's historical wick.
+When a proposed order matches a high-wick microstructure fingerprint recalled from Walrus, RogueTrader advises scaling down leverage so your **Wipeout Buffer (`100% / Leverage`)** remains safely wider than that regime's historical wick.
+
+- **Scope Boundary (Directional Sizing vs. Alpha Generation):** RogueTrader is not an alpha strategy generator (it does not run statistical arbitrage, delta-neutral basis farming, or LP tick optimization). The trader or autonomous agent brings its own directional thesis (`1x–5x` Long/Short on Sui DEXs); RogueTrader acts strictly as an **advisory pre-flight risk check** that evaluates whether current Sui liquidity, borrow utilization, and historical memory justify the proposed size.
 
 ---
 
@@ -52,7 +54,7 @@ When a proposed order matches a high-wick microstructure fingerprint recalled fr
 A sharp quant judge will ask: *Is checking Walrus memory just a database lookup, or does it actually calibrate predictions?*
 
 - **Pure Lookup (Recall):** Querying the exact historical trade you already experienced. In-sample accuracy on memorized keys is trivial.
-- **Epistemic Calibration (Generalization):** Encountering an *unseen* trade setup where the uncalibrated LLM proposes high prior confidence ($f_{\text{prior}} = 84\%$). RogueTrader queries Walrus vector memory, retrieves similar historical regimes (e.g. `mem-001` borrow squeeze, `mem-007` bid vacuum), computes the similarity-weighted failure severity, and applies an epistemic shrinkage penalty:
+- **Epistemic Calibration (Generalization):** Encountering an *unseen* trade setup where the uncalibrated LLM proposes high prior confidence (`f_prior = 84%`). RogueTrader queries Walrus vector memory, retrieves similar historical regimes (e.g. `mem-001` borrow squeeze, `mem-007` bid vacuum), computes the similarity-weighted failure severity, and applies an epistemic shrinkage penalty:
 
 ```text
 f_calibrated = f_prior - Penalty(recalled_failures, cosine_similarity)
@@ -71,8 +73,8 @@ Where:
 - `N` is the number of evaluated out-of-sample setups.
 
 Across held-out out-of-sample market setups:
-- **Stateless LLM (Without Memory):** Hallucinates `80%–94%` confidence on crowded breakouts and social spikes. When the trade fails ($o_t = 0$), $(0.90 - 0)^2 = 0.81$ drags the aggregate error up to **`0.468` Brier error**.
-- **RogueTrader (With Walrus Memory):** Shrinks confidence on crowded traps down to 55%–62% ($(0.60 - 0)^2 = 0.36$) while preserving conviction on clean institutional absorption, reducing Brier error down to **`0.128`**—a **72.6% reduction in forecasting overconfidence**.
+- **Stateless LLM (Without Memory):** Hallucinates `80%–94%` confidence on crowded breakouts and social spikes. When the trade fails (`o_t = 0`), `(0.90 - 0)^2 = 0.81` drags the aggregate error up to **`0.468` Brier error**.
+- **RogueTrader (With Walrus Memory):** Shrinks confidence on crowded traps down to 55%–62% (`(0.60 - 0)^2 = 0.36`) while preserving conviction on clean institutional absorption, reducing Brier error down to **`0.128`**—a **72.6% reduction in forecasting overconfidence**.
 
 ---
 
