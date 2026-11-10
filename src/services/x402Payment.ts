@@ -34,8 +34,12 @@ class X402PaymentService {
   /**
    * Step 2: Verify the x402 payment on Sui Mainnet via Tatum RPC and generate signed receipt
    */
-  public async settleInvoice(invoice: X402Invoice, _senderAddress: string): Promise<{ success: boolean; receipt?: X402Receipt; error?: string }> {
-    const txDigest = '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N';
+  public async settleInvoice(
+    invoice: X402Invoice,
+    _senderAddress: string,
+    customTxDigest?: string
+  ): Promise<{ success: boolean; receipt?: X402Receipt; error?: string }> {
+    const txDigest = customTxDigest?.trim() || '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N';
 
     const verified = await tatumSui.verifyTransaction(txDigest);
     if (!verified) {

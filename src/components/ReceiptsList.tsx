@@ -14,13 +14,16 @@ const mid = (h: string, a = 6, b = 4) => (h.length > a + b + 1 ? `${h.slice(0, a
 
 export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, onPaymentSuccess }) => {
   const [isSettling, setIsSettling] = useState(false);
+  const [customDigest, setCustomDigest] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
   const invoice = useMemo(() => x402Payment.generateInvoice(0.05), [receipts.length]);
+
+  const activeDigest = customDigest.trim() || receipts[0]?.txDigest || '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N';
 
   const settle = async () => {
     setIsSettling(true);
     try {
-      const res = await x402Payment.settleInvoice(invoice, wallet.address);
+      const res = await x402Payment.settleInvoice(invoice, wallet.address, customDigest.trim() || undefined);
       if (res.success && res.receipt) onPaymentSuccess(res.receipt);
     } finally {
       setIsSettling(false);
@@ -35,7 +38,7 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
 
   const apiBase = typeof window !== 'undefined' ? window.location.origin : 'https://roguetrader.vercel.app';
   const curl = `curl -X POST ${apiBase}/api/x402/check \\
-  -H "X-PAYMENT: sui:${receipts[0]?.txDigest ?? '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N'}" \\
+  -H "X-PAYMENT: sui:${activeDigest}" \\
   -H "Content-Type: application/json" \\
   -d '{"trade":"Long SUI 0.85, 3x"}'`;
 
@@ -75,6 +78,25 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
           <pre className="num mt-4 rounded-lg border border-line bg-deep p-3 text-meta break-all whitespace-pre-wrap text-fg-3">
             WWW-Authenticate: {invoice.headerChallenge}
           </pre>
+          <div className="mt-4 space-y-1.5">
+            <label className="text-xs text-fg-3">Sui Mainnet Transaction Digest</label>
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={customDigest}
+                onChange={e => setCustomDigest(e.target.value)}
+                placeholder="5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N"
+                className="h-10 flex-1 rounded-lg border border-line bg-deep px-3 text-xs font-mono text-fg placeholder:text-fg-3 focus:border-line-2 focus:outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setCustomDigest('5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N')}
+                className="h-10 rounded-lg border border-line bg-raised px-3 text-xs text-fg-2 hover:text-fg whitespace-nowrap"
+              >
+                Default Genesis Tx
+              </button>
+            </div>
+          </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
             <span className="num text-meta text-fg-3">Sui Mainnet tx · verified via Tatum RPC</span>
             <button
