@@ -64,8 +64,11 @@ You Enter: "Long SUI 0.85, 3x"
 - **Zero-Custody Delegate Key Architecture (For Judge Testing):** The live web desk comes pre-connected to our Sui Mainnet trader account (`0xaff0…4b4d`, `MemWalAccount` `0xf7bb…e223`) using a scoped, zero-balance Ed25519 MemWal delegate key (`0x9a49…7ff8`) so judges can test live Mainnet vector recall and memory writes in 1 click without connecting a wallet, while wallet custody keys remain strictly offline. In production multi-tenant deployments, client requests route through a backend relayer proxy.
 
 ### 2. Tatum Sui Mainnet Gateway (`sui-mainnet.gateway.tatum.io`)
-- **Live On-Chain Context & Auto-Indexed Wallet History:** Pulls real-time Sui Mainnet block height (`sui_getLatestCheckpointSequenceNumber`), live SUI reference price, and settled wallet transactions through Tatum's RPC gateway so post-trade outcomes are captured automatically (with optional trader annotation before committing to Walrus).
-- **Payment Verification:** Verifies Sui transaction digests when external trading bots pay for pre-trade checks.
+- **Live On-Chain Context vs. Scenario Presets:**
+  - **Fetched Live:** Pulls real-time Sui Mainnet block height (`sui_getLatestCheckpointSequenceNumber` via Tatum RPC), live SUI/USD reference price (`/v3/tatum/rate/SUI`), and 24h SUI DEX volume/liquidity (via DexScreener).
+  - **Scenario Presets:** Microstructure regime variables such as NAVI borrow utilization (e.g. `78.4%`) and DeepBook orderbook skew are modeled via selectable benchmark presets (`MARKET_REGIMES`) that map proposed trades to representative Sui market conditions.
+- **Post-Trade Lesson Logging:** After a position closes, traders (or bots via the SDK) use the post-trade outcome logger to commit new lessons directly to Walrus Mainnet (`memwal.remember`).
+- **On-Chain Payment Verification:** Independently verifies submitted Sui transaction digests (`sui_getTransactionBlock` checking `effects.status.status === 'success'`) when external trading bots pay for pre-trade checks.
 
 ### 3. What We Recall & Compare: The 5-Variable Market State Vector (Not "Diary Text")
 Price levels (`$2.14`) and ticker names (`SUI`) do not cause liquidations—**sizing into the wrong market microstructure** does. Instead of naive text matching, RogueTrader evaluates the **5-variable entry state vector (`State_t`)**:
@@ -82,19 +85,16 @@ When a proposed trade matches a high-wick microstructure fingerprint stored on W
 
 - **Scope Boundary (Directional Sizing vs. Alpha Generation):** RogueTrader is not an alpha strategy generator (it does not run statistical arbitrage, delta-neutral basis farming, or LP tick optimization). The trader or autonomous agent brings its own directional thesis (`1x–5x` Long/Short on Sui DEXs); RogueTrader acts strictly as an **advisory pre-flight risk check** that evaluates whether current Sui liquidity, borrow utilization, and historical memory justify the proposed size.
 
-### 4. 73% Less Overconfident: Brier Score Calibration (Not Naive Lookup)
+### 4. 73% Less Overconfident: Brier Score Calibration Benchmark
 
-A skeptical quantitative judge will ask: *Is checking Walrus memory just a database lookup, or does it actually calibrate predictions?*
-
-- **Pure Lookup (Memorization):** Querying the exact historical trade you already experienced. In-sample error on memorized data is trivial.
-- **Epistemic Calibration (Generalization):** Encountering a *new, unseen* trade setup (`X_new`) where the raw LLM or analyst proposes high prior confidence (`f_prior = 84%`). RogueTrader queries Walrus vector memory, retrieves similar historical regimes (e.g. `mem-001` borrow squeeze, `mem-007` bid vacuum), computes the similarity-weighted failure severity, and applies an epistemic shrinkage penalty:
+When a trade is checked (`X_new`), the raw LLM or analyst proposes a baseline confidence (`f_prior = 84%`). RogueTrader queries Walrus vector memory, retrieves the top-3 similar historical regimes (`memwal.recall`), computes the similarity-weighted failure severity across recalled failure cases, and applies an epistemic shrinkage penalty:
 
 ```text
 f_calibrated = f_prior - Penalty(recalled_failures, cosine_similarity)
              = 0.84 - 0.22 = 0.62 (leverage cut from 3.0x to 2.0x)
 ```
 
-To mathematically verify this improvement across **held-out / out-of-sample** market setups, forecasts are scored using the **Brier Score**:
+To illustrate how memory shrinkage reduces overconfidence compared to a stateless baseline, our 5-scenario Sui microstructure benchmark (`HISTORICAL_BENCHMARK_ROWS` in `src/services/agentEngine.ts`) scores uncalibrated vs. memory-adjusted probabilities using the **Brier Score**:
 
 ```text
 Brier Score = (1 / N) * SUM_{t=1}^N (f_t - o_t)^2
@@ -102,12 +102,12 @@ Brier Score = (1 / N) * SUM_{t=1}^N (f_t - o_t)^2
 
 Where:
 - `f_t` is the predicted win probability (e.g. `0.84` uncalibrated vs. `0.62` calibrated).
-- `o_t` is the actual binary outcome (`1` if profit target reached, `0` if stopped out or liquidated), resolved via **Tatum Exchange Rate API** and Sui checkpoint finality.
-- `N` is the number of evaluated out-of-sample trade setups.
+- `o_t` is the binary regime outcome (`1` if continuation target reached, `0` if wicked out or liquidated).
+- `N` is the number of evaluated benchmark scenarios.
 
-**Empirical Result:**
-- **Stateless LLM (Without Memory):** Hallucinates 85%–94% confidence into crowded tops and false breakouts. When the trade fails (`o_t = 0`), `(0.90 - 0)^2 = 0.81` squared penalty drags the Brier error up to **`0.468`**.
-- **RogueTrader (With Walrus Memory):** Shrinks confidence on high-wick setups to 55%–62% (`(0.60 - 0)^2 = 0.36`) while preserving conviction on institutional absorption, reducing out-of-sample Brier error down to **`0.128`**—a **72.6% reduction in overconfidence**.
+**Benchmark Comparison (Seeded Regime Scenarios):**
+- **Stateless Baseline (Without Memory):** Assigns 81%–94% confidence into crowded tops and false breakouts. On failure regimes (`o_t = 0`), `(0.88 - 0)^2 = 0.774` squared penalty produces a **`0.468` baseline Brier error**.
+- **RogueTrader (With Walrus Memory Shrinkage):** Down-weights confidence on high-wick trap regimes to 41%–62% while preserving conviction on clean institutional absorption, reducing the benchmark Brier error down to **`0.128`**—a **72.6% error reduction across the seeded benchmark scenarios**.
 
 ### 5. Bot API: HTTP 402 (`x402`) Pay-Per-Check on Sui
 Other trading agents don't need to build their own risk memory. They can query RogueTrader's guard via standard HTTP 402 micropayments:

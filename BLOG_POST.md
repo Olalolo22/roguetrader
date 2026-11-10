@@ -22,10 +22,10 @@ RogueTrader is an advisory pre-flight risk check for traders and autonomous bots
 
 When you type an intended trade like `Long SUI 0.85, 3x` and click **Check Trade**:
 
-1. **Reads the Live Sui Market State (via Tatum + Sui DEX Feed):** Pulls the current Sui Mainnet checkpoint (`sui_getLatestCheckpointSequenceNumber` via `sui-mainnet.gateway.tatum.io`), live SUI reference price (`~$0.85`), Cetus pool liquidity, and borrow utilization.
+1. **Reads Live Sui Market Data + Microstructure Presets:** Pulls the current Sui Mainnet checkpoint (`sui_getLatestCheckpointSequenceNumber` via `sui-mainnet.gateway.tatum.io`), live SUI reference price (`~$0.85` via Tatum Rate API), and 24h SUI DEX volume/liquidity (via DexScreener), while mapping microstructure regime metrics (such as NAVI borrow utilization and orderbook skew) via selectable benchmark presets (`MARKET_REGIMES`).
 2. **Recalls Matching Blowups from Walrus Mainnet (`<1s`):** Queries our `roguetrader` namespace on `relayer.memory.walrus.xyz` across **12 seeded historical Sui DEX liquidation and breakout regimes** stored on Walrus Mainnet.
 3. **Advises Cutting Leverage Before You Get Liquidated:** Instead of letting you enter blind at `3.0x` leverage (where a `33.3%` move wipes you out), RogueTrader matches the `78.4% NAVI borrow squeeze` regime, penalizes overconfidence from `84%` down to `62%`, and **advises cutting your size from `3.0x` to `2.0x`**—widening your wipeout buffer to `50.0%` and **protecting `$1,420` from a repeat stop-out** *(illustrative on a $10,000 position: cutting leverage from 3.0x to 2.0x widens liquidation buffer by +16.7% against an adverse wick)*.
-4. **Captures New Trade Outcomes Back to Walrus:** Below the check card, our **Tatum Wallet Monitor (`0xaff0…4b4d`)** lets you save post-trade outcome snapshots directly back to Walrus Mainnet so the guard gets smarter after every trade.
+4. **Logs Post-Trade Outcomes Back to Walrus:** Below the check card, our post-trade outcome logger (`0xaff0…4b4d`) lets you (or a bot via the SDK) commit post-trade outcome lessons directly back to Walrus Mainnet (`memwal.remember`) so the guard expands its memory bank after completed trades.
 
 ---
 
@@ -49,19 +49,16 @@ When a proposed order matches a high-wick microstructure fingerprint recalled fr
 
 ---
 
-## 3. Epistemic Calibration vs. Naive Recall (Brier: `0.468` -> `0.128`)
+## 3. Epistemic Calibration Shrinkage Benchmark (Brier: `0.468` -> `0.128`)
 
-A sharp quant judge will ask: *Is checking Walrus memory just a database lookup, or does it actually calibrate predictions?*
-
-- **Pure Lookup (Recall):** Querying the exact historical trade you already experienced. In-sample accuracy on memorized keys is trivial.
-- **Epistemic Calibration (Generalization):** Encountering an *unseen* trade setup where the uncalibrated LLM proposes high prior confidence (`f_prior = 84%`). RogueTrader queries Walrus vector memory, retrieves similar historical regimes (e.g. `mem-001` borrow squeeze, `mem-007` bid vacuum), computes the similarity-weighted failure severity, and applies an epistemic shrinkage penalty:
+When a trade is checked, the uncalibrated LLM proposes a baseline prior confidence (`f_prior = 84%`). RogueTrader queries Walrus vector memory, retrieves the top-3 similar historical regimes (`memwal.recall`), computes the similarity-weighted failure severity across recalled failure cases, and applies an epistemic shrinkage penalty:
 
 ```text
 f_calibrated = f_prior - Penalty(recalled_failures, cosine_similarity)
              = 0.84 - 0.22 = 0.62 (leverage cut from 3.0x to 2.0x)
 ```
 
-In quantitative finance, probabilistic forecasts are audited using the **Brier Score**—the mean squared error between an agent's stated probability and the actual binary on-chain outcome:
+In quantitative finance, probabilistic forecasts are audited using the **Brier Score**—the mean squared error between an agent's stated probability and the binary outcome:
 
 ```text
 Brier = (1 / N) * SUM_{t=1..N} (f_t - o_t)^2
@@ -69,12 +66,12 @@ Brier = (1 / N) * SUM_{t=1..N} (f_t - o_t)^2
 
 Where:
 - `f_t` is the agent's forecast confidence (e.g. `0.84` uncalibrated vs. `0.62` calibrated).
-- `o_t` is the actual binary resolution verified on Sui via Tatum Price Rate API and Sui checkpoint finality (`1` if the setup followed through, `0` if it wicked out or liquidated).
-- `N` is the number of evaluated out-of-sample setups.
+- `o_t` is the binary regime outcome (`1` if the continuation setup followed through, `0` if it wicked out or liquidated).
+- `N` is the number of evaluated benchmark scenarios.
 
-Across held-out out-of-sample market setups:
-- **Stateless LLM (Without Memory):** Hallucinates `80%–94%` confidence on crowded breakouts and social spikes. When the trade fails (`o_t = 0`), `(0.90 - 0)^2 = 0.81` drags the aggregate error up to **`0.468` Brier error**.
-- **RogueTrader (With Walrus Memory):** Shrinks confidence on crowded traps down to 55%–62% (`(0.60 - 0)^2 = 0.36`) while preserving conviction on clean institutional absorption, reducing Brier error down to **`0.128`**—a **72.6% reduction in forecasting overconfidence**.
+Across our 5-scenario Sui microstructure benchmark (`HISTORICAL_BENCHMARK_ROWS` in `src/services/agentEngine.ts`):
+- **Stateless Baseline (Without Memory):** Assigns `81%–94%` confidence on crowded breakouts and social spikes. On failure regimes (`o_t = 0`), `(0.88 - 0)^2 = 0.774` drags the baseline error up to **`0.468` Brier error**.
+- **RogueTrader (With Walrus Memory Shrinkage):** Down-weights confidence on crowded trap regimes down to 41%–62% while preserving conviction on clean institutional absorption, reducing the benchmark Brier error down to **`0.128`**—a **72.6% error reduction across the seeded benchmark scenarios**.
 
 ---
 

@@ -66,29 +66,54 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   const levMatch = tradeText.match(/(\d+(?:\.\d+)?)\s*x\b/i);
   const proposedLeverage = levMatch ? Math.max(1, Math.min(50, Number(levMatch[1]))) : 3;
 
-  // Query live Sui checkpoint from Tatum / public Sui RPC
+  // Verify transaction digest on Sui Mainnet via Tatum RPC / Sui Fullnode
   let checkpoint = 100378000;
-  let tatumVerified = true;
+  let tatumVerified = false;
+  let txConfirmedOnChain = false;
+
+  const rpcUrl = process.env.VITE_TATUM_API_KEY
+    ? 'https://sui-mainnet.gateway.tatum.io'
+    : 'https://fullnode.mainnet.sui.io:443';
+  const rpcHeaders: Record<string, string> = {
+    'Content-Type': 'application/json',
+    ...(process.env.VITE_TATUM_API_KEY ? { 'x-api-key': process.env.VITE_TATUM_API_KEY } : {})
+  };
+
   try {
-    const rpcRes = await fetch('https://sui-mainnet.gateway.tatum.io', {
+    const txRes = await fetch(rpcUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        ...(process.env.VITE_TATUM_API_KEY ? { 'x-api-key': process.env.VITE_TATUM_API_KEY } : {})
-      },
+      headers: rpcHeaders,
       body: JSON.stringify({
         jsonrpc: '2.0',
         id: 1,
-        method: 'sui_getLatestCheckpointSequenceNumber',
-        params: []
+        method: 'sui_getTransactionBlock',
+        params: [rawDigest, { showEffects: true, showBalanceChanges: true }]
       })
     });
-    if (rpcRes.ok) {
-      const data = await rpcRes.json();
-      if (data?.result) checkpoint = parseInt(data.result, 10);
+
+    if (txRes.ok) {
+      const txData = await txRes.json();
+      const status = txData?.result?.effects?.status?.status;
+      if (status === 'success') {
+        txConfirmedOnChain = true;
+        tatumVerified = true;
+        if (txData?.result?.checkpoint) {
+          checkpoint = parseInt(txData.result.checkpoint, 10) || checkpoint;
+        }
+      }
     }
   } catch {
     tatumVerified = false;
+  }
+
+  if (!txConfirmedOnChain) {
+    return res.status(402).json({
+      error: 'Payment Verification Failed',
+      statusCode: 402,
+      submittedDigest: rawDigest,
+      reason: 'Transaction digest was not found or did not succeed on Sui Mainnet via Tatum RPC (sui_getTransactionBlock).',
+      verifiedSampleDigest: VERIFIED_MAINNET_TX
+    });
   }
 
   // Calibrate leverage & wipeout buffer
