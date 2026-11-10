@@ -6,6 +6,11 @@
 > 🎯 **Primary Track:** Track 1: Markets & Sports Prediction ($1,000)  
 > 🏆 **Special Bounties:** Best Walrus Memory ($500) · Best Use of Agent Payments on Sui ($500)
 
+> [!IMPORTANT]
+> ### Product Scope & Architectural Boundary
+> * **What RogueTrader Is:** An advisory **Pre-Trade Risk System (PTRS)** for directional sizing (`1x–5x` Long/Short). Before a trader or autonomous bot signs an order, RogueTrader audits the trade intent against historical liquidation traps on Walrus Mainnet, calculates adverse wick risk, and returns calibrated leverage and wipeout buffers.
+> * **What RogueTrader Is Not:** It is **not** an alpha generator (it doesn't claim to predict market direction or find secret trading strategies), and **not** an inline DEX router (it does not intercept or execute orders inside smart contracts). The trader or bot brings the market thesis; RogueTrader provides the pre-flight risk check.
+
 ---
 
 ## Track 1: The Closed-Loop Prediction Engine
@@ -68,7 +73,7 @@ You Enter: "Long SUI 0.85, 3x"
   - **Fetched Live:** Pulls real-time Sui Mainnet block height (`sui_getLatestCheckpointSequenceNumber` via Tatum RPC), live SUI/USD reference price (`/v3/tatum/rate/SUI`), and 24h SUI DEX volume/liquidity (via DexScreener).
   - **Scenario Presets:** Microstructure regime variables such as NAVI borrow utilization (e.g. `78.4%`) and DeepBook orderbook skew are modeled via selectable benchmark presets (`MARKET_REGIMES`) that map proposed trades to representative Sui market conditions.
 - **Post-Trade Lesson Logging:** After a position closes, traders (or bots via the SDK) use the post-trade outcome logger to commit new lessons directly to Walrus Mainnet (`memwal.remember`).
-- **On-Chain Payment Verification:** Independently verifies submitted Sui transaction digests (`sui_getTransactionBlock` checking `effects.status.status === 'success'`) when external trading bots pay for pre-trade checks.
+- **On-Chain Payment Verification:** Inspects on-chain balance changes via Sui gRPC / Tatum Gateway to verify that at least 0.05 SUI reached the recipient address (`0xaff0…4b4d`), backed by an in-memory replay prevention cache against double-spending digests.
 
 ### 3. What We Recall & Compare: The 5-Variable Market State Vector (Not "Diary Text")
 Price levels (`$2.14`) and ticker names (`SUI`) do not cause liquidations—**sizing into the wrong market microstructure** does. Instead of naive text matching, RogueTrader evaluates the **5-variable entry state vector (`State_t`)**:
@@ -105,9 +110,10 @@ Where:
 - `o_t` is the binary regime outcome (`1` if continuation target reached, `0` if wicked out or liquidated).
 - `N` is the number of evaluated benchmark scenarios.
 
-**Benchmark Comparison (Seeded Regime Scenarios):**
-- **Stateless Baseline (Without Memory):** Assigns 81%–94% confidence into crowded tops and false breakouts. On failure regimes (`o_t = 0`), `(0.88 - 0)^2 = 0.774` squared penalty produces a **`0.468` baseline Brier error**.
-- **RogueTrader (With Walrus Memory Shrinkage):** Down-weights confidence on high-wick trap regimes to 41%–62% while preserving conviction on clean institutional absorption, reducing the benchmark Brier error down to **`0.128`**—a **72.6% error reduction across the seeded benchmark scenarios**.
+**Benchmark Comparison (Seeded Historical Regimes in `HISTORICAL_BENCHMARK_ROWS`):**
+- **Stateless Baseline (Without Memory):** Assigns 81%–94% confidence into crowded tops and false breakouts. Across the 5 seeded benchmark regimes, uncalibrated overconfidence produces a **`0.611` mean Brier error** (peaking at `0.774` on the Oct 14 NAVI long-squeeze).
+- **RogueTrader (With Walrus Memory Shrinkage):** Down-weights confidence on high-wick trap regimes (to 41%–46%) while preserving conviction on clean breakouts (86%), cutting the mean benchmark Brier error to **`0.154`**—a **74.8% error reduction across the historical benchmark set** (`0.611 → 0.154`), with the single-scenario NAVI squeeze seeing a 72.6% cut (`0.774 → 0.212`).
+- **Live Out-of-Sample Forward Commitments:** On Nov 9, 2026, 3 forward forecast records (`forecast-20261109-001` to `003`) were committed directly to Walrus Mainnet before market resolution to record the forward workflow.
 
 ### 5. Bot API: HTTP 402 (`x402`) Pay-Per-Check on Sui
 Other trading agents don't need to build their own risk memory. They can query RogueTrader's guard via standard HTTP 402 micropayments:
