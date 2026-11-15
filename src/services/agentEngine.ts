@@ -1,4 +1,14 @@
-import type { EpistemicEvaluation, HistoricalBrierRow } from '../types';
+import type {
+  EpistemicEvaluation,
+  HistoricalBrierRow,
+  RiskCalibrationPolicy
+} from '../types';
+import {
+  computeRiskCalibration,
+  DEFAULT_RISK_POLICY,
+  normalizePolicy,
+  roundHalf
+} from './riskPolicy';
 import { walrusMemory } from './walrusMemory';
 import { tatumSui } from './tatumSui';
 
@@ -18,7 +28,7 @@ export interface MarketRegimePreset {
   calibratedConfidence: number;
   calibratedStance: string;
   calibratedQuote: string;
-  actualOutcome: EpistemicEvaluation['actualOutcome'];
+  actualOutcome: Exclude<EpistemicEvaluation['actualOutcome'], 'UNKNOWN_UNRESOLVED'>;
   outcomeNumeric: number; // 0 or 1
   outcomeLabel: string;
 }
@@ -36,7 +46,7 @@ export const MARKET_REGIMES: MarketRegimePreset[] = [
     statelessConfidence: 88,
     statelessStance: 'AGGRESSIVE 5X LONG',
     statelessQuote: 'Raw LLM: Cetus 1h volume crossed $14M! Breakout confirmed above $0.85, deploying maximum leverage.',
-    searchQuery: 'SUI breakout Cetus volume >14M NAVI borrow utilization >75% liquidation',
+    searchQuery: 'SUI breakout Cetus $14.2M NAVI borrow crowding >75% long-squeeze',
     calibratedConfidence: 46,
     calibratedStance: 'CAUTIOUS SPOT ACCUMULATION',
     calibratedQuote: 'Walrus Recalled: Oct 14 incident matched. Borrow >75% previously triggered 8% long-squeeze cascade. Leverage stripped.',
@@ -56,7 +66,7 @@ export const MARKET_REGIMES: MarketRegimePreset[] = [
     statelessConfidence: 81,
     statelessStance: 'AMM ARBITRAGE LONG',
     statelessQuote: 'Raw LLM: Spot discount on Cetus pool relative to reference price! Immediate directional buy.',
-    searchQuery: 'Pyth oracle latency epoch 512 pricing asymmetry AMM',
+    searchQuery: 'Pyth oracle latency epoch 512 AMM discount',
     calibratedConfidence: 41,
     calibratedStance: 'HALT / DELTA-NEUTRAL',
     calibratedQuote: 'Walrus Recalled: Epoch boundary latency causes artificial pricing asymmetry. Invalidation active until checkpoint finality.',
@@ -76,7 +86,7 @@ export const MARKET_REGIMES: MarketRegimePreset[] = [
     statelessConfidence: 74,
     statelessStance: 'MODERATE LONG',
     statelessQuote: 'Raw LLM: Upward price drift. Normal continuation pattern.',
-    searchQuery: 'SUI institutional breakout Cetus volume DeepBook spread tightened borrow low',
+    searchQuery: 'SUI institutional breakout Cetus DeepBook spread spot bid absorption',
     calibratedConfidence: 86,
     calibratedStance: 'HIGH-CONVICTION CALL LADDER',
     calibratedQuote: 'Walrus Recalled: Oct 16 catalyst matched. Low borrow (<52%) + DeepBook whale absorption sustained +14.6% trend.',
@@ -96,7 +106,7 @@ export const MARKET_REGIMES: MarketRegimePreset[] = [
     statelessConfidence: 94,
     statelessStance: 'PARABOLIC MOMENTUM LONG',
     statelessQuote: 'Raw LLM: +340% social mention velocity on Twitter! Parabolic pump to $2.80 imminent!',
-    searchQuery: 'Retail social euphoria spike Twitter mentions Cetus spot depth lagged',
+    searchQuery: 'CETUS retail social euphoria spike DeepBook bid depth bull-trap',
     calibratedConfidence: 42,
     calibratedStance: 'DEFENSIVE REJECTION',
     calibratedQuote: 'Walrus Recalled: Oct 24 social hallucination pattern (0.82 Brier loss). Rejection rule active; retail dump imminent.',
@@ -169,15 +179,67 @@ export const HISTORICAL_BENCHMARK_ROWS: HistoricalBrierRow[] = [
   }
 ];
 
+const POLICY_STORAGE_KEY = 'roguetrader-risk-policy';
+
+export interface EvaluationTradeMeta {
+  asset?: string;
+  leverage?: number;
+  side?: 'Long' | 'Short';
+  isSuiTrackedAsset?: boolean;
+}
+
 class AgentEngineService {
   private activeEvaluation: EpistemicEvaluation | null = null;
   private llmApiKey: string = import.meta.env.VITE_LLM_API_KEY || '';
+  private policy: RiskCalibrationPolicy = this.loadPolicy();
+
+  private loadPolicy(): RiskCalibrationPolicy {
+    if (typeof window === 'undefined') return { ...DEFAULT_RISK_POLICY };
+    try {
+      const saved = window.localStorage.getItem(POLICY_STORAGE_KEY);
+      if (saved) {
+        return normalizePolicy(JSON.parse(saved));
+      }
+    } catch {
+      // Ignore malformed storage
+    }
+    return { ...DEFAULT_RISK_POLICY };
+  }
+
+  public getPolicy(): RiskCalibrationPolicy {
+    return { ...this.policy };
+  }
+
+  public setPolicy(override: Partial<RiskCalibrationPolicy>): RiskCalibrationPolicy {
+    this.policy = normalizePolicy({ ...this.policy, ...override });
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.setItem(POLICY_STORAGE_KEY, JSON.stringify(this.policy));
+      } catch {
+        // Ignore storage errors
+      }
+    }
+    return this.getPolicy();
+  }
+
+  public resetPolicy(): RiskCalibrationPolicy {
+    this.policy = { ...DEFAULT_RISK_POLICY };
+    if (typeof window !== 'undefined') {
+      try {
+        window.localStorage.removeItem(POLICY_STORAGE_KEY);
+      } catch {
+        // Ignore storage errors
+      }
+    }
+    return this.getPolicy();
+  }
 
   private async queryGeminiGuard(
     tradeText: string,
     recalledMemoryText: string,
     fallbackConfidence: number,
-    fallbackQuote: string
+    fallbackQuote: string,
+    maxConfidenceAllowed: number
   ): Promise<{ confidence: number; rationale: string }> {
     if (!this.llmApiKey) {
       return { confidence: fallbackConfidence, rationale: fallbackQuote };
@@ -189,7 +251,7 @@ class AgentEngineService {
 A trader wants to execute: "${tradeText}".
 We recalled this past blowup from Walrus decentralized memory: "${recalledMemoryText}".
 Respond ONLY with valid JSON in this exact format:
-{"confidence": <integer 35 to 85>, "rationale": "<1 concise plain-English sentence under 140 chars explaining how this past Walrus memory adjusts their trade size>"}`;
+{"confidence": <integer 35 to ${maxConfidenceAllowed}>, "rationale": "<1 concise plain-English sentence under 140 chars explaining how this past Walrus memory adjusts their trade size>"}`;
 
       const res = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${this.llmApiKey}`,
@@ -211,7 +273,7 @@ Respond ONLY with valid JSON in this exact format:
       const parsed = JSON.parse(rawText);
       const confidence =
         typeof parsed.confidence === 'number'
-          ? Math.max(30, Math.min(90, Math.round(parsed.confidence)))
+          ? Math.max(30, Math.min(maxConfidenceAllowed, Math.round(parsed.confidence)))
           : fallbackConfidence;
       const rationale =
         typeof parsed.rationale === 'string' && parsed.rationale.trim().length > 10
@@ -224,82 +286,137 @@ Respond ONLY with valid JSON in this exact format:
   }
 
   public async runEvaluationCycle(
-    regimeId: string,
+    regimeId: string | null,
     onProgress?: (stage: string, stepNumber: number) => void,
-    tradeText?: string
+    tradeText?: string,
+    tradeMeta?: EvaluationTradeMeta,
+    policyOverride?: Partial<RiskCalibrationPolicy>
   ): Promise<EpistemicEvaluation> {
-    const regime = MARKET_REGIMES.find(r => r.id === regimeId) || MARKET_REGIMES[0];
+    const activePolicy = normalizePolicy({ ...this.policy, ...policyOverride });
+    const regime = regimeId ? MARKET_REGIMES.find(r => r.id === regimeId) ?? null : null;
+    const proposedLeverage = tradeMeta?.leverage ?? 3;
+    const asset = tradeMeta?.asset ?? (regime ? regime.pair.split('/')[0] : 'UNKNOWN');
+    const side = tradeMeta?.side ?? 'Long';
+    const isSuiTrackedAsset = tradeMeta?.isSuiTrackedAsset ?? Boolean(regime);
 
     // Stage 1: Query live Tatum Sui Gateway block
     if (onProgress) onProgress('Reading live Sui block via Tatum…', 1);
     const checkpoint = await tatumSui.getLatestCheckpoint();
-    await new Promise(r => setTimeout(r, 350));
+    await new Promise(r => setTimeout(r, 220));
 
     // Stage 2: Formulate Blind Sizing (without memory)
     if (onProgress) onProgress('Checking blind trade size…', 2);
-    await new Promise(r => setTimeout(r, 400));
+    await new Promise(r => setTimeout(r, 220));
 
-    // Stage 3: Query Walrus Memory Relayer (Top 3 Semantic Matches)
+    const statelessConfidence = regime
+      ? regime.statelessConfidence
+      : Math.min(92, 72 + Math.round(proposedLeverage * 3));
+    const statelessStance = regime
+      ? regime.statelessStance
+      : `${side.toUpperCase()} ${proposedLeverage}X ${asset}`;
+    const statelessRationale = regime
+      ? regime.statelessQuote
+      : `Stateless model (no memory): Sizes ${side} ${asset} ${proposedLeverage}x purely on directional thesis without historical regime context.`;
+
+    // Stage 3: Query Walrus Memory Relayer (Top 3 Semantic Matches with relevance gating)
     if (onProgress) onProgress('Checking past blowups on Walrus…', 3);
-    const queryStr = tradeText?.trim() || regime.searchQuery;
-    const recallResult = await walrusMemory.recall(queryStr, 3);
-    const topMemories = recallResult.results.length > 0 ? recallResult.results : walrusMemory.getAllMemories().slice(0, 3);
-    const recalledItem = topMemories[0];
+    const queryStr = regime ? regime.searchQuery : (tradeText?.trim() || `${side} ${asset}`);
+    const recallResult = await walrusMemory.recall(queryStr, 3, activePolicy);
 
-    // Dynamically compute confidence adjustment across the recalled Walrus memories
-    const isPositiveCatalyst = recalledItem.category === 'CATALYST';
-    const failureMemories = topMemories.filter(m => m.category === 'FAILURE_CASE');
-    const avgFailureSimilarity = failureMemories.length > 0
-      ? failureMemories.reduce((acc, m) => acc + m.similarityScore, 0) / failureMemories.length
-      : 0;
-
-    // Exact computed confidence down-weighting:
-    // When past failure memories match, confidence is cut in direct proportion to vector similarity and historical loss
-    const computedConfidencePenalty = Math.round(avgFailureSimilarity * 34);
-    const dynamicFallbackConfidence = isPositiveCatalyst
-      ? Math.min(88, regime.statelessConfidence + 12)
-      : Math.max(38, regime.statelessConfidence - (computedConfidencePenalty || 22));
-
-    const dynamicFallbackQuote = recalledItem.id.startsWith('wal-')
-      ? `Matched your saved Walrus lesson (${Math.round(recalledItem.similarityScore * 100)}% match): "${recalledItem.text}"`
-      : recalledItem.text;
-
-    // Stage 4: Adjust Trade Size & Risk with Gemini + Brier Calibration
+    // Stage 4: Apply 3-state calibration policy (STRONG_MATCH / WEAK_MATCH / UNFAMILIAR_REGIME)
     if (onProgress) onProgress('Protecting trade size & leverage…', 4);
-    const llmEval = await this.queryGeminiGuard(
-      tradeText || regime.name,
-      recalledItem.text,
-      dynamicFallbackConfidence,
-      dynamicFallbackQuote
-    );
+    const calibration = computeRiskCalibration({
+      proposedLeverage,
+      statelessConfidence,
+      ranked: {
+        results: recallResult.results,
+        allCandidates: recallResult.allCandidates,
+        topSimilarity: recallResult.topSimilarity,
+        matchQuality: recallResult.matchQuality
+      },
+      policy: activePolicy,
+      strongCalibratedStanceOverride: regime?.calibratedStance
+    });
 
-    const outcomeNumeric = isPositiveCatalyst ? 1 : 0;
-    // Calculate exact Brier loss: (prob - outcome)^2
-    const statelessProbDec = regime.statelessConfidence / 100;
-    const walrusProbDec = llmEval.confidence / 100;
-    const statelessBrier = Number(Math.pow(statelessProbDec - outcomeNumeric, 2).toFixed(4));
-    const walrusBrier = Number(Math.pow(walrusProbDec - outcomeNumeric, 2).toFixed(4));
+    let finalConfidence = calibration.walrusConfidence;
+    let finalRationale = calibration.walrusRationale;
+    let finalLeverage = calibration.calibratedLeverage;
+
+    // Optionally enrich rationale with Gemini only when a genuine Walrus memory matched
+    if (calibration.recalledMemory && calibration.matchQuality === 'STRONG_MATCH') {
+      const dynamicFallbackQuote = calibration.recalledMemory.id.startsWith('wal-')
+        ? `Matched your saved Walrus lesson (${Math.round(calibration.recalledMemory.similarityScore * 100)}% match): "${calibration.recalledMemory.text}"`
+        : calibration.walrusRationale;
+
+      const maxAllowed = calibration.recalledMemory.category === 'CATALYST' ? 90 : 75;
+      const llmEval = await this.queryGeminiGuard(
+        tradeText || regime?.name || queryStr,
+        calibration.recalledMemory.text,
+        calibration.walrusConfidence,
+        dynamicFallbackQuote,
+        maxAllowed
+      );
+      finalConfidence = llmEval.confidence;
+      finalRationale = llmEval.rationale;
+      if (calibration.recalledMemory.category !== 'CATALYST' && proposedLeverage > 1) {
+        finalLeverage = Math.max(
+          1,
+          Math.min(proposedLeverage, roundHalf(proposedLeverage * (finalConfidence / statelessConfidence)))
+        );
+      }
+    }
+
+    // Compute Brier penalties only when the regime has an observed outcome proxy (STRONG_MATCH)
+    let actualOutcome: EpistemicEvaluation['actualOutcome'] = 'UNKNOWN_UNRESOLVED';
+    let statelessBrier: number | null = null;
+    let walrusBrier: number | null = null;
+
+    if (calibration.matchQuality === 'STRONG_MATCH' && calibration.recalledMemory) {
+      const isPositiveCatalyst = calibration.recalledMemory.category === 'CATALYST';
+      actualOutcome = regime
+        ? regime.actualOutcome
+        : isPositiveCatalyst
+          ? 'BREAKOUT_CONTINUATION'
+          : 'DUMP_LONG_SQUEEZE';
+      const outcomeNumeric = isPositiveCatalyst ? 1 : 0;
+      const statelessProbDec = statelessConfidence / 100;
+      const walrusProbDec = finalConfidence / 100;
+      statelessBrier = Number(Math.pow(statelessProbDec - outcomeNumeric, 2).toFixed(4));
+      walrusBrier = Number(Math.pow(walrusProbDec - outcomeNumeric, 2).toFixed(4));
+    }
 
     const evalResult: EpistemicEvaluation = {
       id: `eval-${Date.now()}`,
-      scenarioId: regime.id,
-      pair: regime.pair,
+      scenarioId: regime ? regime.id : null,
+      pair: regime ? regime.pair : isSuiTrackedAsset ? `${asset}/USDC` : asset,
       timestamp: new Date().toISOString(),
       tatumCheckpoint: checkpoint,
-      cetusVolume1h: regime.cetusVolume1h,
-      deepBookSpreadBps: regime.deepBookSpread,
-      naviBorrowPct: regime.naviBorrowPct,
-      statelessConfidence: regime.statelessConfidence,
-      statelessStance: regime.statelessStance,
-      statelessRationale: regime.statelessQuote,
+      cetusVolume1h: regime
+        ? regime.cetusVolume1h
+        : isSuiTrackedAsset
+          ? 'Live Sui DEX feed'
+          : 'Untracked (non-Sui)',
+      deepBookSpreadBps: regime
+        ? regime.deepBookSpread
+        : isSuiTrackedAsset
+          ? 'Untracked (custom setup)'
+          : 'Untracked (non-Sui)',
+      naviBorrowPct: regime ? regime.naviBorrowPct : null,
+      statelessConfidence,
+      statelessStance,
+      statelessRationale,
       statelessBrierPenalty: statelessBrier,
-      walrusConfidence: llmEval.confidence,
-      walrusStance: regime.calibratedStance,
-      walrusRationale: llmEval.rationale,
+      walrusConfidence: finalConfidence,
+      walrusStance: calibration.walrusStance,
+      walrusRationale: finalRationale,
       walrusBrierPenalty: walrusBrier,
-      recalledMemory: recalledItem,
+      recalledMemory: calibration.recalledMemory,
+      matchQuality: calibration.matchQuality,
+      topCandidateSimilarity: calibration.topCandidateSimilarity,
+      policyApplied: calibration.policyApplied,
+      calibratedLeverage: finalLeverage,
       recallLatencyMs: recallResult.latencyMs,
-      actualOutcome: regime.actualOutcome
+      actualOutcome
     };
 
     this.activeEvaluation = evalResult;

@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import type React from 'react';
 import { X } from 'lucide-react';
+import { agentEngine } from '../services/agentEngine';
+import { DEFAULT_RISK_POLICY } from '../services/riskPolicy';
 import { tatumSui } from '../services/tatumSui';
 import { walrusMemory } from '../services/walrusMemory';
 
@@ -24,6 +26,13 @@ const SettingsPanel: React.FC<Omit<SettingsModalProps, 'isOpen'>> = ({ onClose, 
   const [walrusKey, setWalrusKey] = useState(
     (import.meta.env.VITE_MEMWAL_KEY as string | undefined) || ''
   );
+
+  const initialPolicy = agentEngine.getPolicy();
+  const [strongThreshold, setStrongThreshold] = useState(String(initialPolicy.strongMatchThreshold));
+  const [weakThreshold, setWeakThreshold] = useState(String(initialPolicy.weakMatchThreshold));
+  const [unfamiliarMaxLev, setUnfamiliarMaxLev] = useState(String(initialPolicy.unfamiliarMaxLeverage));
+  const [unfamiliarConfCap, setUnfamiliarConfCap] = useState(String(initialPolicy.unfamiliarConfidenceCap));
+
   const [testing, setTesting] = useState(false);
   const [status, setStatus] = useState<{ ok: boolean; text: string } | null>(null);
 
@@ -36,9 +45,29 @@ const SettingsPanel: React.FC<Omit<SettingsModalProps, 'isOpen'>> = ({ onClose, 
         return;
       }
     }
+    const updated = agentEngine.setPolicy({
+      strongMatchThreshold: Number(strongThreshold),
+      weakMatchThreshold: Number(weakThreshold),
+      unfamiliarMaxLeverage: Number(unfamiliarMaxLev),
+      unfamiliarConfidenceCap: Number(unfamiliarConfCap)
+    });
+    setStrongThreshold(String(updated.strongMatchThreshold));
+    setWeakThreshold(String(updated.weakMatchThreshold));
+    setUnfamiliarMaxLev(String(updated.unfamiliarMaxLeverage));
+    setUnfamiliarConfCap(String(updated.unfamiliarConfidenceCap));
     setStatus({ ok: true, text: 'Saved.' });
     onSaved();
     setTimeout(onClose, 900);
+  };
+
+  const resetPolicy = () => {
+    const def = agentEngine.resetPolicy();
+    setStrongThreshold(String(def.strongMatchThreshold));
+    setWeakThreshold(String(def.weakMatchThreshold));
+    setUnfamiliarMaxLev(String(def.unfamiliarMaxLeverage));
+    setUnfamiliarConfCap(String(def.unfamiliarConfidenceCap));
+    setStatus({ ok: true, text: 'Risk policy reset to defaults.' });
+    onSaved();
   };
 
   const test = async () => {
@@ -69,7 +98,7 @@ const SettingsPanel: React.FC<Omit<SettingsModalProps, 'isOpen'>> = ({ onClose, 
       >
         <div className="flex h-14 items-center justify-between border-b border-line pr-2 pl-5">
           <h2 id="settings-title" className="text-base font-medium text-fg">
-            Network
+            Network &amp; Risk Policy
           </h2>
           <button
             onClick={onClose}
@@ -98,6 +127,72 @@ const SettingsPanel: React.FC<Omit<SettingsModalProps, 'isOpen'>> = ({ onClose, 
               className={field}
             />
             <span className="block text-meta text-fg-3">Leave empty to use the local index seeded from backtest.</span>
+          </div>
+
+          <div className="space-y-3 border-t border-line pt-4">
+            <div className="flex items-center justify-between">
+              <span className="text-sm text-fg-2">Unfamiliar-Regime Fallback Policy</span>
+              <button
+                type="button"
+                onClick={resetPolicy}
+                className="text-xs text-fg-3 underline hover:text-fg cursor-pointer"
+              >
+                Reset ({DEFAULT_RISK_POLICY.unfamiliarMaxLeverage}x / {DEFAULT_RISK_POLICY.weakMatchThreshold})
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <label className="block space-y-1">
+                <span className="text-xs text-fg-3">Strong match min (0–1)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.2"
+                  max="0.98"
+                  value={strongThreshold}
+                  onChange={e => setStrongThreshold(e.target.value)}
+                  className={field}
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs text-fg-3">Weak match min (0–1)</span>
+                <input
+                  type="number"
+                  step="0.01"
+                  min="0.1"
+                  max="0.9"
+                  value={weakThreshold}
+                  onChange={e => setWeakThreshold(e.target.value)}
+                  className={field}
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs text-fg-3">Unseen max leverage (x)</span>
+                <input
+                  type="number"
+                  step="0.5"
+                  min="1"
+                  max="10"
+                  value={unfamiliarMaxLev}
+                  onChange={e => setUnfamiliarMaxLev(e.target.value)}
+                  className={field}
+                />
+              </label>
+              <label className="block space-y-1">
+                <span className="text-xs text-fg-3">Unseen confidence cap (%)</span>
+                <input
+                  type="number"
+                  step="5"
+                  min="20"
+                  max="80"
+                  value={unfamiliarConfCap}
+                  onChange={e => setUnfamiliarConfCap(e.target.value)}
+                  className={field}
+                />
+              </label>
+            </div>
+            <span className="block text-meta text-fg-3">
+              Deterministic limits enforced when no Walrus recall passes the similarity threshold.
+            </span>
           </div>
 
           {status && (

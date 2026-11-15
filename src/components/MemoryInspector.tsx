@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import type React from 'react';
 import { Search } from 'lucide-react';
-import type { WalrusMemoryItem } from '../types';
+import type { RecallMatchQuality, WalrusMemoryItem } from '../types';
+import { agentEngine } from '../services/agentEngine';
 import { walrusMemory } from '../services/walrusMemory';
 
 const CATEGORIES: { id: 'ALL' | WalrusMemoryItem['category']; label: string }[] = [
@@ -25,6 +26,12 @@ export const MemoryInspector: React.FC = () => {
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]['id']>('ALL');
   const [isSearching, setIsSearching] = useState(false);
+  const [searchMeta, setSearchMeta] = useState<{
+    active: boolean;
+    matchQuality: RecallMatchQuality;
+    topSimilarity: number;
+    thresholdPct: number;
+  }>({ active: false, matchQuality: 'STRONG_MATCH', topSimilarity: 1, thresholdPct: 45 });
   const [text, setText] = useState('');
   const [newCategory, setNewCategory] = useState<WalrusMemoryItem['category']>('FAILURE_CASE');
   const [isCommitting, setIsCommitting] = useState(false);
@@ -32,14 +39,23 @@ export const MemoryInspector: React.FC = () => {
 
   const search = async (e: React.FormEvent) => {
     e.preventDefault();
+    const policy = agentEngine.getPolicy();
+    const thresholdPct = Math.round(policy.weakMatchThreshold * 100);
     if (!query.trim()) {
       setMemories([...walrusMemory.getAllMemories()]);
+      setSearchMeta({ active: false, matchQuality: 'STRONG_MATCH', topSimilarity: 1, thresholdPct });
       return;
     }
     setIsSearching(true);
     try {
-      const res = await walrusMemory.recall(query, 8);
+      const res = await walrusMemory.recall(query, 8, policy);
       setMemories(res.results);
+      setSearchMeta({
+        active: true,
+        matchQuality: res.matchQuality,
+        topSimilarity: res.topSimilarity,
+        thresholdPct
+      });
     } finally {
       setIsSearching(false);
     }
@@ -54,6 +70,12 @@ export const MemoryInspector: React.FC = () => {
       const res = await walrusMemory.remember(text, newCategory);
       if (res.success) {
         setMemories([...walrusMemory.getAllMemories()]);
+        setSearchMeta({
+          active: false,
+          matchQuality: 'STRONG_MATCH',
+          topSimilarity: 1,
+          thresholdPct: Math.round(agentEngine.getPolicy().weakMatchThreshold * 100)
+        });
         setCommitted(res.memory.blobId);
         setText('');
       }
@@ -109,7 +131,15 @@ export const MemoryInspector: React.FC = () => {
       </div>
 
       <ul className="divide-y divide-line overflow-hidden rounded-2xl border border-line bg-card">
-        {shown.length === 0 && <li className="p-5 text-sm text-fg-3">No memories match.</li>}
+        {shown.length === 0 && (
+          <li className="p-5 text-sm text-fg-3">
+            {searchMeta.active && searchMeta.matchQuality === 'UNFAMILIAR_REGIME'
+              ? `No memories meet the ${searchMeta.thresholdPct}% relevance threshold (closest match: ${Math.round(
+                  searchMeta.topSimilarity * 100
+                )}%). Pre-trade checks for this setup fall back to the conservative baseline cap.`
+              : 'No memories match.'}
+          </li>
+        )}
         {shown.map(m => (
           <li key={m.id} className="grid gap-3 p-4 sm:grid-cols-[8rem_1fr_auto] sm:gap-6 sm:p-5">
             <div className="flex items-baseline justify-between gap-3 sm:block">
@@ -120,6 +150,12 @@ export const MemoryInspector: React.FC = () => {
             </div>
             <p className="text-sm text-fg-2">{m.text}</p>
             <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+              {searchMeta.active && (
+                <span className="keycap">
+                  <span>match</span>
+                  {Math.round(m.similarityScore * 100)}%
+                </span>
+              )}
               <span className="keycap">
                 <span>walrus</span>
                 {shortHash(m.blobId)}

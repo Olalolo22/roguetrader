@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
-import { ArrowRight, CornerDownRight, Check, Copy, Activity, ShieldCheck } from 'lucide-react';
-import type { TatumMarketState, EpistemicEvaluation } from '../types';
+import { ArrowRight, CornerDownRight, Check, Copy, Activity, ShieldCheck, AlertTriangle } from 'lucide-react';
+import type { TatumMarketState, EpistemicEvaluation, RiskCalibrationPolicy } from '../types';
 import { agentEngine, MARKET_REGIMES } from '../services/agentEngine';
+import { DEFAULT_RISK_POLICY, parseTradeIntent, type ParsedTradeIntent } from '../services/riskPolicy';
 import { walrusMemory } from '../services/walrusMemory';
 import { x402Payment } from '../services/x402Payment';
 
@@ -9,34 +10,10 @@ const EXAMPLES = [
   'Long SUI 0.85, 3x',
   'Long CETUS on social spike, 5x',
   'Buy SUI Cetus discount at epoch boundary, 2x',
-  'Long SUI breakout, 1x spot'
+  'Long SUI breakout, 1x spot',
+  'Long XAU/USD on FOMC shock, 5x'
 ];
 
-interface ParsedTrade {
-  side: 'Long' | 'Short';
-  asset: string;
-  price: number | null;
-  leverage: number;
-  regimeId: string;
-}
-
-function parseTrade(input: string): ParsedTrade {
-  const t = input.toLowerCase();
-  const levMatch = t.match(/(\d+(?:\.\d+)?)\s*x\b/);
-  const leverage = levMatch ? Math.max(1, Math.min(50, Number(levMatch[1]))) : 1;
-  const priceMatch = input.match(/(?:^|\s|\$)(\d+\.\d+)(?!\s*x)/i);
-  const asset = (input.match(/\b(SUI|CETUS|NAVI|DEEP)\b/i)?.[1] ?? 'SUI').toUpperCase();
-  const side = /\b(short|sell)\b/.test(t) ? 'Short' : 'Long';
-
-  let regimeId = 'oct-navi-trap';
-  if (/(social|hype|euphoria|meme|twitter|cetus\b)/.test(t) && !/discount/.test(t)) regimeId = 'meme-euphoria-trap';
-  if (/(epoch|oracle|pyth|discount|arb)/.test(t)) regimeId = 'pyth-epoch-latency';
-  if (/(spot|whale|institutional)/.test(t) && leverage <= 1) regimeId = 'cetus-institutional-breakout';
-
-  return { side, asset, price: priceMatch ? Number(priceMatch[1]) : null, leverage, regimeId };
-}
-
-const roundHalf = (n: number) => Math.round(n * 2) / 2;
 const shortHash = (h: string) => {
   const s = h.replace(/^0x/, '');
   return s.length > 8 ? `${s.slice(0, 4)}…${s.slice(-2)}` : s;
@@ -54,15 +31,17 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
   const [input, setInput] = useState('Long SUI 0.85, 3x');
   const [stage, setStage] = useState<string | null>(null);
   const [result, setResult] = useState<{
-    trade: ParsedTrade;
+    trade: ParsedTradeIntent;
     evaluation: EpistemicEvaluation;
     outcomeLabel: string;
+    policyUsed: RiskCalibrationPolicy;
   } | null>(() => {
     // Initial seeded display for instant 20s comprehension
-    const t = parseTrade('Long SUI 0.85, 3x');
+    const t = parseTradeIntent('Long SUI 0.85, 3x');
     const regime = MARKET_REGIMES[0];
     return {
       trade: t,
+      policyUsed: DEFAULT_RISK_POLICY,
       evaluation: {
         id: 'eval-init',
         scenarioId: regime.id,
@@ -80,6 +59,10 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
         walrusStance: 'CAUTIOUS LONG',
         walrusRationale: regime.calibratedQuote,
         walrusBrierPenalty: 0.128,
+        matchQuality: 'STRONG_MATCH',
+        topCandidateSimilarity: 0.89,
+        policyApplied: 'strong_match_failure_shrinkage',
+        calibratedLeverage: 2,
         recallLatencyMs: 914,
         actualOutcome: regime.actualOutcome,
         recalledMemory: {
@@ -109,7 +92,8 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
   const runCheck = async (tradeText: string) => {
     const val = tradeText.trim();
     if (!val || stage) return;
-    const trade = parseTrade(val);
+    const trade = parseTradeIntent(val);
+    const activePolicy = agentEngine.getPolicy();
     setStage('Reading live Sui block');
     setSavedBlobId(null);
     onInterceptChange?.(true);
@@ -122,12 +106,27 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
             ['Reading live Sui block', 'Checking blind trade size', 'Checking past blowups on Walrus', 'Protecting your trade size'][step - 1] ?? null
           );
         },
-        val
+        val,
+        {
+          asset: trade.asset,
+          leverage: trade.leverage,
+          side: trade.side,
+          isSuiTrackedAsset: trade.isSuiTrackedAsset
+        },
+        activePolicy
       );
-      const regime = MARKET_REGIMES.find(r => r.id === trade.regimeId)!;
-      setResult({ trade, evaluation, outcomeLabel: regime.outcomeLabel });
+      const regime = trade.regimeId ? MARKET_REGIMES.find(r => r.id === trade.regimeId) ?? null : null;
+      const outcomeLabel =
+        evaluation.matchQuality === 'UNFAMILIAR_REGIME'
+          ? 'Unfamiliar regime — baseline cap enforced'
+          : evaluation.matchQuality === 'WEAK_MATCH'
+            ? 'Partial match — memory dampened'
+            : regime?.outcomeLabel ?? 'Matched Walrus memory lesson';
+      setResult({ trade, evaluation, outcomeLabel, policyUsed: activePolicy });
       setDraftLesson(
-        `${val} [Borrow ${regime.naviBorrowPct}% · Vol ${regime.cetusVolume1h}] -> ${regime.outcomeLabel}`
+        regime
+          ? `${val} [Borrow ${regime.naviBorrowPct}% · Vol ${regime.cetusVolume1h}] -> ${regime.outcomeLabel}`
+          : `${val} [Baseline cap ${evaluation.calibratedLeverage}x] -> Lesson: cap leverage after volatility wick`
       );
     } finally {
       setStage(null);
@@ -174,14 +173,21 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
     setTimeout(() => setCopiedCurl(false), 1600);
   };
 
+  const policy = result?.policyUsed ?? agentEngine.getPolicy();
+  const matchQuality = result?.evaluation.matchQuality ?? 'STRONG_MATCH';
+  const isUnfamiliar = matchQuality === 'UNFAMILIAR_REGIME';
+  const isWeakMatch = matchQuality === 'WEAK_MATCH';
   const beforeConf = result?.evaluation.statelessConfidence ?? 84;
   const afterConf = result?.evaluation.walrusConfidence ?? 62;
   const tradeLev = result?.trade.leverage ?? 3;
-  const afterLev = Math.max(1, Math.min(tradeLev, roundHalf(tradeLev * (afterConf / beforeConf))));
+  const afterLev = result?.evaluation.calibratedLeverage ?? 2;
   const liq = (lev: number) => (lev <= 1 ? 'none' : `${(100 / lev).toFixed(1)}%`);
-  const isBreakoutCatalyst = result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION';
+  const isBreakoutCatalyst =
+    matchQuality === 'STRONG_MATCH' && result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION';
   const protectedUsd = isBreakoutCatalyst ? 1240 : Math.round(710 * Math.max(1, tradeLev - afterLev + 1));
-  const m = result?.evaluation.recalledMemory;
+  const m = result?.evaluation.recalledMemory ?? null;
+  const topSimilarityPct = Math.round((result?.evaluation.topCandidateSimilarity ?? 0.89) * 100);
+  const weakFloorPct = Math.round((policy?.weakMatchThreshold ?? DEFAULT_RISK_POLICY.weakMatchThreshold) * 100);
 
   return (
     <div className="w-full">
@@ -245,19 +251,35 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
             <div className="mt-4 overflow-hidden rounded-xl border border-line-2 bg-raised/70">
               <div className="flex items-center justify-between border-b border-line px-3 py-1.5 text-[11px] font-mono">
                 <span className="font-medium text-fg">1. Market State Checked at Entry</span>
-                <span className="text-fg-3">Live Sui DEX + Lending State</span>
+                <span className="text-fg-3">
+                  {result?.evaluation.scenarioId
+                    ? 'Live Sui DEX + Lending State'
+                    : result?.trade.isSuiTrackedAsset
+                      ? 'Sui Asset · Custom Setup'
+                      : 'External Asset · Untracked DEX'}
+                </span>
               </div>
               <div className="grid grid-cols-2 divide-x divide-y divide-line sm:grid-cols-4 sm:divide-y-0">
                 <div className="p-2.5">
                   <div className="font-mono text-[10px] uppercase text-fg-3">Pool Volume (1h)</div>
-                  <div className="num mt-0.5 text-xs font-medium text-fg">
+                  <div className="num mt-0.5 truncate text-xs font-medium text-fg">
                     {result?.evaluation.cetusVolume1h ?? '$14.2M (+18%)'}
                   </div>
                 </div>
                 <div className="p-2.5">
                   <div className="font-mono text-[10px] uppercase text-fg-3">Borrow Crowding</div>
-                  <div className={`num mt-0.5 text-xs font-medium ${(result?.evaluation.naviBorrowPct ?? 78.4) > 70 ? 'text-neg' : 'text-pos'}`}>
-                    {result?.evaluation.naviBorrowPct ?? 78.4}% NAVI
+                  <div
+                    className={`num mt-0.5 truncate text-xs font-medium ${
+                      result?.evaluation.naviBorrowPct == null
+                        ? 'text-fg-2'
+                        : result.evaluation.naviBorrowPct > 70
+                          ? 'text-neg'
+                          : 'text-pos'
+                    }`}
+                  >
+                    {result?.evaluation.naviBorrowPct != null
+                      ? `${result.evaluation.naviBorrowPct}% NAVI`
+                      : 'Untracked'}
                   </div>
                 </div>
                 <div className="p-2.5">
@@ -268,14 +290,28 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                 </div>
                 <div className="p-2.5">
                   <div className="font-mono text-[10px] uppercase text-fg-3">Past Regime Move</div>
-                  <div className={`num mt-0.5 truncate text-xs font-medium ${result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION' ? 'text-pos' : 'text-neg'}`}>
-                    {result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION'
-                      ? '+12.4% trend'
-                      : result?.evaluation.actualOutcome === 'ORACLE_WICK_REVERSAL'
-                        ? '40s oracle lag'
-                        : result?.trade.regimeId === 'meme-euphoria-trap'
-                          ? '-16% bull-trap'
-                          : '-8.2% squeeze'}
+                  <div
+                    className={`num mt-0.5 truncate text-xs font-medium ${
+                      isUnfamiliar || isWeakMatch
+                        ? 'text-amber-500'
+                        : result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION'
+                          ? 'text-pos'
+                          : 'text-neg'
+                    }`}
+                  >
+                    {isUnfamiliar
+                      ? 'Unseen regime'
+                      : isWeakMatch
+                        ? 'Partial history'
+                        : result?.evaluation.actualOutcome === 'BREAKOUT_CONTINUATION'
+                          ? '+12.4% trend'
+                          : result?.evaluation.actualOutcome === 'ORACLE_WICK_REVERSAL'
+                            ? '40s oracle lag'
+                            : result?.trade.regimeId === 'meme-euphoria-trap'
+                              ? '-16% bull-trap'
+                              : result?.trade.regimeId === null
+                                ? 'Matched lesson'
+                                : '-8.2% squeeze'}
                   </div>
                 </div>
               </div>
@@ -293,9 +329,13 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                   {result ? `${result.trade.side} ${result.trade.asset}, ${result.trade.leverage}x` : 'Long SUI, 3x'}
                 </div>
                 <div className="mt-2 rounded-lg border border-neg/25 bg-neg/[0.06] px-2.5 py-1.5 font-mono text-xs text-neg">
-                  {isBreakoutCatalyst
-                    ? 'Under-sized trend: Missed +$620 upside'
-                    : `Repeat stop-out: -$${protectedUsd.toLocaleString('en-US')} drawdown`}
+                  {isUnfamiliar
+                    ? `Unbounded exposure: No baseline check (${liq(tradeLev)} buffer)`
+                    : isWeakMatch
+                      ? `Unchecked exposure: Partial signal ignored (${liq(tradeLev)} buffer)`
+                      : isBreakoutCatalyst
+                        ? 'Under-sized trend: Missed +$620 upside'
+                        : `Repeat stop-out: -$${protectedUsd.toLocaleString('en-US')} drawdown`}
                 </div>
                 <div className="mt-3 space-y-1.5 font-mono text-xs">
                   <div className="flex justify-between text-fg-2">
@@ -310,18 +350,36 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
               </div>
 
               {/* With Walrus Memory (Intercept Card) */}
-              <div className="rounded-xl border border-pos/40 bg-raised p-4 shadow-[0_0_20px_rgba(76,195,138,0.06)]">
+              <div
+                className={`rounded-xl border bg-raised p-4 ${
+                  isUnfamiliar || isWeakMatch
+                    ? 'border-amber-500/40 shadow-[0_0_20px_rgba(245,158,11,0.06)]'
+                    : 'border-pos/40 shadow-[0_0_20px_rgba(76,195,138,0.06)]'
+                }`}
+              >
                 <div className="flex items-center justify-between text-xs">
                   <span className="font-medium text-fg">With RogueTrader memory</span>
-                  <span className="num text-pos font-medium">Protected</span>
+                  <span className={`num font-medium ${isUnfamiliar || isWeakMatch ? 'text-amber-500' : 'text-pos'}`}>
+                    {isUnfamiliar ? 'Unfamiliar · Baseline Cap' : isWeakMatch ? 'Partial Match · Capped' : 'Protected'}
+                  </span>
                 </div>
-                <div className="num mt-1.5 text-lg font-medium text-pos">
+                <div className={`num mt-1.5 text-lg font-medium ${isUnfamiliar || isWeakMatch ? 'text-amber-500' : 'text-pos'}`}>
                   {result ? `${result.trade.side} ${result.trade.asset}, ${afterLev}x` : 'Long SUI, 2x'}
                 </div>
-                <div className="mt-2 rounded-lg border border-pos/30 bg-pos/10 px-2.5 py-1.5 font-mono text-xs font-medium text-pos">
-                  {isBreakoutCatalyst
-                    ? `Conviction backed: +$${protectedUsd.toLocaleString('en-US')} captured`
-                    : `Drawdown Avoided: Protected $${protectedUsd.toLocaleString('en-US')} from repeat stop-out`}
+                <div
+                  className={`mt-2 rounded-lg border px-2.5 py-1.5 font-mono text-xs font-medium ${
+                    isUnfamiliar || isWeakMatch
+                      ? 'border-amber-500/30 bg-amber-500/10 text-amber-500'
+                      : 'border-pos/30 bg-pos/10 text-pos'
+                  }`}
+                >
+                  {isUnfamiliar
+                    ? `No Walrus match (${topSimilarityPct}% < ${weakFloorPct}%): Baseline ${policy.unfamiliarMaxLeverage}x cap enforced`
+                    : isWeakMatch
+                      ? `Partial match (${topSimilarityPct}%): Memory dampened · Max ${policy.weakMatchMaxLeverage}x`
+                      : isBreakoutCatalyst
+                        ? `Conviction backed: +$${protectedUsd.toLocaleString('en-US')} captured`
+                        : `Drawdown Avoided: Protected $${protectedUsd.toLocaleString('en-US')} from repeat stop-out`}
                 </div>
                 <div className="mt-3 space-y-1.5 font-mono text-xs">
                   <div className="flex justify-between text-fg-2">
@@ -337,20 +395,24 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                     <span className="num flex items-center gap-1.5">
                       <span className="line-through text-fg-3">{liq(tradeLev)}</span>
                       <ArrowRight size={10} className="text-fg-3" />
-                      <span className="text-pos font-medium">{liq(afterLev)}</span>
+                      <span className={`font-medium ${isUnfamiliar || isWeakMatch ? 'text-amber-500' : 'text-pos'}`}>
+                        {liq(afterLev)}
+                      </span>
                     </span>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Recalled Memory Receipt (Compact) */}
-            {m && (
+            {/* Recalled Memory Receipt or Explicit Unfamiliar Regime Gate */}
+            {m ? (
               <div className="mt-3 rounded-xl border border-line bg-deep p-3 font-mono">
                 <div className="flex items-start gap-2">
-                  <CornerDownRight size={14} className="mt-0.5 shrink-0 text-pos" />
+                  <CornerDownRight size={14} className={`mt-0.5 shrink-0 ${isWeakMatch ? 'text-amber-500' : 'text-pos'}`} />
                   <p className="text-xs text-fg-2 leading-relaxed">
-                    <span className="text-fg font-medium">2. Matched Walrus Memory ({Math.round(m.similarityScore * 100)}%): </span>
+                    <span className="text-fg font-medium">
+                      2. Matched Walrus Memory ({Math.round(m.similarityScore * 100)}% · {isWeakMatch ? 'Partial' : 'Strong'}):{' '}
+                    </span>
                     {result?.evaluation.walrusRationale || m.text}
                   </p>
                 </div>
@@ -363,7 +425,31 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
                       <span>block</span> #{m.tatumCheckpoint.toLocaleString('en-US')}
                     </span>
                   )}
+                  <span className="keycap">
+                    <span>policy</span> {isWeakMatch ? 'dampened' : 'calibrated'}
+                  </span>
                   <span className="text-fg-3">checked in {result?.evaluation.recallLatencyMs}ms</span>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 rounded-xl border border-amber-500/35 bg-amber-500/[0.05] p-3 font-mono">
+                <div className="flex items-start gap-2">
+                  <AlertTriangle size={14} className="mt-0.5 shrink-0 text-amber-500" />
+                  <p className="text-xs text-fg-2 leading-relaxed">
+                    <span className="text-fg font-medium">
+                      2. Unfamiliar Regime Gate (Top match {topSimilarityPct}% &lt; {weakFloorPct}%):{' '}
+                    </span>
+                    {result?.evaluation.walrusRationale}
+                  </p>
+                </div>
+                <div className="mt-2 flex flex-wrap items-center gap-2 pl-5 text-[11px]">
+                  <span className="keycap border-amber-500/30 text-amber-500">
+                    <span>policy</span> max {policy.unfamiliarMaxLeverage}x
+                  </span>
+                  <span className="keycap">
+                    <span>conf cap</span> {policy.unfamiliarConfidenceCap}%
+                  </span>
+                  <span className="text-fg-3">checked in {result?.evaluation.recallLatencyMs}ms · log outcome below to store</span>
                 </div>
               </div>
             )}
@@ -457,7 +543,16 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
             </div>
 
             <div className="mt-4 rounded-lg border border-line bg-raised p-2.5 text-[11px] font-mono text-fg-3">
-              <span>Live setup penalty: {result?.evaluation.statelessBrierPenalty.toFixed(3) ?? '0.774'} blind ➔ {result?.evaluation.walrusBrierPenalty.toFixed(3) ?? '0.212'} Walrus</span>
+              {result?.evaluation.statelessBrierPenalty != null && result?.evaluation.walrusBrierPenalty != null ? (
+                <span>
+                  Live setup penalty: {result.evaluation.statelessBrierPenalty.toFixed(3)} blind ➔{' '}
+                  {result.evaluation.walrusBrierPenalty.toFixed(3)} Walrus
+                </span>
+              ) : (
+                <span>
+                  Live setup Brier: Pending resolution (no outcome proxy for {isUnfamiliar ? 'unseen' : 'partial'} regime)
+                </span>
+              )}
             </div>
           </div>
         </div>

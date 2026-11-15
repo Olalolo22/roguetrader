@@ -1,5 +1,22 @@
 export type AgentMode = 'stateless' | 'walrus_calibrated';
 
+export type RecallMatchQuality = 'STRONG_MATCH' | 'WEAK_MATCH' | 'UNFAMILIAR_REGIME';
+
+export interface RiskCalibrationPolicy {
+  /** Minimum similarity [0..1] required to trust recalled memory at full weight */
+  strongMatchThreshold: number;
+  /** Minimum similarity [0..1] required to treat a memory as a partial signal */
+  weakMatchThreshold: number;
+  /** Explicit deterministic max leverage when no historical match exists */
+  unfamiliarMaxLeverage: number;
+  /** Explicit confidence ceiling (%) when no historical match exists */
+  unfamiliarConfidenceCap: number;
+  /** Weight multiplier [0..1] applied to memory adjustments on weak/partial matches */
+  weakMatchDampening: number;
+  /** Deterministic max leverage on weak/partial matches without strong confirmation */
+  weakMatchMaxLeverage: number;
+}
+
 export interface WalrusMemoryItem {
   id: string;
   blobId: string;
@@ -14,29 +31,38 @@ export interface WalrusMemoryItem {
 
 export interface EpistemicEvaluation {
   id: string;
-  scenarioId: string;
+  scenarioId: string | null;
   pair: string;
   timestamp: string;
   tatumCheckpoint: number;
   cetusVolume1h: string;
   deepBookSpreadBps: string;
-  naviBorrowPct: number;
+  naviBorrowPct: number | null;
   
   // Stateless Agent (Zero Memory)
   statelessConfidence: number; // e.g. 88%
   statelessStance: string; // "AGGRESSIVE 5X LONG"
   statelessRationale: string;
-  statelessBrierPenalty: number; // e.g. 0.774
+  statelessBrierPenalty: number | null; // null when unseen/unresolved
   
   // Walrus-Augmented Agent (With Persistent Memory)
   walrusConfidence: number; // e.g. 48%
   walrusStance: string; // "CAUTIOUS SPOT ACCUMULATION"
   walrusRationale: string;
-  walrusBrierPenalty: number; // e.g. 0.176
-  recalledMemory: WalrusMemoryItem;
+  walrusBrierPenalty: number | null; // null when unseen/unresolved
+  recalledMemory: WalrusMemoryItem | null;
+  matchQuality: RecallMatchQuality;
+  topCandidateSimilarity: number;
+  policyApplied: string;
+  calibratedLeverage: number;
   recallLatencyMs: number; // e.g. 1,080 ms
   
-  actualOutcome: 'DUMP_LONG_SQUEEZE' | 'BREAKOUT_CONTINUATION' | 'CHOP_DELTA_NEUTRAL' | 'ORACLE_WICK_REVERSAL';
+  actualOutcome:
+    | 'DUMP_LONG_SQUEEZE'
+    | 'BREAKOUT_CONTINUATION'
+    | 'CHOP_DELTA_NEUTRAL'
+    | 'ORACLE_WICK_REVERSAL'
+    | 'UNKNOWN_UNRESOLVED';
 }
 
 export interface HistoricalBrierRow {

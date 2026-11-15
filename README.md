@@ -100,6 +100,15 @@ f_calibrated = f_prior - Penalty(recalled_failures, cosine_similarity)
              = 0.84 - 0.22 = 0.62 (leverage cut from 3.0x to 2.0x)
 ```
 
+**Out-of-Distribution / Unfamiliar Regime Gate (`src/services/riskPolicy.ts`):**
+When no stored memory passes the relevance floor, RogueTrader refuses to manufacture confidence from unrelated neighbors and falls back to explicit, configurable baseline constraints:
+
+| Retrieval State | Similarity Threshold | Sizing & Confidence Policy |
+|---|---|---|
+| **`STRONG_MATCH`** | `>= 0.72` | Full memory calibration (failure shrinkage or verified catalyst support). |
+| **`WEAK_MATCH`** | `0.45 – 0.71` | Memory adjustment dampened (`45%` weight), catalyst boosts disabled, leverage capped (`<= 2.5x`). |
+| **`UNFAMILIAR_REGIME`** | `< 0.45` (or empty recall) | `recalledMemory = null`; confidence capped (`<= 50%`) and leverage capped at deterministic baseline (`<= 2.0x`) until resolved and logged. |
+
 To illustrate how memory shrinkage reduces overconfidence compared to a stateless baseline, our 5-scenario Sui microstructure benchmark (`HISTORICAL_BENCHMARK_ROWS` in `src/services/agentEngine.ts`) scores uncalibrated vs. memory-adjusted probabilities using the **Brier Score**:
 
 ```text

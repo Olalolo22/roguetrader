@@ -1,4 +1,15 @@
 import type { IncomingMessage, ServerResponse } from 'node:http';
+import type { RiskCalibrationPolicy, WalrusMemoryItem } from '../../src/types/index.ts';
+import {
+  classifyMatchQuality,
+  computeRiskCalibration,
+  DEFAULT_RISK_POLICY,
+  inferMemoryCategory,
+  INITIAL_WALRUS_MEMORIES,
+  normalizePolicy,
+  parseTradeIntent,
+  rankMemoriesLocally
+} from '../../src/services/riskPolicy.ts';
 
 interface VercelRequest extends IncomingMessage {
   body: any;
@@ -17,6 +28,29 @@ const VERIFIED_MAINNET_TX = '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N';
 const RECIPIENT_WALLET = '0xaff0ccba609e3d18b5f5cf6290f158736c6c788ed4074951d636b223a4824b4d';
 const MEMWAL_ACCOUNT_ID = '0xf7bbb0464e0088b39df94354701fdeef69ccfd7e15b59964b1ac73c30c44e223';
 const REQUIRED_MIST = 50_000_000n; // 0.05 SUI in MIST (1 SUI = 1e9 MIST)
+
+const PRESET_QUERY_MAP: Record<string, { query: string; label: string; statelessConfidence: number }> = {
+  'oct-navi-trap': {
+    query: 'SUI breakout Cetus $14.2M NAVI borrow crowding >75% long-squeeze',
+    label: 'Oct 14 NAVI Borrow 78.4% Squeeze',
+    statelessConfidence: 84
+  },
+  'pyth-epoch-latency': {
+    query: 'Pyth oracle latency epoch 512 AMM discount',
+    label: 'Epoch 512 Pyth Latency Drift',
+    statelessConfidence: 81
+  },
+  'cetus-institutional-breakout': {
+    query: 'SUI institutional breakout Cetus DeepBook spread spot bid absorption',
+    label: 'Oct 16 Cetus Institutional Breakout',
+    statelessConfidence: 74
+  },
+  'meme-euphoria-trap': {
+    query: 'CETUS retail social euphoria spike DeepBook bid depth bull-trap',
+    label: 'Oct 24 Social Euphoria Bull-Trap',
+    statelessConfidence: 94
+  }
+};
 
 // In-memory replay prevention cache for serverless execution instance
 // In multi-region production, backed by KV / on-chain nonce table
@@ -66,20 +100,24 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Parse trade from body
+  // Parse trade & optional policy override from body
   let tradeText = 'Long SUI 0.85, 3x';
+  let policyOverride: Partial<RiskCalibrationPolicy> | undefined;
   try {
     const parsedBody = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     if (parsedBody?.trade && typeof parsedBody.trade === 'string') {
       tradeText = parsedBody.trade;
     }
+    if (parsedBody?.policy && typeof parsedBody.policy === 'object') {
+      policyOverride = parsedBody.policy;
+    }
   } catch {
     // Keep default
   }
 
-  // Extract leverage from trade input
-  const levMatch = tradeText.match(/(\d+(?:\.\d+)?)\s*x\b/i);
-  const proposedLeverage = levMatch ? Math.max(1, Math.min(50, Number(levMatch[1]))) : 3;
+  const parsedTrade = parseTradeIntent(tradeText);
+  const proposedLeverage = parsedTrade.leverage;
+  const activePolicy = normalizePolicy({ ...DEFAULT_RISK_POLICY, ...policyOverride });
 
   // On-chain verification on Sui Mainnet
   let checkpoint = 343405090;
@@ -224,13 +262,91 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     claimedDigests.add(rawDigest);
   }
 
-  // Calibrate leverage & wipeout buffer
-  const calibratedLeverage = Math.max(1, Math.min(proposedLeverage, Math.round(proposedLeverage * (62 / 84))));
+  // Recall matching regimes (live MemWal relayer if server keys configured, else local semantic index)
+  const presetInfo = parsedTrade.regimeId ? PRESET_QUERY_MAP[parsedTrade.regimeId] : undefined;
+  const recallQuery = presetInfo ? presetInfo.query : tradeText;
+  const statelessConfidence = presetInfo
+    ? presetInfo.statelessConfidence
+    : Math.min(92, 72 + Math.round(proposedLeverage * 3));
+
+  let ranked = rankMemoriesLocally(recallQuery, INITIAL_WALRUS_MEMORIES, activePolicy, 3);
+  let recallSource: 'live_relayer' | 'local_semantic_index' = 'local_semantic_index';
+
+  const memwalKey = process.env.MEMWAL_KEY || process.env.VITE_MEMWAL_KEY;
+  const memwalAccountId = process.env.MEMWAL_ACCOUNT_ID || process.env.VITE_MEMWAL_ACCOUNT_ID;
+  if (memwalKey && memwalAccountId) {
+    try {
+      const { MemWal } = await import('@mysten-incubation/memwal');
+      const client = MemWal.create({
+        key: memwalKey,
+        accountId: memwalAccountId,
+        serverUrl: 'https://relayer.memory.walrus.xyz',
+        namespace: 'roguetrader',
+        recallTimeoutMs: 4000
+      });
+      const resRecall = await client.recall({ query: recallQuery, limit: 3 });
+      if (resRecall && Array.isArray(resRecall.results)) {
+        const items: WalrusMemoryItem[] = resRecall.results
+          .map((r: any, idx: number) => {
+            const matchedSeed = INITIAL_WALRUS_MEMORIES.find(m => m.blobId === r.blob_id);
+            const rawDist = typeof r.distance === 'number' && Number.isFinite(r.distance) ? r.distance : 1;
+            const sim = Math.max(0, Math.min(1, Number((1 - rawDist).toFixed(2))));
+            return {
+              id: `relayer-${Date.now()}-${idx}`,
+              blobId: r.blob_id || '',
+              text: r.text || '',
+              category: matchedSeed?.category || inferMemoryCategory(r.text || ''),
+              timestamp: r.created_at || matchedSeed?.timestamp || new Date().toISOString(),
+              similarityScore: sim,
+              weightImpact: matchedSeed?.weightImpact || '-30% Confidence',
+              tatumCheckpoint: matchedSeed?.tatumCheckpoint
+            };
+          })
+          .sort((a, b) => b.similarityScore - a.similarityScore);
+
+        const topSimilarity = items[0]?.similarityScore ?? 0;
+        ranked = {
+          results: items.filter(m => m.similarityScore >= activePolicy.weakMatchThreshold),
+          allCandidates: items,
+          topSimilarity,
+          matchQuality: classifyMatchQuality(topSimilarity, activePolicy)
+        };
+        recallSource = 'live_relayer';
+      }
+    } catch {
+      // Keep local semantic recall fallback
+    }
+  }
+
+  const calibration = computeRiskCalibration({
+    proposedLeverage,
+    statelessConfidence,
+    ranked,
+    policy: activePolicy
+  });
+
   const proposedBuffer = proposedLeverage <= 1 ? 'none' : `${(100 / proposedLeverage).toFixed(1)}%`;
-  const calibratedBuffer = calibratedLeverage <= 1 ? 'none' : `${(100 / calibratedLeverage).toFixed(1)}%`;
+  const calibratedBuffer =
+    calibration.calibratedLeverage <= 1 ? 'none' : `${(100 / calibration.calibratedLeverage).toFixed(1)}%`;
+
+  const isStrongMatch = calibration.matchQuality === 'STRONG_MATCH' && calibration.recalledMemory != null;
+  const isPositiveCatalyst = calibration.recalledMemory?.category === 'CATALYST';
+  const outcomeNumeric = isPositiveCatalyst ? 1 : 0;
+
+  const statelessBrier = isStrongMatch
+    ? Number(Math.pow(statelessConfidence / 100 - outcomeNumeric, 2).toFixed(3))
+    : null;
+  const calibratedBrier = isStrongMatch
+    ? Number(Math.pow(calibration.walrusConfidence / 100 - outcomeNumeric, 2).toFixed(3))
+    : null;
+
+  const brierReductionPct =
+    statelessBrier != null && calibratedBrier != null && statelessBrier > 0
+      ? Math.round(((statelessBrier - calibratedBrier) / statelessBrier) * 100)
+      : null;
 
   return res.status(200).json({
-    status: 'PROTECTED',
+    status: calibration.matchQuality === 'UNFAMILIAR_REGIME' ? 'BASELINE_CAPPED' : 'PROTECTED',
     statusCode: 200,
     timestamp: new Date().toISOString(),
     settlement: {
@@ -244,30 +360,47 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     },
     riskEvaluation: {
       inputTrade: tradeText,
+      parsedAsset: parsedTrade.asset,
       proposedSizing: {
         leverage: proposedLeverage,
         wipeoutBuffer: proposedBuffer,
-        statelessConfidence: '84%',
+        statelessConfidence: `${statelessConfidence}%`,
         stance: 'BLIND AGGRESSIVE ENTRY',
-        uncalibratedBrierPenalty: 0.468
+        uncalibratedBrierPenalty: statelessBrier
       },
       calibratedSizing: {
-        leverage: calibratedLeverage,
+        leverage: calibration.calibratedLeverage,
         wipeoutBuffer: calibratedBuffer,
-        calibratedConfidence: '62%',
-        stance: 'PROTECTED ENTRY',
-        calibratedBrierPenalty: 0.128,
-        drawdownAvoidedUsd: Math.round(710 * Math.max(1, proposedLeverage - calibratedLeverage + 1))
+        calibratedConfidence: `${calibration.walrusConfidence}%`,
+        stance: calibration.walrusStance,
+        calibratedBrierPenalty: calibratedBrier,
+        drawdownAvoidedUsd:
+          calibration.matchQuality === 'STRONG_MATCH' && !isPositiveCatalyst
+            ? Math.round(710 * Math.max(1, proposedLeverage - calibration.calibratedLeverage + 1))
+            : null
       }
     },
     walrusMemoryRecall: {
       accountId: MEMWAL_ACCOUNT_ID,
       namespace: 'roguetrader',
-      matchedBlobId: 'thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0',
-      category: 'FAILURE_CASE',
-      regime: 'Oct 14 NAVI Borrow 78.4% Squeeze',
-      lesson: 'Borrow utilization >75% previously triggered -8.2% long-squeeze cascade. Leverage capped at 2.0x to ensure wipeout buffer survives historical wick.',
-      brierAdvantage: '74% error reduction (0.468 -> 0.128)'
+      source: recallSource,
+      matchQuality: calibration.matchQuality,
+      topCandidateSimilarity: calibration.topCandidateSimilarity,
+      thresholds: {
+        strongMatchMin: activePolicy.strongMatchThreshold,
+        weakMatchMin: activePolicy.weakMatchThreshold,
+        unfamiliarMaxLeverage: activePolicy.unfamiliarMaxLeverage,
+        unfamiliarConfidenceCap: activePolicy.unfamiliarConfidenceCap
+      },
+      policyApplied: calibration.policyApplied,
+      matchedBlobId: calibration.recalledMemory?.blobId ?? null,
+      category: calibration.recalledMemory?.category ?? null,
+      regime: presetInfo?.label ?? (calibration.recalledMemory ? 'Custom Walrus Match' : null),
+      lesson: calibration.walrusRationale,
+      brierAdvantage:
+        brierReductionPct != null && statelessBrier != null && calibratedBrier != null
+          ? `${brierReductionPct}% error reduction (${statelessBrier} -> ${calibratedBrier})`
+          : null
     }
   });
 }
