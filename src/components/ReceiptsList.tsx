@@ -98,7 +98,7 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <span className="num text-meta text-fg-3">Sui Mainnet tx · verified via Tatum RPC</span>
+            <span className="num text-meta text-fg-3">Sui Mainnet tx · verified via Tatum GraphQL</span>
             <button
               onClick={settle}
               disabled={isSettling}

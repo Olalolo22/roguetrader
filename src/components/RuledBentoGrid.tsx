@@ -572,7 +572,7 @@ export const RuledBentoGrid: React.FC<RuledBentoGridProps> = ({
             <dl className="mt-4 space-y-3 font-mono text-xs">
               <div className="flex justify-between border-b border-line/60 pb-2">
                 <dt className="text-fg-3">Tatum Gateway</dt>
-                <dd className="text-fg">sui-mainnet.gateway.tatum.io</dd>
+                <dd className="text-fg">{marketState?.gatewayHost || 'sui-mainnet.gateway.tatum.io/graphql'}</dd>
               </div>
               <div className="flex justify-between border-b border-line/60 pb-2">
                 <dt className="text-fg-3">Current Sui Block</dt>

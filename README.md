@@ -69,12 +69,12 @@ You Enter: "Long SUI 0.85, 3x"
   - **Post-Trade Lesson (`memwal.remember` ~20 s):** Erasure-coding and committing blobs to Walrus takes 15–25 seconds, so RogueTrader only writes new trade lessons asynchronously *after* a position closes—never blocking trade execution.
 - **Zero-Custody Delegate Key Architecture (For Judge Testing):** The live web desk comes pre-connected to our Sui Mainnet trader account (`0xaff0…4b4d`, `MemWalAccount` `0xf7bb…e223`) using a scoped, zero-balance Ed25519 MemWal delegate key (`0x9a49…7ff8`) so judges can test live Mainnet vector recall and memory writes in 1 click without connecting a wallet, while wallet custody keys remain strictly offline. In production multi-tenant deployments, client requests route through a backend relayer proxy.
 
-### 2. Tatum Sui Mainnet Gateway (`sui-mainnet.gateway.tatum.io`)
+### 2. Tatum Sui Mainnet Gateway (`sui-mainnet.gateway.tatum.io/graphql`)
 - **Live On-Chain Context vs. Scenario Presets:**
-  - **Fetched Live:** Pulls real-time Sui Mainnet block height (`sui_getLatestCheckpointSequenceNumber` via Tatum RPC), live SUI/USD reference price (`/v3/tatum/rate/SUI`), and 24h SUI DEX volume/liquidity (via DexScreener).
+  - **Fetched Live:** Pulls real-time Sui Mainnet checkpoint height (`Query.checkpoint { sequenceNumber }` via Tatum Sui GraphQL `/graphql`, with `graphql.mainnet.sui.io` fallback), live SUI/USD reference price (`/v3/tatum/rate/SUI`), and 24h SUI DEX volume/liquidity (via DexScreener).
   - **Scenario Presets:** Microstructure regime variables such as NAVI borrow utilization (e.g. `78.4%`) and DeepBook orderbook skew are modeled via selectable benchmark presets (`MARKET_REGIMES`) that map proposed trades to representative Sui market conditions.
 - **Post-Trade Lesson Logging:** After a position closes, traders (or bots via the SDK) use the post-trade outcome logger to commit new lessons directly to Walrus Mainnet (`memwal.remember`).
-- **On-Chain Payment Verification:** Inspects on-chain balance changes via Sui gRPC / Tatum Gateway to verify that at least 0.05 SUI reached the recipient address (`0xaff0…4b4d`), backed by an in-memory replay prevention cache against double-spending digests.
+- **On-Chain Payment Verification:** Inspects on-chain balance changes via Sui gRPC (`SuiGrpcClient`) and Tatum Sui GraphQL (`/graphql`) to verify that at least 0.05 SUI reached the recipient address (`0xaff0…4b4d`), backed by an in-memory replay prevention cache against double-spending digests.
 
 ### 3. What We Recall & Compare: The 5-Variable Market State Vector (Not "Diary Text")
 Price levels (`$2.14`) and ticker names (`SUI`) do not cause liquidations—**sizing into the wrong market microstructure** does. Instead of naive text matching, RogueTrader evaluates the **5-variable entry state vector (`State_t`)**:

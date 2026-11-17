@@ -1,10 +1,44 @@
-import type { TatumMarketState } from '../types';
+import type { TatumMarketState } from '../types/index.ts';
 
-class TatumSuiService {
-  // Read Tatum API Key from env if present, with fallback to public Sui RPC
-  private tatumApiKey: string = (import.meta.env.VITE_TATUM_API_KEY as string | undefined)?.trim() || '';
-  private gatewayUrl = 'https://sui-mainnet.gateway.tatum.io';
-  private publicFallbackUrl = 'https://fullnode.mainnet.sui.io:443';
+const TATUM_GRAPHQL_URL = 'https://sui-mainnet.gateway.tatum.io/graphql';
+const PUBLIC_SUI_GRAPHQL_URL = 'https://graphql.mainnet.sui.io/graphql';
+const GENESIS_FIXTURE_DIGEST = '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N';
+
+const LATEST_CHECKPOINT_QUERY = `
+  query GetLatestCheckpoint {
+    checkpoint {
+      sequenceNumber
+    }
+  }
+`;
+
+const VERIFY_TRANSACTION_QUERY = `
+  query VerifyTransaction($digest: String!) {
+    transaction(digest: $digest) {
+      digest
+      effects {
+        status
+        checkpoint {
+          sequenceNumber
+        }
+      }
+    }
+  }
+`;
+
+function normalizeEnvTatumKey(): string {
+  const viteKey =
+    typeof import.meta !== 'undefined'
+      ? ((import.meta as { env?: Record<string, string | undefined> }).env?.VITE_TATUM_API_KEY ?? '')
+      : '';
+  return viteKey.trim();
+}
+
+export class TatumSuiService {
+  // Read Tatum API Key from env if present, with fallback to public Sui GraphQL
+  private tatumApiKey: string = normalizeEnvTatumKey();
+  private tatumGraphqlUrl = TATUM_GRAPHQL_URL;
+  private publicGraphqlUrl = PUBLIC_SUI_GRAPHQL_URL;
 
   public setApiKey(key: string) {
     this.tatumApiKey = key.trim();
@@ -18,37 +52,70 @@ class TatumSuiService {
     return !!this.tatumApiKey;
   }
 
-  public async getLatestCheckpoint(): Promise<number> {
-    const targetUrl = this.tatumApiKey ? this.gatewayUrl : this.publicFallbackUrl;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    };
-    if (this.tatumApiKey) {
-      headers['x-api-key'] = this.tatumApiKey;
-    }
+  public getGatewayHost(): string {
+    return this.isUsingTatum() ? 'sui-mainnet.gateway.tatum.io/graphql' : 'graphql.mainnet.sui.io';
+  }
 
-    try {
-      const res = await fetch(targetUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'sui_getLatestCheckpointSequenceNumber',
-          params: []
-        })
-      });
+  private async queryGraphql<T = Record<string, any>>(
+    query: string,
+    variables?: Record<string, unknown>,
+    timeoutMs: number = 4500
+  ): Promise<{ ok: boolean; data: T | null; endpoint: string }> {
+    const endpoints: Array<{ url: string; headers: Record<string, string> }> = this.tatumApiKey
+      ? [
+          {
+            url: this.tatumGraphqlUrl,
+            headers: { 'Content-Type': 'application/json', 'x-api-key': this.tatumApiKey }
+          },
+          {
+            url: this.publicGraphqlUrl,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        ]
+      : [
+          {
+            url: this.publicGraphqlUrl,
+            headers: { 'Content-Type': 'application/json' }
+          }
+        ];
 
-      if (res.ok) {
-        const data = await res.json();
-        if (data.result) {
-          return parseInt(data.result, 10);
+    for (const target of endpoints) {
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timer = controller ? setTimeout(() => controller.abort(), timeoutMs) : null;
+      try {
+        const res = await fetch(target.url, {
+          method: 'POST',
+          headers: target.headers,
+          signal: controller?.signal,
+          body: JSON.stringify(variables ? { query, variables } : { query })
+        });
+        if (!res.ok) continue;
+
+        const payload = (await res.json()) as { data?: T; errors?: unknown[] };
+        if (payload?.data && (!Array.isArray(payload.errors) || payload.errors.length === 0)) {
+          return { ok: true, data: payload.data, endpoint: target.url };
         }
+      } catch {
+        // Try next GraphQL endpoint
+      } finally {
+        if (timer) clearTimeout(timer);
       }
-    } catch {
-      // Fallback to verified live Mainnet sequence baseline when offline or rate-limited
     }
 
+    return { ok: false, data: null, endpoint: endpoints[0].url };
+  }
+
+  public async getLatestCheckpoint(): Promise<number> {
+    const res = await this.queryGraphql<{ checkpoint?: { sequenceNumber?: number | string } | null }>(
+      LATEST_CHECKPOINT_QUERY
+    );
+    const seq = res.data?.checkpoint?.sequenceNumber;
+    const parsed = typeof seq === 'number' ? seq : typeof seq === 'string' ? parseInt(seq, 10) : NaN;
+    if (res.ok && Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+
+    // Fallback to verified live Mainnet sequence baseline when offline or rate-limited
     return 89412040 + Math.floor((Date.now() - 1761350400000) / 3000);
   }
 
@@ -109,58 +176,30 @@ class TatumSuiService {
       dexLiquidityUsd,
       latestCheckpoint: checkpoint,
       isTatumRpc: this.isUsingTatum(),
-      gatewayHost: this.isUsingTatum() ? 'sui-mainnet.gateway.tatum.io' : 'fullnode.mainnet.sui.io'
+      gatewayHost: this.getGatewayHost()
     };
   }
 
   public async verifyTransaction(txDigest: string): Promise<boolean> {
-    const targetUrl = this.tatumApiKey ? this.gatewayUrl : this.publicFallbackUrl;
-    const headers: Record<string, string> = {
-      'Content-Type': 'application/json'
-    };
-    if (this.tatumApiKey) {
-      headers['x-api-key'] = this.tatumApiKey;
+    const digest = txDigest.trim();
+    if (!digest) return false;
+
+    const res = await this.queryGraphql<{
+      transaction?: {
+        digest?: string;
+        effects?: {
+          status?: string;
+          checkpoint?: { sequenceNumber?: number | string } | null;
+        } | null;
+      } | null;
+    }>(VERIFY_TRANSACTION_QUERY, { digest });
+
+    if (res.ok) {
+      return res.data?.transaction?.effects?.status === 'SUCCESS';
     }
 
-    try {
-      const res = await fetch(targetUrl, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({
-          jsonrpc: '2.0',
-          id: 1,
-          method: 'sui_getTransactionBlock',
-          params: [txDigest, { showEffects: true }]
-        })
-      });
-
-      if (res.ok) {
-        const data = await res.json();
-        return data?.result?.effects?.status?.status === 'success';
-      }
-    } catch {
-      // Fallback to public Sui fullnode if Tatum gateway is unreachable
-      try {
-        const fallbackRes = await fetch(this.publicFallbackUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            jsonrpc: '2.0',
-            id: 1,
-            method: 'sui_getTransactionBlock',
-            params: [txDigest, { showEffects: true }]
-          })
-        });
-        if (fallbackRes.ok) {
-          const fallbackData = await fallbackRes.json();
-          return fallbackData?.result?.effects?.status?.status === 'success';
-        }
-      } catch {
-        // Ignore network error
-      }
-    }
-
-    return txDigest === '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N';
+    // Offline fallback only when both Tatum & public Sui GraphQL endpoints are unreachable
+    return digest === GENESIS_FIXTURE_DIGEST;
   }
 }
 

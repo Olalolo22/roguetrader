@@ -113,7 +113,7 @@ const SettingsPanel: React.FC<Omit<SettingsModalProps, 'isOpen'>> = ({ onClose, 
           <label className="block space-y-2">
             <span className="text-sm text-fg-2">Tatum API key</span>
             <input type="password" value={tatumKey} onChange={e => setTatumKey(e.target.value)} placeholder="t-…" className={field} />
-            <span className="block text-meta text-fg-3">Without a key, checkpoints come from the public Sui RPC.</span>
+            <span className="block text-meta text-fg-3">Without a key, checkpoints come from public Sui GraphQL.</span>
           </label>
 
           <div className="space-y-3">

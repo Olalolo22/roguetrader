@@ -317,11 +317,11 @@ export const LandingPage: React.FC<LandingPageProps> = ({
             <div className="space-y-1">
               <h3 className="font-medium text-fg text-base">Live Sui Feed via Tatum</h3>
               <p className="text-xs text-fg-2 leading-relaxed">
-                Pulls live Sui mainnet block height and price state through Tatum RPC before sizing any order.
+                Pulls live Sui mainnet block height and price state through Tatum Sui GraphQL &amp; Price API before sizing any order.
               </p>
             </div>
             <div className="pt-2 font-mono text-[11px] text-fg-3 border-t border-line/60">
-              sui-mainnet.gateway.tatum.io
+              sui-mainnet.gateway.tatum.io/graphql
             </div>
           </div>
 
