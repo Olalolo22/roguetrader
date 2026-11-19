@@ -231,3 +231,53 @@ test('api/x402/check handler returns BASELINE_CAPPED for unfamiliar regimes and 
   assert.equal(customPolicy.payload.riskEvaluation.calibratedSizing.leverage, 1);
   assert.equal(customPolicy.payload.riskEvaluation.calibratedSizing.calibratedConfidence, '40%');
 });
+
+test('Live NAVI borrow utilization >= 75% enforces deterministic 2x ceiling on SUI-tracked trades', () => {
+  // Even on a strong CATALYST match, live NAVI overheat (>= 75%) overrides leverage to <= 2x
+  const catalystRanked = {
+    results: [{ ...INITIAL_WALRUS_MEMORIES[1], similarityScore: 0.91 }],
+    allCandidates: [{ ...INITIAL_WALRUS_MEMORIES[1], similarityScore: 0.91 }],
+    topSimilarity: 0.91,
+    matchQuality: 'STRONG_MATCH' as const
+  };
+
+  const overheated = computeRiskCalibration({
+    proposedLeverage: 5,
+    statelessConfidence: 87,
+    ranked: catalystRanked,
+    policy: DEFAULT_RISK_POLICY,
+    liveNaviUtilizationPct: 79.4,
+    isSuiTrackedAsset: true
+  });
+
+  assert.equal(overheated.liveNaviApplied, true);
+  assert.equal(overheated.calibratedLeverage, 2);
+  assert.ok(overheated.walrusConfidence <= 65);
+  assert.match(overheated.policyApplied, /live_navi_overheat_cap/);
+  assert.match(overheated.shortExplanation, /79\.4%/);
+
+  // Normal live NAVI utilization (< 75%) does NOT trigger overheat cap
+  const normal = computeRiskCalibration({
+    proposedLeverage: 5,
+    statelessConfidence: 87,
+    ranked: catalystRanked,
+    policy: DEFAULT_RISK_POLICY,
+    liveNaviUtilizationPct: 53.4,
+    isSuiTrackedAsset: true
+  });
+  assert.equal(normal.liveNaviApplied, false);
+  assert.equal(normal.calibratedLeverage, 5);
+
+  // Non-SUI external asset is isolated from SUI NAVI utilization
+  const externalAsset = computeRiskCalibration({
+    proposedLeverage: 5,
+    statelessConfidence: 87,
+    ranked: catalystRanked,
+    policy: DEFAULT_RISK_POLICY,
+    liveNaviUtilizationPct: 88.0,
+    isSuiTrackedAsset: false
+  });
+  assert.equal(externalAsset.liveNaviApplied, false);
+  assert.equal(externalAsset.calibratedLeverage, 5);
+});
+

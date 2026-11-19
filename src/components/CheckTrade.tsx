@@ -1,6 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
 import type { TatumMarketState } from '../types';
-import { LivingGlyphMascot } from './LivingGlyphMascot';
 import { RuledBentoGrid } from './RuledBentoGrid';
 
 interface CheckTradeProps {
@@ -8,40 +7,46 @@ interface CheckTradeProps {
   theme?: 'dark' | 'light';
 }
 
-export const CheckTrade: React.FC<CheckTradeProps> = ({ marketState, theme = 'dark' }) => {
-  const [interceptActive, setInterceptActive] = useState(false);
+export const CheckTrade: React.FC<CheckTradeProps> = ({ marketState }) => {
+  const naviUtil = marketState?.navi.borrowUtilizationPct;
+  const naviApr = marketState?.navi.borrowAprPct;
 
   return (
-    <div className="space-y-10 sm:space-y-14 pt-4 sm:pt-8">
-      {/* Hero: Asymmetrical Split — Story & Headline on Left, Living Glyph Mascot on Right */}
-      <section className="grid grid-cols-1 items-center gap-8 lg:grid-cols-12">
-        <div className="lg:col-span-7 space-y-4">
-          <h1 className="text-3xl font-medium tracking-tight text-fg sm:text-5xl sm:leading-[1.12]">
-            Every rogue trader had the same problem.{' '}
-            <span className="text-fg-2">Nobody remembered the last blowup.</span>
+    <div className="mx-auto max-w-4xl space-y-6 pt-6 sm:pt-8">
+      {/* Compact Above-the-Fold Header */}
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-medium tracking-tight text-fg sm:text-3xl">
+            Pre-Trade Risk Guard
           </h1>
-
-          <p className="max-w-xl text-base text-fg-2 sm:text-lg leading-relaxed">
-            Rogue traders don't lose capital because they lack charts. They lose because nothing stops them from repeating yesterday's liquidation trap. RogueTrader checks your order against Walrus memory before sizing.
-          </p>
+          <div className="flex flex-wrap items-center gap-1.5 text-xs">
+            <span className="keycap">
+              <span className="live-dot" aria-hidden />
+              <span>SUI</span>
+              {marketState ? `$${marketState.suiPrice.toFixed(3)}` : 'loading…'}
+            </span>
+            <span className="keycap">
+              <span>NAVI borrow</span>
+              {naviUtil != null ? (
+                <span className={marketState?.navi.isOverheated ? 'text-neg font-medium' : 'text-fg'}>
+                  {naviUtil.toFixed(1)}%{naviApr != null ? ` · ${naviApr.toFixed(1)}% APR` : ''}
+                </span>
+              ) : (
+                <span className="text-fg-3">
+                  {marketState ? 'live feed unavailable' : 'loading…'}
+                </span>
+              )}
+            </span>
+          </div>
         </div>
-
-        {/* Right Column: The Living Glyph Mascot with Iridescent Liquid Glass Reactor Core */}
-        <div className="lg:col-span-5 flex justify-center">
-          <LivingGlyphMascot
-            marketState={marketState}
-            interceptActive={interceptActive}
-            theme={theme}
-          />
-        </div>
+        <p className="text-sm text-fg-2 sm:text-base">
+          Enter a trade to check it against past blowups on Walrus Memory, get an adjusted leverage cap, and log real outcomes so future checks adapt.
+        </p>
       </section>
 
-      {/* Main Execution Surface: The Precision Ruled Bento Grid */}
-      <section aria-label="Execution Cockpit and Risk Gate">
-        <RuledBentoGrid
-          marketState={marketState}
-          onInterceptChange={(active) => setInterceptActive(active)}
-        />
+      {/* Single-Flow Interactive Guard */}
+      <section aria-label="Pre-Trade Risk Check Flow">
+        <RuledBentoGrid marketState={marketState} />
       </section>
     </div>
   );

@@ -10,7 +10,7 @@ import { x402Payment } from './services/x402Payment';
 import type { TatumMarketState, UserWalletState, X402Receipt } from './types';
 
 export function App() {
-  const [activeTab, setActiveTab] = useState<DeskTab>('overview');
+  const [activeTab, setActiveTab] = useState<DeskTab>('check');
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [receipts, setReceipts] = useState<X402Receipt[]>(() => x402Payment.getReceipts());
   const [marketState, setMarketState] = useState<TatumMarketState | null>(null);

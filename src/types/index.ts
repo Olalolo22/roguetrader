@@ -17,11 +17,15 @@ export interface RiskCalibrationPolicy {
   weakMatchMaxLeverage: number;
 }
 
+export type MemoryOrigin = 'HISTORICAL_BENCHMARK' | 'LIVE_OUTCOME';
+
 export interface WalrusMemoryItem {
   id: string;
   blobId: string;
   text: string;
   category: 'FAILURE_CASE' | 'REGIME_SHIFT' | 'CATALYST' | 'ORACLE_OUTCOME';
+  origin?: MemoryOrigin;
+  outcomeNumeric?: 0 | 1;
   timestamp: string;
   similarityScore: number;
   weightImpact: string;
@@ -29,40 +33,88 @@ export interface WalrusMemoryItem {
   latencyMs?: number;
 }
 
+export interface NaviBorrowMetrics {
+  borrowUtilizationPct: number | null;
+  borrowAprPct: number | null;
+  supplyAprPct: number | null;
+  isOverheated: boolean;
+  source: 'tatum_sui_graphql' | 'public_sui_graphql' | 'defillama_live' | 'unavailable';
+  reserveObjectId: string;
+  fetchedAt: string;
+}
+
 export interface EpistemicEvaluation {
   id: string;
   scenarioId: string | null;
+  marketMode: 'live' | 'stress_replay';
   pair: string;
   timestamp: string;
   tatumCheckpoint: number;
   cetusVolume1h: string;
   deepBookSpreadBps: string;
   naviBorrowPct: number | null;
-  
+  naviBorrowAprPct: number | null;
+  liveNaviApplied: boolean;
+
   // Stateless Agent (Zero Memory)
   statelessConfidence: number; // e.g. 88%
   statelessStance: string; // "AGGRESSIVE 5X LONG"
   statelessRationale: string;
   statelessBrierPenalty: number | null; // null when unseen/unresolved
-  
+
   // Walrus-Augmented Agent (With Persistent Memory)
   walrusConfidence: number; // e.g. 48%
   walrusStance: string; // "CAUTIOUS SPOT ACCUMULATION"
   walrusRationale: string;
+  shortExplanation: string;
   walrusBrierPenalty: number | null; // null when unseen/unresolved
   recalledMemory: WalrusMemoryItem | null;
+  recalledMemories: WalrusMemoryItem[];
   matchQuality: RecallMatchQuality;
   topCandidateSimilarity: number;
   policyApplied: string;
   calibratedLeverage: number;
   recallLatencyMs: number; // e.g. 1,080 ms
-  
+
   actualOutcome:
     | 'DUMP_LONG_SQUEEZE'
     | 'BREAKOUT_CONTINUATION'
     | 'CHOP_DELTA_NEUTRAL'
     | 'ORACLE_WICK_REVERSAL'
     | 'UNKNOWN_UNRESOLVED';
+}
+
+export type ResolvedTradeOutcome = 'LIQUIDATED_OR_STOPPED' | 'SURVIVED_OR_TARGET_HIT';
+
+export interface TradeOutcomeRecord {
+  id: string;
+  timestamp: string;
+  tradeText: string;
+  asset: string;
+  side: 'Long' | 'Short';
+  proposedLeverage: number;
+  calibratedLeverage: number;
+  statelessConfidence: number;
+  walrusConfidence: number;
+  outcome: ResolvedTradeOutcome;
+  outcomeNumeric: 0 | 1;
+  realizedMovePct: number;
+  note: string;
+  naviBorrowPct: number | null;
+  tatumCheckpoint: number;
+  walrusBlobId: string;
+  statelessBrier: number;
+  walrusBrier: number;
+  origin: 'LIVE_OUTCOME';
+}
+
+export interface LiveBrierSummary {
+  count: number;
+  blowupsLogged: number;
+  winsLogged: number;
+  avgStatelessBrier: number | null;
+  avgWalrusBrier: number | null;
+  reductionPct: number | null;
 }
 
 export interface HistoricalBrierRow {
@@ -81,12 +133,14 @@ export interface HistoricalBrierRow {
 export interface TatumMarketState {
   suiPrice: number;
   change24h: number;
-  volatility1h: number;
+  volatility1h: number | null;
   cetusVolume24h: number;
   dexLiquidityUsd?: number;
   latestCheckpoint: number;
   isTatumRpc: boolean;
   gatewayHost: string;
+  marketDataSource: 'live' | 'fallback';
+  navi: NaviBorrowMetrics;
 }
 
 export interface UserWalletState {

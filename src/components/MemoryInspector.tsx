@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type React from 'react';
 import { Search } from 'lucide-react';
-import type { RecallMatchQuality, WalrusMemoryItem } from '../types';
+import type { MemoryOrigin, RecallMatchQuality, WalrusMemoryItem } from '../types';
 import { agentEngine } from '../services/agentEngine';
 import { walrusMemory } from '../services/walrusMemory';
 
@@ -11,6 +11,12 @@ const CATEGORIES: { id: 'ALL' | WalrusMemoryItem['category']; label: string }[] 
   { id: 'REGIME_SHIFT', label: 'Regime shifts' },
   { id: 'CATALYST', label: 'Catalysts' },
   { id: 'ORACLE_OUTCOME', label: 'Oracle outcomes' }
+];
+
+const ORIGINS: { id: 'ALL' | MemoryOrigin; label: string }[] = [
+  { id: 'ALL', label: 'All sources' },
+  { id: 'LIVE_OUTCOME', label: 'Live outcomes' },
+  { id: 'HISTORICAL_BENCHMARK', label: 'Historical benchmarks' }
 ];
 
 const categoryLabel = (c: WalrusMemoryItem['category']) =>
@@ -25,6 +31,7 @@ export const MemoryInspector: React.FC = () => {
   const [memories, setMemories] = useState<WalrusMemoryItem[]>(() => walrusMemory.getAllMemories());
   const [query, setQuery] = useState('');
   const [category, setCategory] = useState<(typeof CATEGORIES)[number]['id']>('ALL');
+  const [originFilter, setOriginFilter] = useState<(typeof ORIGINS)[number]['id']>('ALL');
   const [isSearching, setIsSearching] = useState(false);
   const [searchMeta, setSearchMeta] = useState<{
     active: boolean;
@@ -67,7 +74,7 @@ export const MemoryInspector: React.FC = () => {
     setIsCommitting(true);
     setCommitted(null);
     try {
-      const res = await walrusMemory.remember(text, newCategory);
+      const res = await walrusMemory.remember(text, newCategory, undefined, { origin: 'LIVE_OUTCOME' });
       if (res.success) {
         setMemories([...walrusMemory.getAllMemories()]);
         setSearchMeta({
@@ -84,7 +91,13 @@ export const MemoryInspector: React.FC = () => {
     }
   };
 
-  const shown = memories.filter(m => category === 'ALL' || m.category === category);
+  const shown = memories.filter(m => {
+    const matchesCategory = category === 'ALL' || m.category === category;
+    const itemOrigin: MemoryOrigin = m.origin ?? 'HISTORICAL_BENCHMARK';
+    const matchesOrigin = originFilter === 'ALL' || itemOrigin === originFilter;
+    return matchesCategory && matchesOrigin;
+  });
+  const stats = walrusMemory.getMemoryStats();
   const live = walrusMemory.isConfigured();
 
   return (
@@ -92,10 +105,12 @@ export const MemoryInspector: React.FC = () => {
       <div>
         <h1 className="text-3xl font-medium tracking-tight text-fg">Past Blowups &amp; Setups</h1>
         <p className="mt-2 max-w-xl text-base text-fg-2">
-          Every past trap and market lesson stored on Walrus. RogueTrader searches this vault before sizing your trade.
+          Every past trap and real resolved outcome stored on Walrus. RogueTrader strictly tags live outcomes separately from historical benchmark seeds.
         </p>
         <p className="num mt-2 text-meta text-fg-3">
-          {live ? 'Live on Walrus Mainnet (Account 0xf7bb…e223)' : 'Walrus Mainnet Snapshot (Account 0xf7bb…e223)'} · {memories.length} verified setups
+          {live ? 'Live on Walrus Mainnet (Account 0xf7bb…e223)' : 'Walrus Mainnet Vault (Account 0xf7bb…e223)'} ·{' '}
+          <span className="text-pos">{stats.liveOutcomeCount} live outcome{stats.liveOutcomeCount === 1 ? '' : 's'}</span> ·{' '}
+          {stats.benchmarkCount} historical benchmarks
         </p>
       </div>
 
@@ -115,18 +130,33 @@ export const MemoryInspector: React.FC = () => {
             {isSearching ? 'Searching…' : 'Search'}
           </button>
         </form>
-        <div className="-mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
-          {CATEGORIES.map(c => (
-            <button
-              key={c.id}
-              onClick={() => setCategory(c.id)}
-              className={`h-10 shrink-0 rounded-lg px-3 text-sm transition-colors duration-150 ease-out sm:h-8 ${
-                category === c.id ? 'active-surface text-fg' : 'text-fg-2 hover:text-fg'
-              }`}
-            >
-              {c.label}
-            </button>
-          ))}
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <div className="-mx-4 flex gap-1 overflow-x-auto px-4 sm:mx-0 sm:px-0">
+            {CATEGORIES.map(c => (
+              <button
+                key={c.id}
+                onClick={() => setCategory(c.id)}
+                className={`h-9 shrink-0 cursor-pointer rounded-lg px-3 text-sm transition-colors duration-150 ease-out sm:h-8 ${
+                  category === c.id ? 'active-surface text-fg' : 'text-fg-2 hover:text-fg'
+                }`}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+          <div className="flex gap-1 rounded-lg border border-line bg-deep p-0.5 text-xs">
+            {ORIGINS.map(o => (
+              <button
+                key={o.id}
+                onClick={() => setOriginFilter(o.id)}
+                className={`cursor-pointer rounded-md px-2.5 py-1 transition-colors ${
+                  originFilter === o.id ? 'bg-raised font-medium text-fg' : 'text-fg-3 hover:text-fg-2'
+                }`}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
@@ -137,41 +167,55 @@ export const MemoryInspector: React.FC = () => {
               ? `No memories meet the ${searchMeta.thresholdPct}% relevance threshold (closest match: ${Math.round(
                   searchMeta.topSimilarity * 100
                 )}%). Pre-trade checks for this setup fall back to the conservative baseline cap.`
-              : 'No memories match.'}
+              : originFilter === 'LIVE_OUTCOME'
+                ? 'No live trade outcomes recorded yet. Run a check on the Check trade tab and log a real outcome in Step 4.'
+                : 'No memories match.'}
           </li>
         )}
-        {shown.map(m => (
-          <li key={m.id} className="grid gap-3 p-4 sm:grid-cols-[8rem_1fr_auto] sm:gap-6 sm:p-5">
-            <div className="flex items-baseline justify-between gap-3 sm:block">
-              <p className="text-sm text-fg">{categoryLabel(m.category)}</p>
-              <p className="num text-meta text-fg-3 sm:mt-1">
-                {new Date(m.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
-              </p>
-            </div>
-            <p className="text-sm text-fg-2">{m.text}</p>
-            <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
-              {searchMeta.active && (
-                <span className="keycap">
-                  <span>match</span>
-                  {Math.round(m.similarityScore * 100)}%
+        {shown.map(m => {
+          const isLiveOrigin = m.origin === 'LIVE_OUTCOME';
+          return (
+            <li key={m.id} className="grid gap-3 p-4 sm:grid-cols-[9rem_1fr_auto] sm:gap-6 sm:p-5">
+              <div className="flex items-baseline justify-between gap-3 sm:block">
+                <p className="text-sm text-fg">{categoryLabel(m.category)}</p>
+                <span
+                  className={`mt-1 inline-block rounded border px-1.5 py-0.5 font-mono text-[10px] ${
+                    isLiveOrigin
+                      ? 'border-pos/35 bg-pos/10 text-pos'
+                      : 'border-line bg-raised text-fg-3'
+                  }`}
+                >
+                  {isLiveOrigin ? 'Live outcome' : 'Benchmark'}
                 </span>
-              )}
-              <span className="keycap">
-                <span>walrus</span>
-                {shortHash(m.blobId)}
-              </span>
-              {m.tatumCheckpoint && (
+                <p className="num text-meta text-fg-3 sm:mt-1">
+                  {new Date(m.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                </p>
+              </div>
+              <p className="text-sm text-fg-2">{m.text}</p>
+              <div className="flex flex-wrap items-center gap-2 sm:flex-col sm:items-end">
+                {searchMeta.active && (
+                  <span className="keycap">
+                    <span>match</span>
+                    {Math.round(m.similarityScore * 100)}%
+                  </span>
+                )}
                 <span className="keycap">
-                  <span>block</span>
-                  #{m.tatumCheckpoint.toLocaleString('en-US')}
+                  <span>walrus</span>
+                  {shortHash(m.blobId)}
                 </span>
-              )}
-              <span className={`num text-meta ${m.weightImpact.startsWith('-') ? 'text-neg' : 'text-pos'}`}>
-                {m.weightImpact.replace(' Confidence', ' confidence')}
-              </span>
-            </div>
-          </li>
-        ))}
+                {m.tatumCheckpoint && (
+                  <span className="keycap">
+                    <span>block</span>
+                    #{m.tatumCheckpoint.toLocaleString('en-US')}
+                  </span>
+                )}
+                <span className={`num text-meta ${m.weightImpact.startsWith('-') ? 'text-neg' : 'text-pos'}`}>
+                  {m.weightImpact.replace(' Confidence', ' confidence')}
+                </span>
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       <form onSubmit={commit} className="rounded-2xl border border-line bg-card p-5">

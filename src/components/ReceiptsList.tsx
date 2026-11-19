@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import type React from 'react';
 import { Check, Copy } from 'lucide-react';
 import type { X402Receipt, UserWalletState } from '../types';
@@ -16,7 +16,7 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
   const [isSettling, setIsSettling] = useState(false);
   const [customDigest, setCustomDigest] = useState('');
   const [copied, setCopied] = useState<string | null>(null);
-  const invoice = useMemo(() => x402Payment.generateInvoice(0.05), [receipts.length]);
+  const [invoice, setInvoice] = useState(() => x402Payment.generateInvoice(0.05));
 
   const activeDigest = customDigest.trim() || receipts[0]?.txDigest || '5VGXV3D6nT8N3vw67LyJTXRQNkiLY8bLaJoAs1iqEJ2N';
 
@@ -24,7 +24,10 @@ export const ReceiptsList: React.FC<ReceiptsListProps> = ({ receipts, wallet, on
     setIsSettling(true);
     try {
       const res = await x402Payment.settleInvoice(invoice, wallet.address, customDigest.trim() || undefined);
-      if (res.success && res.receipt) onPaymentSuccess(res.receipt);
+      if (res.success && res.receipt) {
+        onPaymentSuccess(res.receipt);
+        setInvoice(x402Payment.generateInvoice(0.05));
+      }
     } finally {
       setIsSettling(false);
     }

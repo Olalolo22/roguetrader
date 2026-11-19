@@ -19,6 +19,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'thAHmeWQNFkTOjN-sdmU7SVKuXI2jWpO3wzTXgjr6R0',
     text: 'Oct 14 2026 [Venue: Cetus $14.2M | Borrow: 78.4% NAVI | Book: 0.62x Bid/Ask]: Failed SUI breakout above $2.15. High borrow crowding (>75%) triggered an -8.2% long-squeeze cascade 40m later. Mandate: Cut leverage to 2x (keep wipeout buffer >12%).',
     category: 'FAILURE_CASE',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-10-14T14:22:10Z',
     similarityScore: 0.94,
     weightImpact: '-32% Confidence',
@@ -30,6 +32,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: '1ZOLBULVD-pOR80s3qADLhBbPHmA6yVQ1rs7Y4QoiJM',
     text: 'Oct 16 2026 [Venue: Cetus $24.1M | Borrow: 48.2% NAVI | Book: 1.8 bps Spread]: SUI/USDC sustained +12.4% institutional breakout over 24h. Low borrow crowding (<52%) and DeepBook spot bid absorption confirmed real trend.',
     category: 'CATALYST',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 1,
     timestamp: '2026-10-16T09:15:00Z',
     similarityScore: 0.91,
     weightImpact: '+14% Confidence',
@@ -41,6 +45,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'qlvh2ujy6cs7mTgjoWPK_k8OCcKdWE-2BNKWcMtKr5E',
     text: 'Oct 18 2026 [Venue: CETUS/SUI | Pool Depth: Shallow | Scallop Borrow: 74%]: False reversal wick on CETUS/SUI. Thin liquidation pool depth caused artificial oracle wick that stopped out leveraged longs.',
     category: 'FAILURE_CASE',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-10-18T18:40:00Z',
     similarityScore: 0.89,
     weightImpact: '-20% Confidence',
@@ -52,6 +58,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'BamlyvKWqCgUcjK_kQ2YiM94grCFrkl5u1f3fRYA2z8',
     text: 'Oct 19 2026 [Venue: Cetus vs Pyth | Sui Epoch Boundary: 512 | Oracle Lag: 40s]: Pyth oracle feed latency during Sui epoch transition caused a phantom 0.8% AMM discount that snapped back immediately. Mandate: Halt arb entries at epoch boundary.',
     category: 'REGIME_SHIFT',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-10-19T21:00:00Z',
     similarityScore: 0.92,
     weightImpact: '-38% Confidence (Halt)',
@@ -63,6 +71,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'gi3MnkJ1wY-f7nPs1ODkjnx7D0CJBdKixFqH1LoNxW0',
     text: 'Oct 24 2026 [Venue: CETUS/SUI | Social Velocity: +340% | Book: 0.64x Ask-Heavy | Borrow: 84.7%]: Retail social euphoria spike with lagging DeepBook bid depth (-42%) suffered a -16% bull-trap dump within 2 hours.',
     category: 'FAILURE_CASE',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-10-24T12:00:00Z',
     similarityScore: 0.96,
     weightImpact: '-44% Confidence',
@@ -74,6 +84,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'u29gxoSNeyIB6DOBR-GL1rieV6O3lXFfwdfomb2ytHY',
     text: 'Oct 25 2026 [Venue: DEEP/SUI | Bid Absorption: 500k SUI | Borrow: 44%]: DeepBook limit orders absorbed 500k SUI sell volume at $0.082 support without breakdown, confirming institutional accumulation.',
     category: 'CATALYST',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 1,
     timestamp: '2026-10-25T16:20:00Z',
     similarityScore: 0.84,
     weightImpact: '+11% Confidence',
@@ -85,6 +97,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'kxziGvQVIZ25vsfvvMxZo9GSzdeQAhGJgL6Z-CAXBcs',
     text: 'Oct 28 2026 [Venue: Cetus vs DeepBook | Volatility: 4.8% 1h | NAVI Borrow: 76.2%]: SUI flash dip through DeepBook bid vacuum. Rapid stop-hunt wicked longs before bouncing. Mandate: Require orderbook depth > 2x position size.',
     category: 'FAILURE_CASE',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-10-28T11:15:00Z',
     similarityScore: 0.87,
     weightImpact: '-26% Confidence',
@@ -96,6 +110,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'oceCZClMB-mLNKFGNhyAyqHPm7i-GiTaWeXdcddveAE',
     text: 'Oct 30 2026 [Venue: NAVI / Scallop Flash-Loan | Borrow: 82%]: Large flash-loan liquidity shift temporarily distorted lending pool APY to 140%, forcing automated vault deleveraging. Mandate: Filter out flash-loan-induced APY spikes.',
     category: 'FAILURE_CASE',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-10-30T14:45:00Z',
     similarityScore: 0.89,
     weightImpact: '-30% Confidence',
@@ -107,6 +123,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'VyTfLjzJqL7MBYOufVlPBvD2WFs54HxoztDQHCxXdzk',
     text: 'Nov 02 2026 [Venue: Cetus SUI/USDC | Spread: 0.9 bps | Vol: $31M (+45%)]: Clean trend continuation post-consolidation with low leverage (<40%). Long positions scaled safely up to 3x with zero liquidation stress.',
     category: 'CATALYST',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 1,
     timestamp: '2026-11-02T08:30:00Z',
     similarityScore: 0.93,
     weightImpact: '+18% Confidence',
@@ -118,6 +136,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'F6pMrdzRAen9NQZzsADr7Lj8bUAr8WXzzy_9OwFwKHs',
     text: 'Nov 04 2026 [Venue: Cetus Meme Pools | Scallop Borrow: 86%]: Overleveraged longs on high-beta meme tokens experienced a -22% cascade liquidation within 15 minutes. Mandate: Cap meme asset leverage at 1x spot.',
     category: 'FAILURE_CASE',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-11-04T19:10:00Z',
     similarityScore: 0.95,
     weightImpact: '-40% Confidence',
@@ -129,6 +149,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: '-geRj7clDG5AxtiNpmz35jpoRrUg0LcavGuLAYsnjoM',
     text: 'Nov 06 2026 [Venue: Sui Checkpoint Lag | Oracle Tick: Delayed 25s]: Network congestion caused temporary 25s delay in Pyth price push on Cetus CLMM. Directional market orders suffered 1.2% slippage. Mandate: Enforce limit orders only during congestion.',
     category: 'REGIME_SHIFT',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 0,
     timestamp: '2026-11-06T15:20:00Z',
     similarityScore: 0.88,
     weightImpact: '-25% Confidence',
@@ -140,6 +162,8 @@ export const INITIAL_WALRUS_MEMORIES: WalrusMemoryItem[] = [
     blobId: 'uCWoMfbtNImcsKdyhkHh5Yzql2z3ehK_v6HteE3KJIQ',
     text: 'Nov 08 2026 [Venue: DeepBook v3 Wholesale | Bid Depth: $8.2M]: Wall of institutional bids absorbed heavy sell pressure at $2.02, preventing cascading liquidations across Sui perps. Mandate: Re-enable trend-following above verified wall.',
     category: 'CATALYST',
+    origin: 'HISTORICAL_BENCHMARK',
+    outcomeNumeric: 1,
     timestamp: '2026-11-08T13:40:00Z',
     similarityScore: 0.90,
     weightImpact: '+16% Confidence',
@@ -518,10 +542,19 @@ export function rankMemoriesLocally(
   const scored = memories
     .map(m => ({
       ...m,
-      similarityScore: scoreMemoryRelevance(query, m.text, m.id.startsWith('wal-')),
+      similarityScore: scoreMemoryRelevance(
+        query,
+        m.text,
+        m.origin === 'LIVE_OUTCOME' || m.id.startsWith('wal-')
+      ),
       latencyMs
     }))
-    .sort((a, b) => b.similarityScore - a.similarityScore);
+    .sort((a, b) => {
+      if (b.similarityScore !== a.similarityScore) return b.similarityScore - a.similarityScore;
+      const aLive = a.origin === 'LIVE_OUTCOME' || a.id.startsWith('wal-') ? 1 : 0;
+      const bLive = b.origin === 'LIVE_OUTCOME' || b.id.startsWith('wal-') ? 1 : 0;
+      return bLive - aLive;
+    });
 
   const topSimilarity = scored[0]?.similarityScore ?? 0;
   const matchQuality = classifyMatchQuality(topSimilarity, policy);
@@ -544,7 +577,9 @@ export interface CalibrationOutcome {
   calibratedLeverage: number;
   walrusStance: string;
   walrusRationale: string;
+  shortExplanation: string;
   policyApplied: string;
+  liveNaviApplied: boolean;
 }
 
 export function computeRiskCalibration(params: {
@@ -553,11 +588,43 @@ export function computeRiskCalibration(params: {
   ranked: RankedRecallOutput;
   policy?: RiskCalibrationPolicy;
   strongCalibratedStanceOverride?: string;
+  liveNaviUtilizationPct?: number | null;
+  isSuiTrackedAsset?: boolean;
 }): CalibrationOutcome {
   const policy = normalizePolicy(params.policy);
   const { proposedLeverage, statelessConfidence, ranked } = params;
   const topMemory = ranked.results[0] ?? null;
   const matchQuality = ranked.matchQuality;
+  const liveNaviPct =
+    typeof params.liveNaviUtilizationPct === 'number' && Number.isFinite(params.liveNaviUtilizationPct)
+      ? params.liveNaviUtilizationPct
+      : null;
+  const liveNaviOverheated =
+    liveNaviPct != null && liveNaviPct >= 75 && (params.isSuiTrackedAsset ?? true);
+
+  const applyLiveNaviGuard = (
+    base: Omit<CalibrationOutcome, 'liveNaviApplied'>
+  ): CalibrationOutcome => {
+    if (!liveNaviOverheated || proposedLeverage <= 1) {
+      return { ...base, liveNaviApplied: false };
+    }
+    const cappedLev = Math.min(base.calibratedLeverage, 2);
+    const dampedConf = Math.min(base.walrusConfidence, Math.max(38, statelessConfidence - 22));
+    const naviNote = `Live NAVI SUI borrow utilization is ${liveNaviPct!.toFixed(
+      1
+    )}% (≥75% squeeze zone), enforcing a 2x max leverage ceiling.`;
+    return {
+      ...base,
+      walrusConfidence: dampedConf,
+      calibratedLeverage: cappedLev,
+      walrusStance:
+        cappedLev < proposedLeverage ? 'LIVE NAVI OVERHEAT · LEVERAGE CAPPED' : base.walrusStance,
+      walrusRationale: `${base.walrusRationale} ${naviNote}`,
+      shortExplanation: `${base.shortExplanation} ${naviNote}`,
+      policyApplied: `${base.policyApplied}+live_navi_overheat_cap`,
+      liveNaviApplied: true
+    };
+  };
 
   // State 3: No meaningful match -> explicit, deterministic baseline risk constraint
   if (matchQuality === 'UNFAMILIAR_REGIME' || !topMemory) {
@@ -578,7 +645,18 @@ export function computeRiskCalibration(params: {
       policy.unfamiliarConfidenceCap
     }% and leverage capped at ${policy.unfamiliarMaxLeverage}x baseline limit.`;
 
-    return {
+    const shortExplanation =
+      proposedLeverage > policy.unfamiliarMaxLeverage
+        ? `No past blowup matched this setup (${Math.round(
+            ranked.topSimilarity * 100
+          )}% similarity). Because this regime is unseen, leverage is capped at ${calibratedLeverage}x until real outcomes are recorded.`
+        : `No past blowup matched this setup (${Math.round(
+            ranked.topSimilarity * 100
+          )}% similarity). Your ${calibratedLeverage}x size is already inside the ${
+            policy.unfamiliarMaxLeverage
+          }x unfamiliar-regime cap.`;
+
+    return applyLiveNaviGuard({
       matchQuality: 'UNFAMILIAR_REGIME',
       topCandidateSimilarity: ranked.topSimilarity,
       recalledMemory: null,
@@ -587,8 +665,9 @@ export function computeRiskCalibration(params: {
       calibratedLeverage,
       walrusStance: stance,
       walrusRationale: rationale,
+      shortExplanation,
       policyApplied: `unfamiliar_baseline_cap (max ${policy.unfamiliarMaxLeverage}x, conf ≤ ${policy.unfamiliarConfidenceCap}%)`
-    };
+    });
   }
 
   // State 2: Weak / partial match -> dampen memory adjustment, disallow catalyst boost, cap leverage
@@ -625,7 +704,11 @@ export function computeRiskCalibration(params: {
       policy.weakMatchDampening * 100
     )}% and leverage capped at ${policy.weakMatchMaxLeverage}x.`;
 
-    return {
+    const shortExplanation = `Found a partial memory match (${Math.round(
+      ranked.topSimilarity * 100
+    )}% similarity). Leverage is conservatively capped at ${calibratedLeverage}x while discounting the partial signal.`;
+
+    return applyLiveNaviGuard({
       matchQuality: 'WEAK_MATCH',
       topCandidateSimilarity: ranked.topSimilarity,
       recalledMemory: topMemory,
@@ -634,10 +717,11 @@ export function computeRiskCalibration(params: {
       calibratedLeverage,
       walrusStance: 'PARTIAL MATCH · CONSERVATIVE CAP',
       walrusRationale: rationale,
+      shortExplanation,
       policyApplied: `weak_match_dampened (${Math.round(policy.weakMatchDampening * 100)}% weight, max ${
         policy.weakMatchMaxLeverage
       }x)`
-    };
+    });
   }
 
   // State 1: Strong match -> full historical memory calibration
@@ -649,7 +733,13 @@ export function computeRiskCalibration(params: {
         ? proposedLeverage
         : Math.max(1, Math.min(proposedLeverage, roundHalf(proposedLeverage)));
 
-    return {
+    const originWord =
+      topMemory.origin === 'LIVE_OUTCOME' ? 'a winning outcome you recorded' : 'a past winning breakout';
+    const shortExplanation = `Matched ${originWord} (${Math.round(
+      ranked.topSimilarity * 100
+    )}% similarity) with no blowup warning. Your ${calibratedLeverage}x size is cleared.`;
+
+    return applyLiveNaviGuard({
       matchQuality: 'STRONG_MATCH',
       topCandidateSimilarity: ranked.topSimilarity,
       recalledMemory: topMemory,
@@ -658,8 +748,9 @@ export function computeRiskCalibration(params: {
       calibratedLeverage,
       walrusStance: params.strongCalibratedStanceOverride || 'HIGH-CONVICTION ENTRY',
       walrusRationale: topMemory.text,
+      shortExplanation,
       policyApplied: 'strong_match_catalyst_backed'
-    };
+    });
   }
 
   const failureMemories = ranked.results.filter(m => m.category !== 'CATALYST');
@@ -673,9 +764,25 @@ export function computeRiskCalibration(params: {
   const calibratedLeverage =
     proposedLeverage <= 1
       ? proposedLeverage
-      : Math.max(1, Math.min(proposedLeverage, roundHalf(proposedLeverage * (walrusConfidence / statelessConfidence))));
+      : Math.max(
+          1,
+          Math.min(proposedLeverage, roundHalf(proposedLeverage * (walrusConfidence / statelessConfidence)))
+        );
 
-  return {
+  const originWord =
+    topMemory.origin === 'LIVE_OUTCOME' ? 'a real blowup you recorded' : 'a past liquidation trap';
+  const shortExplanation =
+    calibratedLeverage < proposedLeverage
+      ? `Matched ${originWord} (${Math.round(
+          ranked.topSimilarity * 100
+        )}% similarity). Leverage cut from ${proposedLeverage}x to ${calibratedLeverage}x so your liquidation buffer widens from ${(
+          100 / proposedLeverage
+        ).toFixed(1)}% to ${calibratedLeverage <= 1 ? 'no liquidation (spot)' : `${(100 / calibratedLeverage).toFixed(1)}%`}.`
+      : `Matched ${originWord} (${Math.round(
+          ranked.topSimilarity * 100
+        )}% similarity). Confidence trimmed from ${statelessConfidence}% to ${walrusConfidence}% while keeping ${calibratedLeverage}x spot sizing.`;
+
+  return applyLiveNaviGuard({
     matchQuality: 'STRONG_MATCH',
     topCandidateSimilarity: ranked.topSimilarity,
     recalledMemory: topMemory,
@@ -684,6 +791,7 @@ export function computeRiskCalibration(params: {
     calibratedLeverage,
     walrusStance: params.strongCalibratedStanceOverride || 'PROTECTED SIZING',
     walrusRationale: topMemory.text,
+    shortExplanation,
     policyApplied: 'strong_match_failure_shrinkage'
-  };
+  });
 }

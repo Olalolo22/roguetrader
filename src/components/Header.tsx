@@ -5,10 +5,10 @@ import type { TatumMarketState } from '../types';
 export type DeskTab = 'overview' | 'check' | 'memory' | 'x402';
 
 const TABS: { id: DeskTab; label: string; mobileLabel: string }[] = [
-  { id: 'overview', label: 'Overview', mobileLabel: 'Overview' },
-  { id: 'check', label: 'Check trade', mobileLabel: 'Check trade' },
-  { id: 'memory', label: 'Past blowups', mobileLabel: 'Past blowups' },
-  { id: 'x402', label: 'Bot API (x402)', mobileLabel: 'Bot API' }
+  { id: 'check', label: 'Check trade', mobileLabel: 'Check' },
+  { id: 'memory', label: 'Past blowups', mobileLabel: 'Memory' },
+  { id: 'x402', label: 'Bot API (x402)', mobileLabel: 'Bot API' },
+  { id: 'overview', label: 'How it works', mobileLabel: 'Guide' }
 ];
 
 interface HeaderProps {
@@ -32,7 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="sticky top-0 z-40 border-b border-line bg-page/95 backdrop-blur">
       <div className="mx-auto flex h-14 max-w-6xl items-center gap-6 px-4 sm:px-6">
         <button
-          onClick={() => setActiveTab('overview')}
+          onClick={() => setActiveTab('check')}
           className="h-10 text-base font-medium tracking-tight text-fg cursor-pointer"
         >
           RogueTrader
@@ -63,7 +63,18 @@ export const Header: React.FC<HeaderProps> = ({
                   {marketState.change24h.toFixed(2)}%
                 </span>
               </span>
-              <span className="keycap" title={marketState.isTatumRpc ? 'Live via Tatum Sui gateway' : 'Live via public Sui RPC'}>
+              {marketState.navi.borrowUtilizationPct != null && (
+                <span
+                  className="keycap"
+                  title={`Live NAVI SUI borrow utilization (${marketState.navi.source})`}
+                >
+                  <span>NAVI</span>
+                  <span className={marketState.navi.isOverheated ? 'text-neg' : 'text-fg'}>
+                    {marketState.navi.borrowUtilizationPct.toFixed(1)}%
+                  </span>
+                </span>
+              )}
+              <span className="keycap" title={marketState.isTatumRpc ? 'Live via Tatum Sui GraphQL' : 'Live via public Sui GraphQL'}>
                 <span className="live-dot" aria-hidden />
                 <span>block</span>
                 #{marketState.latestCheckpoint.toLocaleString('en-US')}

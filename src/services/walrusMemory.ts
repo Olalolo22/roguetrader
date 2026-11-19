@@ -1,5 +1,10 @@
 import { MemWal, MemWalMock } from '@mysten-incubation/memwal';
-import type { RecallMatchQuality, RiskCalibrationPolicy, WalrusMemoryItem } from '../types';
+import type {
+  MemoryOrigin,
+  RecallMatchQuality,
+  RiskCalibrationPolicy,
+  WalrusMemoryItem
+} from '../types/index.ts';
 import {
   classifyMatchQuality,
   DEFAULT_RISK_POLICY,
@@ -7,9 +12,11 @@ import {
   INITIAL_WALRUS_MEMORIES,
   normalizePolicy,
   rankMemoriesLocally
-} from './riskPolicy';
+} from './riskPolicy.ts';
 
 export { INITIAL_WALRUS_MEMORIES };
+
+const LIVE_MEMORIES_STORAGE_KEY = 'roguetrader-live-memories-v1';
 
 export interface WalrusRecallResponse {
   results: WalrusMemoryItem[];
@@ -21,13 +28,53 @@ export interface WalrusRecallResponse {
   source: 'live_relayer' | 'sdk_mock';
 }
 
+function loadPersistedLiveMemories(): WalrusMemoryItem[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = window.localStorage.getItem(LIVE_MEMORIES_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item): item is WalrusMemoryItem => Boolean(item && typeof item.text === 'string' && item.id))
+      .map(item => ({
+        ...item,
+        origin: 'LIVE_OUTCOME' as const
+      }));
+  } catch {
+    return [];
+  }
+}
+
+function savePersistedLiveMemories(memories: WalrusMemoryItem[]): void {
+  if (typeof window === 'undefined') return;
+  try {
+    const liveOnly = memories.filter(m => m.origin === 'LIVE_OUTCOME');
+    window.localStorage.setItem(LIVE_MEMORIES_STORAGE_KEY, JSON.stringify(liveOnly));
+  } catch {
+    // Ignore storage quota errors
+  }
+}
+
+function readEnvVar(name: string): string {
+  if (typeof import.meta === 'undefined') return '';
+  const env = (import.meta as { env?: Record<string, string | undefined> }).env;
+  return (env?.[name] ?? '').trim();
+}
+
 class WalrusMemoryService {
   private memwalClient: any = null;
   private mockClient: MemWalMock;
   private isLiveConfigured: boolean = false;
-  private memories: WalrusMemoryItem[] = [...INITIAL_WALRUS_MEMORIES];
+  private memories: WalrusMemoryItem[];
 
   constructor() {
+    const persistedLive = loadPersistedLiveMemories();
+    this.memories = [
+      ...persistedLive,
+      ...INITIAL_WALRUS_MEMORIES.map(m => ({ ...m, origin: 'HISTORICAL_BENCHMARK' as const }))
+    ];
+
     this.mockClient = MemWalMock.create({
       namespace: 'roguetrader',
       initialMemories: this.memories.map(m => ({
@@ -37,8 +84,8 @@ class WalrusMemoryService {
       }))
     });
 
-    const envKey = import.meta.env.VITE_MEMWAL_KEY;
-    const envAccount = import.meta.env.VITE_MEMWAL_ACCOUNT_ID;
+    const envKey = readEnvVar('VITE_MEMWAL_KEY');
+    const envAccount = readEnvVar('VITE_MEMWAL_ACCOUNT_ID');
     if (envKey && envAccount) {
       this.configureLive(envKey, envAccount);
     }
@@ -107,6 +154,8 @@ class WalrusMemoryService {
                 blobId: r.blob_id || r.id || '',
                 text,
                 category: matchedSeed?.category || inferMemoryCategory(text),
+                origin: matchedSeed?.origin ?? 'LIVE_OUTCOME',
+                outcomeNumeric: matchedSeed?.outcomeNumeric,
                 timestamp: r.created_at || matchedSeed?.timestamp || new Date().toISOString(),
                 similarityScore: sim,
                 weightImpact: matchedSeed?.weightImpact || '-30% Confidence',
@@ -159,33 +208,48 @@ class WalrusMemoryService {
   public async remember(
     text: string,
     category: WalrusMemoryItem['category'] = 'FAILURE_CASE',
-    tatumCheckpoint: number = 89412950
-  ): Promise<{ success: boolean; memory: WalrusMemoryItem; latencyMs: number; isAsyncWal: boolean }> {
+    tatumCheckpoint: number = 89412950,
+    options?: {
+      origin?: MemoryOrigin;
+      outcomeNumeric?: 0 | 1;
+    }
+  ): Promise<{
+    success: boolean;
+    memory: WalrusMemoryItem;
+    latencyMs: number;
+    isAsyncWal: boolean;
+    storedOnLiveRelayer: boolean;
+  }> {
     const startTime = performance.now();
+    const origin: MemoryOrigin = options?.origin ?? 'LIVE_OUTCOME';
 
     let resolvedBlobId = 'walrus_' + Math.random().toString(36).slice(2, 14);
+    let storedOnLiveRelayer = false;
 
     if (this.isLiveConfigured && this.memwalClient) {
       try {
         const relayerRes = await this.memwalClient.rememberAsync(text, 'roguetrader');
         if (relayerRes?.blob_id || relayerRes?.job_id || relayerRes?.id) {
           resolvedBlobId = relayerRes.blob_id || relayerRes.job_id || relayerRes.id;
+          storedOnLiveRelayer = true;
         }
       } catch {
-        // Fallback to local state
+        // Fallback to local persisted memory state
       }
     }
 
     const newMemory: WalrusMemoryItem = {
-      id: `wal-${Date.now()}`,
+      id: `wal-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       blobId: resolvedBlobId,
       text,
       category,
+      origin,
+      outcomeNumeric: options?.outcomeNumeric,
       timestamp: new Date().toISOString(),
       similarityScore: 1.0,
-      weightImpact: category === 'FAILURE_CASE' ? '-30% Confidence' : '+15% Confidence',
+      weightImpact: category === 'CATALYST' ? '+14% Confidence' : '-32% Confidence',
       tatumCheckpoint,
-      latencyMs: 19400 // Real Walrus Mainnet write-ahead logging timing
+      latencyMs: storedOnLiveRelayer ? 19400 : 120
     };
 
     try {
@@ -195,18 +259,33 @@ class WalrusMemoryService {
     }
 
     this.memories.unshift(newMemory);
+    if (origin === 'LIVE_OUTCOME') {
+      savePersistedLiveMemories(this.memories);
+    }
+
     const latencyMs = Math.round(performance.now() - startTime);
 
     return {
       success: true,
       memory: newMemory,
       latencyMs,
-      isAsyncWal: true
+      isAsyncWal: true,
+      storedOnLiveRelayer
     };
   }
 
   public getAllMemories(): WalrusMemoryItem[] {
     return this.memories;
+  }
+
+  public getMemoryStats(): { total: number; liveOutcomeCount: number; benchmarkCount: number } {
+    const liveOutcomeCount = this.memories.filter(m => m.origin === 'LIVE_OUTCOME').length;
+    const benchmarkCount = this.memories.length - liveOutcomeCount;
+    return {
+      total: this.memories.length,
+      liveOutcomeCount,
+      benchmarkCount
+    };
   }
 }
 

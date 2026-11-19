@@ -1,4 +1,5 @@
 import type { TatumMarketState } from '../types/index.ts';
+import { fetchLiveNaviSuiMetrics } from './naviOracle.ts';
 
 const TATUM_GRAPHQL_URL = 'https://sui-mainnet.gateway.tatum.io/graphql';
 const PUBLIC_SUI_GRAPHQL_URL = 'https://graphql.mainnet.sui.io/graphql';
@@ -120,12 +121,17 @@ export class TatumSuiService {
   }
 
   public async getMarketState(): Promise<TatumMarketState> {
-    const checkpoint = await this.getLatestCheckpoint();
+    const [checkpoint, navi] = await Promise.all([
+      this.getLatestCheckpoint(),
+      fetchLiveNaviSuiMetrics({ tatumApiKey: this.tatumApiKey })
+    ]);
 
     let suiPrice = 0.849;
     let change24h = 0.57;
+    let volatility1h: number | null = null;
     let cetusVolume24h = 3321068;
     let dexLiquidityUsd = 777665;
+    let gotLiveMarketFeed = navi.source !== 'unavailable';
 
     // Step 1: Query Tatum's Official Exchange Rate API for SUI USD Resolution
     if (this.tatumApiKey) {
@@ -137,6 +143,7 @@ export class TatumSuiService {
           const rateData = await rateRes.json();
           if (rateData?.value) {
             suiPrice = parseFloat(rateData.value) || suiPrice;
+            gotLiveMarketFeed = true;
           }
         }
       } catch {
@@ -144,7 +151,7 @@ export class TatumSuiService {
       }
     }
 
-    // Step 2: Query Live Sui DEX Liquidity & Volume
+    // Step 2: Query Live Sui DEX Liquidity, 24h Volume & 1h Volatility
     try {
       const dexRes = await fetch('https://api.dexscreener.com/latest/dex/tokens/0x2::sui::SUI');
       if (dexRes.ok) {
@@ -153,30 +160,40 @@ export class TatumSuiService {
         const topPair = pairs[0];
         if (!this.tatumApiKey && topPair?.priceUsd) {
           suiPrice = parseFloat(topPair.priceUsd) || suiPrice;
+          gotLiveMarketFeed = true;
         }
         if (typeof topPair?.priceChange?.h24 === 'number') {
           change24h = topPair.priceChange.h24;
+          gotLiveMarketFeed = true;
+        }
+        if (typeof topPair?.priceChange?.h1 === 'number' && Number.isFinite(topPair.priceChange.h1)) {
+          volatility1h = Number(Math.abs(topPair.priceChange.h1).toFixed(2));
         }
         // Aggregate 24h volume & liquidity across active Sui DEX pools
         const suiPools = pairs.slice(0, 8);
         const totalVol = suiPools.reduce((acc: number, p: any) => acc + (Number(p?.volume?.h24) || 0), 0);
         const totalLiq = suiPools.reduce((acc: number, p: any) => acc + (Number(p?.liquidity?.usd) || 0), 0);
-        if (totalVol > 0) cetusVolume24h = Math.round(totalVol);
+        if (totalVol > 0) {
+          cetusVolume24h = Math.round(totalVol);
+          gotLiveMarketFeed = true;
+        }
         if (totalLiq > 0) dexLiquidityUsd = Math.round(totalLiq);
       }
     } catch {
-      // Fallback to verified Mainnet snapshot if offline
+      // Fallback snapshot if offline
     }
 
     return {
       suiPrice,
       change24h,
-      volatility1h: 2.14,
+      volatility1h,
       cetusVolume24h,
       dexLiquidityUsd,
       latestCheckpoint: checkpoint,
       isTatumRpc: this.isUsingTatum(),
-      gatewayHost: this.getGatewayHost()
+      gatewayHost: this.getGatewayHost(),
+      marketDataSource: gotLiveMarketFeed ? 'live' : 'fallback',
+      navi
     };
   }
 
